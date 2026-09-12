@@ -3433,9 +3433,9 @@ class ObjectManager extends Service {
                                 if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                                     $translation_table_alias = $add_table('core_translation');
                                     // add join conditions
-                                    $conditions[$j][] = array($table_alias.'.id', '=', '`'.$translation_table_alias.'.object_id`');
-                                    $conditions[$j][] = array($translation_table_alias.'.object_class', '=', self::getObjectRootClass($class));
-                                    $conditions[$j][] = array($translation_table_alias.'.object_field', '=', $field);
+                                    $conditions[$j][] = [$table_alias.'.id', '=', '`'.$translation_table_alias.'.object_id`'];
+                                    $conditions[$j][] = [$translation_table_alias.'.object_class', '=', self::getObjectRootClass($class)];
+                                    $conditions[$j][] = [$translation_table_alias.'.object_field', '=', $field];
                                     $field = $translation_table_alias.'.value';
                                 }
                                 // simple fields always match table fields
@@ -3461,10 +3461,10 @@ class ObjectManager extends Service {
                     // search only among non-draft and non-deleted records
                     // (unless at least one clause was related to those fields - and consequently corresponding key in array $special_fields has been unset in the code above)
                     if(isset($special_fields['state'])) {
-                        $conditions[$j][] = array($table_alias.'.state', '=', 'instance');
+                        $conditions[$j][] = [$table_alias.'.state', '=', 'instance'];
                     }
                     if(isset($special_fields['deleted'])) {
-                        $conditions[$j][] = array($table_alias.'.deleted', '=', '0');
+                        $conditions[$j][] = [$table_alias.'.deleted', '=', '0'];
                     }
                     // add join conditions to current clause
                     foreach($join_conditions as $join_condition) {
@@ -3484,8 +3484,8 @@ class ObjectManager extends Service {
             }
             else { // no domain is specified
                 // search only amongst non-draft and non-deleted records
-                $conditions[0][] = array($table_alias.'.state', '=', 'instance');
-                $conditions[0][] = array($table_alias.'.deleted', '=', '0');
+                $conditions[0][] = [$table_alias.'.state', '=', 'instance'];
+                $conditions[0][] = [$table_alias.'.deleted', '=', '0'];
             }
 
             // Model discrimination is structural: apply it to every OR branch so
