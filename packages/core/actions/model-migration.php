@@ -6,16 +6,15 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use equal\data\adapt\DataAdapterProviderSql;
 use equal\db\DBConnector;
 
 [$params, $providers] = eQual::announce([
-    'description'   => 'Discover ORM model-table mappings, then validate an edited migration file and backfill model discriminators.',
+    'description'   => 'Discover ORM model-table mappings and identify the required model discriminator migrations.',
     'params'        => [
         'phase' => [
             'description'   => 'Migration phase to execute.',
             'type'          => 'string',
-            'selection'     => ['discover', 'backfill'],
+            'selection'     => ['discover'],
             'required'      => true
         ]
     ],
@@ -312,176 +311,24 @@ $analyze = static function(array $configured_migration) use($countTableRows, $db
     return [$migration, $discovered_tables];
 };
 
-$migration = $loadMigration($migration_file, $params['phase'] === 'backfill');
-[$analysis, $discovered_tables] = $analyze($migration);
+$migration = $loadMigration($migration_file);
+[$analysis] = $analyze($migration);
 
-if($params['phase'] === 'discover') {
-    $writeMigration($migration_file, $analysis);
+$writeMigration($migration_file, $analysis);
 
-    $ready_tables = 0;
-    foreach($analysis['tables'] as $table) {
-        if($table['ready']) {
-            ++$ready_tables;
-        }
-    }
-
-    $context->httpResponse()
-        ->status(200)
-        ->body([
-            'phase'        => 'discover',
-            'file'         => 'cache/model-migration.json',
-            'tables'       => count($analysis['tables']),
-            'ready_tables' => $ready_tables
-        ])
-        ->send();
-
-    exit(0);
-}
-elseif($params['phase'] === 'backfill') {
-    // Keep the migration file as the source of truth for both configuration and analysis.
-    $writeMigration($migration_file, $analysis);
-
-    $not_ready_tables = [];
-    foreach($analysis['tables'] as $table => $descriptor) {
-        if(!$descriptor['ready']) {
-            $not_ready_tables[$table] = $descriptor['errors'];
-        }
-    }
-    if(count($not_ready_tables)) {
-        throw new Exception('model_migration_not_ready:'.json_encode($not_ready_tables), EQ_ERROR_INVALID_CONFIG);
-    }
-
-    $dap = new DataAdapterProviderSql();
-    $summary = [];
-    $columns_to_add = [];
-
-    foreach($analysis['tables'] as $table => $descriptor) {
-        $columns = $descriptor['columns'];
-        if(!in_array('model', $columns, true)) {
-            $models = $discovered_tables[$table]['models'];
-            $model = reset($models);
-            $field = $model->getField('model');
-            if(!$field) {
-                throw new Exception('missing_model_field', EQ_ERROR_INVALID_CONFIG);
-            }
-
-            $adapter = $dap->get($field->getContentType());
-            if(!$adapter) {
-                throw new Exception('unresolved_adapter', EQ_ERROR_INVALID_CONFIG);
-            }
-            $type = $adapter->castOutType($field->getUsage());
-            if(!strlen($type)) {
-                throw new Exception('unresolved_sql_type', EQ_ERROR_INVALID_CONFIG);
-            }
-
-            $columns_to_add[$table] = [
-                'type' => $type,
-                'null' => true
-            ];
-        }
-    }
-
-    foreach($columns_to_add as $table => $definition) {
-        $db->sendQuery($db->getQueryAddColumn($table, 'model', $definition));
-
-        $indexed_fields = ['model', 'state', 'deleted', 'id'];
-        $existing_fields = $analysis['tables'][$table]['columns'];
-        if(empty(array_diff(['state', 'deleted', 'id'], $existing_fields))) {
-            $db->sendQuery($db->getQueryAddCompositeIndex($table, $indexed_fields));
-        }
-    }
-
-    foreach($analysis['tables'] as $table => $descriptor) {
-        $updated_rows = 0;
-        $is_unambiguous = count($descriptor['classes']) === 1;
-        if($is_unambiguous) {
-            $class = reset($descriptor['classes']);
-            $db->setRecords($table, null, ['model' => $class]);
-            $updated_rows += $db->getAffectedRows();
-        }
-        else {
-            foreach($descriptor['models'] as $class => $values) {
-                $non_null_values = [];
-                $has_null = false;
-                foreach($values as $value) {
-                    if(is_null($value)) {
-                        $has_null = true;
-                    }
-                    else {
-                        $non_null_values[] = $value;
-                    }
-                }
-
-                if(count($non_null_values)) {
-                    $db->setRecords(
-                        $table,
-                        null,
-                        ['model' => $class],
-                        [[[$descriptor['field'], 'in', $non_null_values]]]
-                    );
-                    $updated_rows += $db->getAffectedRows();
-                }
-                if($has_null) {
-                    $db->setRecords(
-                        $table,
-                        null,
-                        ['model' => $class],
-                        [[[$descriptor['field'], 'is', null]]]
-                    );
-                    $updated_rows += $db->getAffectedRows();
-                }
-            }
-        }
-
-        $expected_models = [];
-        if(!$is_unambiguous) {
-            foreach($descriptor['models'] as $class => $values) {
-                foreach($values as $value) {
-                    $expected_models[$normalizeValue($value)] = $class;
-                }
-            }
-        }
-
-        $verified_rows = 0;
-        $invalid_rows = [];
-        $verification_fields = ['id', 'model'];
-        if(!$is_unambiguous) {
-            $verification_fields[] = $descriptor['field'];
-        }
-        $result = $db->getRecords($table, $verification_fields);
-        while($row = $db->fetchArray($result)) {
-            $expected_model = reset($descriptor['classes']);
-            if(!$is_unambiguous) {
-                $value = array_key_exists($descriptor['field'], $row) ? $row[$descriptor['field']] : null;
-                $expected_model = $expected_models[$normalizeValue($value)] ?? null;
-            }
-            if(is_null($expected_model) || ($row['model'] ?? null) !== $expected_model) {
-                if(count($invalid_rows) < 20) {
-                    $invalid_rows[] = $row['id'];
-                }
-                continue;
-            }
-            ++$verified_rows;
-        }
-
-        if(count($invalid_rows)) {
-            throw new Exception(
-                'model_migration_verification_failed:'.$table.':'.json_encode($invalid_rows),
-                EQ_ERROR_UNKNOWN
-            );
-        }
-
-        $summary[$table] = [
-            'updated_rows'  => $updated_rows,
-            'verified_rows' => $verified_rows
-        ];
+$ready_tables = 0;
+foreach($analysis['tables'] as $table) {
+    if($table['ready']) {
+        ++$ready_tables;
     }
 }
 
 $context->httpResponse()
     ->status(200)
     ->body([
-        'phase'  => 'backfill',
-        'tables' => $summary
+        'phase'        => 'discover',
+        'file'         => 'cache/model-migration-discovery.json',
+        'tables'       => count($analysis['tables']),
+        'ready_tables' => $ready_tables
     ])
     ->send();
