@@ -24,7 +24,7 @@ use equal\db\DBConnector;
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm'],
+    'providers'     => ['context', 'orm', 'db'],
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['admins']
@@ -34,19 +34,13 @@ use equal\db\DBConnector;
 /**
  * @var \equal\php\Context       $context
  * @var \equal\orm\ObjectManager $orm
+ * @var \equal\db\DBConnector    $dbConnector
  */
-['context' => $context, 'orm' => $orm] = $providers;
+['context' => $context, 'orm' => $orm, 'db' => $dbConnector] = $providers;
 
 eQual::run('do', 'test_db-access');
 
-$db = DBConnector::getInstance(
-    constant('DB_HOST'),
-    constant('DB_PORT'),
-    constant('DB_NAME'),
-    constant('DB_USER'),
-    constant('DB_PASSWORD'),
-    constant('DB_DBMS')
-)->connect();
+$db = $dbConnector->connect();
 
 if(!$db) {
     throw new Exception('missing_database', EQ_ERROR_INVALID_CONFIG);
