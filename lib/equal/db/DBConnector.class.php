@@ -96,8 +96,14 @@ class DBConnector extends Service {
         }
     }
 
+    /**
+     * Open the DBMS connection.
+     *
+     * @param bool $auto_select Whether to select the configured database automatically.
+     * @return DBManipulator|false The active DB manipulator on success, or false on failure.
+     */
     public function connect($auto_select=true) {
-        return isset($this->connection)?$this->connection->connect($auto_select):false;
+        return isset($this->connection) ? $this->connection->connect($auto_select) : false;
     }
 
     public function disconnect() {
