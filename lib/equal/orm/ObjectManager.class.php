@@ -289,7 +289,11 @@ class ObjectManager extends Service {
                             $namespace = $entity->getNamespace();
                             $parent = '\\'.$parentEntity->getFullName();
                             eval("namespace $namespace {
-                                class $class_name extends $parent {}
+                                class $class_name extends $parent {
+                                    public static function getModelScope(): ?string {
+                                        return $parent::getModelScope();
+                                    }
+                                }
                             }");
                         }
                         else {
