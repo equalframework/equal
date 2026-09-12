@@ -3492,8 +3492,11 @@ class ObjectManager extends Service {
             // no caller-provided domain can widen the logical model scope.
             $model_scope = $this->getObjectModelScope($class);
             if(!is_null($model_scope)) {
+                $model_condition = [$table_alias.'.model', '=', $model_scope];
                 foreach($conditions as &$condition_clause) {
-                    $condition_clause[] = [$table_alias.'.model', '=', $model_scope];
+                    if(!in_array($model_condition, $condition_clause, true)) {
+                        $condition_clause[] = $model_condition;
+                    }
                 }
                 unset($condition_clause);
             }
