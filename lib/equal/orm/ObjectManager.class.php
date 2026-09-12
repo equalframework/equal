@@ -352,6 +352,14 @@ class ObjectManager extends Service {
     }
 
     /**
+     * Returns the discriminator that structurally scopes ORM operations for a model.
+     */
+    private function getObjectModelScope(string $class): ?string {
+        $this->getStaticInstance($class);
+        return $class::getModelScope();
+    }
+
+    /**
      * Gets the filename containing the class definition of a class,
      * without package name, but including namespace path (required to convert namespace notation).
      *
@@ -548,8 +556,10 @@ class ObjectManager extends Service {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDbHandler();
             $map_valid_ids = [];
+            $model_scope = $this->getObjectModelScope($class);
+            $domain = is_null($model_scope) ? [] : [[['model', '=', $model_scope]]];
             // get all records at once
-            $result = $db->getRecords($this->getObjectTableName($class), 'id', $ids);
+            $result = $db->getRecords($this->getObjectTableName($class), 'id', $ids, $domain);
             // store all found ids in an array
             while($row = $db->fetchArray($result)) {
                 $map_valid_ids[(int) $row['id']] = true;
@@ -557,7 +567,8 @@ class ObjectManager extends Service {
             $ids = array_filter($ids, fn($id) => isset($map_valid_ids[$id]));
         }
         catch(\Exception $e) {
-            // unexpected error (DB connection)
+            // Fail closed: an unresolved scope must never make unverified ids valid.
+            $ids = [];
         }
         return $ids;
     }
@@ -692,6 +703,12 @@ class ObjectManager extends Service {
                                 ['state', '=', 'instance'],
                                 ['deleted', '=', '0']
                             ]);
+
+                        $foreign_class = $schema[$field]['foreign_object'];
+                        $model_scope = $om->getObjectModelScope($foreign_class);
+                        if(!is_null($model_scope)) {
+                            $domain->addCondition(new DomainCondition('model', '=', $model_scope));
+                        }
 
                         if(isset($schema[$field]['foreign_field'])) {
                             $domain->addCondition(new DomainCondition($schema[$field]['foreign_field'], 'in', $ids));
@@ -1751,6 +1768,8 @@ class ObjectManager extends Service {
                     $creation_array[$field] = $object[$field];
                 }
             }
+            // `model` is exclusively controlled by the ORM and cannot be supplied by callers.
+            $creation_array['model'] = $this->getObjectModelScope($class) ?? $class;
 
             // append mandatory unique fields (set as INDEX in DBMS)
             $uniques = $object->getUnique();
@@ -2040,10 +2059,10 @@ class ObjectManager extends Service {
             // ids that are left are the ones of the objects that will be written
             $res = $ids;
 
-            // remove unknown fields and prevent updating reserved fields (id, creator, created, state)
+            // remove unknown fields and prevent updating reserved fields (id, model, creator, created, state)
             $fields = array_filter(
                 $fields,
-                fn($name) => isset($schema[$name]) && !in_array($name, ['id', 'creator', 'created', 'state'], true),
+                fn($name) => isset($schema[$name]) && !in_array($name, ['id', 'model', 'creator', 'created', 'state'], true),
                 ARRAY_FILTER_USE_KEY
             );
 
@@ -2123,9 +2142,9 @@ class ObjectManager extends Service {
             // remaining ids are the ones of the objects that will be written
             $res = $ids;
 
-            // remove unknown fields and prevent updating reserved fields (id, creator, created)
+            // remove unknown fields and prevent updating reserved fields (id, model, creator, created)
             $fields = array_filter($fields, function($field) use ($schema) {
-                        return isset($schema[$field]) && !in_array($field, ['id', 'creator', 'created']);
+                        return isset($schema[$field]) && !in_array($field, ['id', 'model', 'creator', 'created']);
                     },
                     ARRAY_FILTER_USE_KEY
                 );
@@ -2450,7 +2469,7 @@ class ObjectManager extends Service {
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
             // keep only valid objects identifiers
-            $ids = $this->sanitizeIdentifiers($ids);
+            $ids = $this->filterExistingIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
                 return $res;
@@ -2657,7 +2676,7 @@ class ObjectManager extends Service {
             $db = $this->getDbHandler();
 
             // keep only valid objects identifiers
-            $ids = $this->sanitizeIdentifiers($ids);
+            $ids = $this->filterExistingIdentifiers($class, $ids);
             if(empty($ids)) {
                 return $res;
             }
@@ -2773,7 +2792,7 @@ class ObjectManager extends Service {
             // 1) pre-processing
 
             // keep only valid objects identifiers
-            $ids = $this->sanitizeIdentifiers($ids);
+            $ids = $this->filterExistingIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) return $res;
             // ids that are left are the ones of the objects that will be (marked as) deleted
@@ -3001,7 +3020,7 @@ class ObjectManager extends Service {
     /**
      * Increment the field of an object by a given increment (integer value).
      *
-     * note : We use this nomenclature because it has a recognized semantics and equivalence in many programming languages.
+     * note : This nomenclature is preferred because it has a recognized semantics and equivalence in many programming languages.
      *
      * @param   string    $class            Class name of the object to clone.
      * @param   array     $ids              Array of ids of the objects to update.
@@ -3029,6 +3048,10 @@ class ObjectManager extends Service {
                 throw new Exception('non_numeric_field', EQ_ERROR_INVALID_PARAM);
             }
             $table_name = $this->getObjectTableName($class);
+            $ids = $this->filterExistingIdentifiers($class, $ids);
+            if(empty($ids)) {
+                return $result;
+            }
             // increment the field as an atomic operation
             $res = $db->incRecords($table_name, (array) $ids, $field, $increment);
             while($row = $db->fetchArray($res)) {
@@ -3256,8 +3279,8 @@ class ObjectManager extends Service {
             $table_name = $this->getObjectTableName($class);
 
             // use nested closure to store original table names and return corresponding aliases
-            $add_table = function ($table_name) use (&$tables) {
-                if(in_array($table_name, $tables)) {
+            $add_table = function ($table_name, $force_new=false) use (&$tables) {
+                if(!$force_new && in_array($table_name, $tables)) {
                     return array_search($table_name, $tables);
                 }
                 $table_alias = 't'.count($tables);
@@ -3348,9 +3371,15 @@ class ObjectManager extends Service {
                                 break;
                             case 'one2many':
                                 // add foreign table to sql query
-                                $foreign_table_alias = $add_table($this->getObjectTableName($schema[$field]['foreign_object']));
+                                $foreign_class = $schema[$field]['foreign_object'];
+                                $foreign_table_name = $this->getObjectTableName($foreign_class);
+                                $foreign_table_alias = $add_table($foreign_table_name, $foreign_table_name === $table_name);
                                 // add the join condition
                                 $join_conditions[] = array($foreign_table_alias.'.'.$schema[$field]['foreign_field'], '=', '`'.$table_alias.'`.`id`');
+                                $foreign_model_scope = $this->getObjectModelScope($foreign_class);
+                                if(!is_null($foreign_model_scope)) {
+                                    $join_conditions[] = [$foreign_table_alias.'.model', '=', $foreign_model_scope];
+                                }
                                 // as comparison field, use foreign table's 'foreign_key' if any, 'id' otherwise
                                 if(isset($schema[$field]['foreign_key'])) {
                                     $field = $foreign_table_alias.'.'.$schema[$field]['foreign_key'];
@@ -3457,6 +3486,16 @@ class ObjectManager extends Service {
                 // search only amongst non-draft and non-deleted records
                 $conditions[0][] = array($table_alias.'.state', '=', 'instance');
                 $conditions[0][] = array($table_alias.'.deleted', '=', '0');
+            }
+
+            // Model discrimination is structural: apply it to every OR branch so
+            // no caller-provided domain can widen the logical model scope.
+            $model_scope = $this->getObjectModelScope($class);
+            if(!is_null($model_scope)) {
+                foreach($conditions as &$condition_clause) {
+                    $condition_clause[] = [$table_alias.'.model', '=', $model_scope];
+                }
+                unset($condition_clause);
             }
 
             // second pass : fetch the ids of matching objects
