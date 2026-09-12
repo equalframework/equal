@@ -10,7 +10,7 @@
     'type'          => 'do',
     'name'          => 'model-inspect',
     'package_name'  => 'core',
-    'description'   => 'Check that every non-M2M database table and each of its records define a model discriminator.',
+    'description'   => 'Check that every database table associated with a configured ORM model and each of its records define a model discriminator.',
     'params'        => [
         'exit_on_error' => [
             'description'   => 'Exit with a non-zero status code when inconsistencies are found.',
@@ -61,8 +61,9 @@ $quoteIdentifier = static function(string $identifier): string {
     return implode('.', $parts);
 };
 
-$discoverM2mTables = static function($orm): array {
-    $tables = [];
+$discoverTables = static function($orm): array {
+    $model_tables = [];
+    $m2m_tables = [];
     $packages = eQual::run('get', 'config_packages');
 
     foreach($packages as $package) {
@@ -80,21 +81,29 @@ $discoverM2mTables = static function($orm): array {
                 continue;
             }
 
+            $type = $model->getType();
+            $table = $orm->getObjectTableName($type);
+            if(!is_string($table) || !strlen($table)) {
+                throw new Exception('unresolved_model_table', EQ_ERROR_INVALID_CONFIG);
+            }
+            $model_tables[$table] = true;
+
             foreach($model->getSchema() as $descriptor) {
                 if(($descriptor['type'] ?? null) !== 'many2many') {
                     continue;
                 }
                 $table = $descriptor['rel_table'] ?? null;
                 if(is_string($table) && strlen($table)) {
-                    $tables[$table] = true;
+                    $m2m_tables[$table] = true;
                 }
             }
         }
     }
 
-    ksort($tables);
+    ksort($model_tables);
+    ksort($m2m_tables);
 
-    return $tables;
+    return [$model_tables, $m2m_tables];
 };
 
 $countRows = static function($db, string $table) use($quoteIdentifier): int {
@@ -125,22 +134,18 @@ $inspectModelValues = static function($db, string $table) use($quoteIdentifier):
     return [$row_count, $missing_model_values];
 };
 
-$database_tables = $db->getTables();
-sort($database_tables);
+$database_tables = array_fill_keys($db->getTables(), true);
+ksort($database_tables);
 
-$m2m_tables = $discoverM2mTables($orm);
-$skipped_m2m_tables = [];
+[$model_tables, $m2m_tables] = $discoverTables($orm);
+$model_tables = array_intersect_key($model_tables, $database_tables);
+$skipped_m2m_tables = array_keys(array_intersect_key($m2m_tables, $database_tables));
 $table_results = [];
 $checked_tables = 0;
 $tables_without_model_column = 0;
 $records_without_model_value = 0;
 
-foreach($database_tables as $table) {
-    if(isset($m2m_tables[$table])) {
-        $skipped_m2m_tables[] = $table;
-        continue;
-    }
-
+foreach($model_tables as $table => $unused) {
     ++$checked_tables;
     $columns = $db->getTableColumns($table);
     $has_model_column = in_array('model', $columns, true);
