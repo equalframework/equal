@@ -131,6 +131,7 @@ sort($database_tables);
 $m2m_tables = $discoverM2mTables($orm);
 $skipped_m2m_tables = [];
 $table_results = [];
+$checked_tables = 0;
 $tables_without_model_column = 0;
 $records_without_model_value = 0;
 
@@ -140,6 +141,7 @@ foreach($database_tables as $table) {
         continue;
     }
 
+    ++$checked_tables;
     $columns = $db->getTableColumns($table);
     $has_model_column = in_array('model', $columns, true);
     $row_count = 0;
@@ -154,13 +156,15 @@ foreach($database_tables as $table) {
         $records_without_model_value += $missing_model_values;
     }
 
-    $table_results[] = [
-        'table'                => $table,
-        'row_count'            => $row_count,
-        'has_model_column'     => $has_model_column,
-        'missing_model_values' => $missing_model_values,
-        'valid'                => $has_model_column && $missing_model_values === 0
-    ];
+    if(!$has_model_column || $missing_model_values > 0) {
+        $table_results[] = [
+            'table'                => $table,
+            'row_count'            => $row_count,
+            'has_model_column'     => $has_model_column,
+            'missing_model_values' => $missing_model_values,
+            'valid'                => false
+        ];
+    }
 }
 
 $valid = $tables_without_model_column === 0 && $records_without_model_value === 0;
@@ -170,7 +174,7 @@ $context->httpResponse()
     ->body([
         'valid'                       => $valid,
         'database_tables'             => count($database_tables),
-        'checked_tables'              => count($table_results),
+        'checked_tables'              => $checked_tables,
         'skipped_m2m_tables'          => $skipped_m2m_tables,
         'tables_without_model_column' => $tables_without_model_column,
         'records_without_model_value' => $records_without_model_value,
