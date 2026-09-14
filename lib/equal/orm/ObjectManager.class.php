@@ -324,6 +324,12 @@ class ObjectManager extends Service {
                 if(!class_exists($class, false)) {
                     throw new Exception("unknown model (check file syntax): '$class'", EQ_ERROR_UNKNOWN_OBJECT);
                 }
+
+                $reflection = new \ReflectionClass($class);
+                if($reflection->isAbstract()) {
+                    throw new Exception("unknown_model", EQ_ERROR_UNKNOWN_OBJECT);
+                }
+
                 $this->models[$class] = new $class();
             }
             catch(Exception $e) {

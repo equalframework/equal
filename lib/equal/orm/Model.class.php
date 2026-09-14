@@ -712,6 +712,13 @@ class Model implements \ArrayAccess, \Iterator {
         return ((static::getFlags() & $flag) === $flag);
     }
 
+    /**
+     * Checks whether the entity is abstract according to its PHP declaration.
+     */
+    final public static function isAbstract(): bool {
+        return (new \ReflectionClass(static::class))->isAbstract();
+    }
+
     public static function getFlags(): int {
         return 0;
     }
@@ -741,8 +748,9 @@ class Model implements \ArrayAccess, \Iterator {
      * Returns the DB table used for storing objects of the current class.
      *
      * By default, models share the table of the first class inheriting directly
-     * from Model. A child class may override this method to define a new storage
-     * boundary; descendants inherit that table unless they override it again.
+     * from Model. An abstract parent defines a new storage boundary: its first
+     * concrete descendant uses its own table. A child class may also override
+     * this method to define an explicit storage boundary.
      *
      * @return string
      */
@@ -756,6 +764,11 @@ class Model implements \ArrayAccess, \Iterator {
 
             // first entity directly inheriting from root Model
             if(!$parent || $parent === __CLASS__) {
+                break;
+            }
+
+            // first concrete entity below an abstract parent
+            if($parent::isAbstract()) {
                 break;
             }
 

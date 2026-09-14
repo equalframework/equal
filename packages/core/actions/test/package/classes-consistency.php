@@ -117,6 +117,10 @@ foreach($classes as $class) {
         continue;
     }
 
+    if($class_name::isAbstract()) {
+        continue;
+    }
+
     // #todo - an Exception may still arise while loading a class dependency (of the same package)
     $model = $orm->getModel($class_name);
 

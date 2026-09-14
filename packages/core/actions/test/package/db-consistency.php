@@ -134,6 +134,10 @@ foreach($classes as $class) {
         continue;
     }
 
+    if($entity::isAbstract()) {
+        continue;
+    }
+
     $model = $orm->getModel($entity);
     if(!is_object($model)) {
         $result[] = "ERROR - DBM - Class $class: unable to load model for '{$entity}'";

@@ -158,6 +158,14 @@ foreach($packages as $package) {
             continue;
         }
 
+        if(!class_exists($entity)) {
+            continue;
+        }
+
+        if(is_subclass_of($entity, \equal\orm\Model::class) && $entity::isAbstract()) {
+            continue;
+        }
+
         try {
             $model = $orm->getModel($entity);
             if(!$model) {

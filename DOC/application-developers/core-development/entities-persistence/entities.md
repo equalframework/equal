@@ -143,6 +143,7 @@ This convention ensures a clear and controlled interface for exposing object dat
 | getPolicies()        | Returns the [access control policies](../security-access/access-control-lists.md) applicable to the entity. |
 | getOperationPolicies() | Returns a map of secured generic read, update and delete operations with one or more policies the entity must comply with.                                     |
 | getFlags()           | Returns structural flags that describe transversal characteristics of the entity.                         |
+| isAbstract()         | Returns whether the entity is declared abstract in PHP.                                                   |
 | getCapabilities()    | Returns structural CRUD capabilities for generic Collection operations.                                   |
 | getSchema()          | Returns the full schema of the entity, including system fields.                                           |
 | getSettingDefaults() | Returns an associative array of setting defaults for fields.                                              |
@@ -589,14 +590,13 @@ requires_mfa
 
 ### Entity Flags
 
-Flags describe effective, inherited characteristics of an entity and can alter framework behavior such as generic CRUD exposure, public API visibility, auditing or instantiation rules. Table mapping and model discrimination are independent from flags.
+Flags describe effective, inherited characteristics of an entity and can alter framework behavior such as generic CRUD exposure, public API visibility or auditing. Table mapping, model discrimination and PHP abstraction are independent from flags.
 
 The current entity flags are defined in `eq.lib.php`:
 
 ```php
 define('EQ_FLAG_SYSTEM',   1);  // entity is part of the framework core or security model
 define('EQ_FLAG_PRIVATE',  2);  // entity must not be exposed publicly through generic APIs or external integrations
-define('EQ_FLAG_ABSTRACT', 4);  // entity is a non-instantiable base model intended only for inheritance
 define('EQ_FLAG_AUDIT',    8);  // entity changes should be tracked through Log and Change entries
 ```
 
@@ -1250,23 +1250,20 @@ The `creator` context only exposes the structural capability. The user must stil
 
 #### Abstract Entity
 
-An abstract entity should not expose generic operations directly:
+An entity intended only as an inheritance base must use PHP's native `abstract` keyword:
 
 ```php
-public static function getFlags(): int {
-    return EQ_FLAG_ABSTRACT;
-}
-
-public static function getCapabilities(): array {
-    return [
-        EQ_R_CREATE => false,
-        EQ_R_READ   => false,
-        EQ_R_UPDATE => false,
-        EQ_R_DELETE => false,
-        EQ_R_MANAGE => false
-    ];
+abstract class AbstractEntity extends Model {
 }
 ```
+
+Abstractness is not inherited as entity metadata: a concrete child of an abstract parent is a concrete PHP class. To inspect a model dynamically, use the final helper backed by PHP reflection:
+
+```php
+$is_abstract = $class::isAbstract();
+```
+
+`Model::isAbstract()` delegates directly to `ReflectionClass::isAbstract()` and does not store or cache this state.
 
 
 #### Internal Private Entity

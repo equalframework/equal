@@ -153,6 +153,10 @@ $discoverModels = static function($orm): array {
         foreach($classes as $class) {
             $entity = $package.'\\'.$class;
             try {
+                if(is_subclass_of($entity, \equal\orm\Model::class) && $entity::isAbstract()) {
+                    continue;
+                }
+
                 $model = $orm->getModel($entity);
             }
             catch(Exception $e) {

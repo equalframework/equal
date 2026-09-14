@@ -65,6 +65,15 @@ $map_processed_indexes = [];
 foreach($classes as $class) {
     // get the full class name
     $entity = $params['package'].'\\'.$class;
+
+    if(!class_exists($entity)) {
+        throw new Exception("unknown class '{$entity}'", EQ_ERROR_UNKNOWN_OBJECT);
+    }
+
+    if(is_subclass_of($entity, \equal\orm\Model::class) && $entity::isAbstract()) {
+        continue;
+    }
+
     // retrieve the static instance of the entity
     $model = $orm->getModel($entity);
 

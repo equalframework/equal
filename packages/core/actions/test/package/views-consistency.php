@@ -84,6 +84,10 @@ $get_model_schema = function(string $class_name) use($orm): ?array {
         return null;
     }
 
+    if($class_name::isAbstract()) {
+        return null;
+    }
+
     $model = $orm->getModel($class_name);
 
     if(!$model || !is_object($model)) {

@@ -53,11 +53,10 @@ namespace {
      * Entity structural flags.
      * Flags define transversal characteristics of a Model and alter
      * framework behaviors such as CRUD exposure, API visibility,
-     * auditing, or instantiation rules.
+     * or auditing.
      */
     define('EQ_FLAG_SYSTEM',   1);  // entity is part of the framework core or security model and should not be modified by users
     define('EQ_FLAG_PRIVATE',  2);  // entity must not be exposed publicly through generic APIs or external integrations
-    define('EQ_FLAG_ABSTRACT', 4);  // entity is a non-instantiable base model intended only for inheritance
     define('EQ_FLAG_AUDIT',    8);  // entity changes should be tracked and historized through Log & Change entries
 
     /**
