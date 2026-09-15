@@ -6,8 +6,9 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace demo;
+use equal\orm\Model;
 
-class Foo {
+class Foo extends Model {
 
     public static function getColumns() {
         return [
