@@ -1356,7 +1356,7 @@ class ObjectManager extends Service {
             else {
                 $res = $called_class::$called_method(...$args);
             }
-            if($res !== null) {
+            if(empty($ids) || $res !== null) {
                 $result = $res;
             }
             // unstack global object_methods state
@@ -1925,8 +1925,8 @@ class ObjectManager extends Service {
     /**
      * Creates a new draft object of given class and, if given, assigns values to targeted fields.
      *
-     * This method creates a persistent ORM object that remains in draft state and does not trigger
-     * lifecycle callbacks.
+     * This method creates a persistent ORM object that remains in draft state and triggers the same
+     * creation callbacks as create() with an explicit `state` set to `draft`.
      *
      * @param  string       $class        Class of the object to create.
      * @param  array        $fields       Associative array mapping each field to its assigned value.
