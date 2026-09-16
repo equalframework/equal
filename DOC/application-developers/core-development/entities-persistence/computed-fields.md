@@ -52,6 +52,29 @@ It is **strongly recommended** to define named methods with **`protected` scope*
 - Remain **inaccessible from outside** the class, preserving encapsulation
 - Are still **available to child classes**, enabling controlled inheritance
 
+### Callback Data Contract
+
+Callbacks are responsible for requesting the data they need.
+
+When the ORM injects `$self`, it provides a collection scoped to the affected identifiers and language. It does not guarantee that any business field has already been loaded. A `function`, `onupdate`, `onrevert` or lifecycle handler must therefore call `read()` with an explicit field projection before using current entity data:
+
+```php
+protected static function calcTotal($self) {
+    $rows = $self->read(['amount', 'tax_amount']);
+    $result = [];
+
+    foreach($rows as $id => $row) {
+        $result[$id] = $row['amount'] + $row['tax_amount'];
+    }
+
+    return $result;
+}
+```
+
+For computed `function` handlers, return a value map indexed by object ID. For update-related handlers, an injected `$values` argument contains the values submitted to the current operation; it is not a complete representation of each record. Read every additional field explicitly through `$self`.
+
+Treat the loaded values as immutable inputs. Modifying the returned PHP data does not persist a change. When a handler must request a persistent change, use an explicit collection operation or, for reusable synchronization behavior, a named entity action. Computed field functions should remain side-effect free and must not call `update()` on their own `$self` collection.
+
 ### Using `relation`
 
 An associative array describing a **path of relations** to follow to retrieve the value from a related entity:

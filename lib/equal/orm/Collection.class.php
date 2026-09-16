@@ -997,7 +997,7 @@ class Collection implements \Iterator, \Countable {
      * Creates a new draft Object.
      *
      * This method delegates to ObjectManager::draft(), which creates a persistent
-     * draft without lifecycle callbacks.
+     * draft and triggers the same creation callbacks as create(['state' => 'draft']).
      *
      * @param   array   $values   Associative array mapping fields and values.
      * @param   string  $lang     Language for multilang fields.
@@ -1398,6 +1398,11 @@ class Collection implements \Iterator, \Countable {
 
 
     /**
+     * Updates the selected objects and targets the `instance` state when `state` is omitted.
+     *
+     * In particular, calling update() without an explicit `state` from an oncreate hook can
+     * unintentionally instantiate a newly created draft. Use write() for a technical write
+     * that must preserve the state, or read and pass the current state explicitly to update().
      *
      * @param   array       $values   associative array mapping fields and values
      * @param   string      $lang     Language for multilang fields.
@@ -1774,6 +1779,10 @@ class Collection implements \Iterator, \Countable {
 
     /**
      * Hook invoked after object creation for performing object-specific additional operations.
+     *
+     * The created object can still be a draft. Calling update() without an explicit `state`
+     * targets the `instance` state; use write() to preserve the state without update callbacks,
+     * or read and pass the current state explicitly when update callbacks are required.
      *
      * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
      * @return void

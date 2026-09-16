@@ -1744,7 +1744,8 @@ class ObjectManager extends Service {
      * Creates a new instance of given class and, if given, assigns values to targeted fields.
      *
      * Upon creation, the object is immediately written with the provided values and the default values defined by the Model class.
-     * Unless `state` is explicitly set, the object is created in the 'instance' state and the instantiate lifecycle hooks are triggered.
+     * Unless `state` is explicitly set, the object is created directly in the 'instance' state.
+     * In that case, `onafterinstantiate` is invoked after the creation hooks.
      * To keep the newly created object in the 'draft' state, `state` must explicitly be set to 'draft'.
      *
      *
@@ -1893,7 +1894,9 @@ class ObjectManager extends Service {
                 $this->load($class, (array) $id, array_keys($map_instant_fields), $lang);
             }
 
-            // 6) call 'oncreate' hook
+            // 6) call creation hooks (the object can still be a draft at this point)
+            // #memo - update() targets the instance state when `state` is omitted; creation hooks
+            // that must preserve a draft should use write(), or pass the current state explicitly.
             if(($this->enabled_events & self::EVENTS_CLASS_ONCREATE) === self::EVENTS_CLASS_ONCREATE) {
                 if(method_exists($class, 'oncreate')) {
                     $this->callonce($class, 'oncreate', (array) $id, $creation_array, $lang);
@@ -1901,6 +1904,14 @@ class ObjectManager extends Service {
                 if(method_exists($class, 'onaftercreate')) {
                     $this->callonce($class, 'onaftercreate', (array) $id, $creation_array, $lang);
                 }
+            }
+
+            // creation directly as an instance performs both creation and instantiation
+            $creation_state = array_key_exists('state', $fields) ? $fields['state'] : 'instance';
+            if($res > 0 && $creation_state === 'instance'
+                && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERINSTANTIATE) === self::EVENTS_CLASS_ONAFTERINSTANTIATE
+                && method_exists($class, 'onafterinstantiate')) {
+                $this->callonce($class, 'onafterinstantiate', (array) $id, ['state' => 'instance'], $lang);
             }
         }
         catch(Exception $e) {
@@ -1930,13 +1941,7 @@ class ObjectManager extends Service {
 
         $fields['state'] = 'draft';
 
-        $previous_events = $this->disableEvents(self::EVENTS_ALL);
-        try {
-            return $this->create($class, $fields, $lang);
-        }
-        finally {
-            $this->enableEvents($previous_events);
-        }
+        return $this->create($class, $fields, $lang);
     }
 
     /**
@@ -2113,7 +2118,7 @@ class ObjectManager extends Service {
      * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
      * @param   mixed     $fields       Array mapping fields names with the value (PHP) to which they must be set.
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
-     * @param   bool      $create       System flag to force processing the update in a creation context (disables events hooks calls).
+     * @param   bool      $create       System flag to process the update in a creation context (uses field creation callbacks and suppresses update and instantiate hooks).
      * @param   bool      $touch        If set to false, the `modified` field is not updated with the current timestamp.
      *
      * @return  int|int[] Returns an array of updated ids, or an error identifier in case an error occurred.
@@ -2217,8 +2222,8 @@ class ObjectManager extends Service {
             $this->assertRequiredFields($class, $instantiated_ids, $fields, $schema, $lang);
 
 
-            // 4) call 'onbeforeinstantiate' hook when objects are about to become instances
-            if(count($instantiated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREINSTANTIATE) === self::EVENTS_CLASS_ONBEFOREINSTANTIATE) {
+            // 4) call 'onbeforeinstantiate' only for existing drafts about to become instances
+            if(!$create && count($instantiated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREINSTANTIATE) === self::EVENTS_CLASS_ONBEFOREINSTANTIATE) {
                 if(method_exists($class, 'onbeforeinstantiate')) {
                     $this->callonce($class, 'onbeforeinstantiate', $instantiated_ids, $fields, $lang);
                 }
@@ -2365,7 +2370,8 @@ class ObjectManager extends Service {
 
             // 9) handle fields onupdate & onrevert events, if any
 
-            if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
+            // draft creation always uses field oncreate callbacks, never field onupdate callbacks
+            if(!$create || (constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION') && $target_state !== 'draft')) {
                 // #memo - this must be done after modifications otherwise object values might be outdated
                 if(count($onupdate_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONUPDATE) === self::EVENTS_FIELD_ONUPDATE) {
                     // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
@@ -2416,7 +2422,8 @@ class ObjectManager extends Service {
                 }
             }
 
-            if(count($instantiated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERINSTANTIATE) === self::EVENTS_CLASS_ONAFTERINSTANTIATE) {
+            // creation directly as an instance is not a draft-to-instance transition
+            if(!$create && count($instantiated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERINSTANTIATE) === self::EVENTS_CLASS_ONAFTERINSTANTIATE) {
                 if(method_exists($class, 'oninstantiate')) {
                     $this->callonce($class, 'oninstantiate', $instantiated_ids, $fields, $lang);
                 }

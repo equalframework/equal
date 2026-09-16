@@ -15,10 +15,16 @@ The acronyms **CRUD** (`create`, `read`, `update`, `delete`) and **DWIR** (`draf
 
 The explicit technical primitives have different lifecycle semantics:
 
-* `draft()` creates an incomplete persistent object without lifecycle callbacks or data validation;
+* `draft()` creates an incomplete persistent object without data validation and invokes `oncreate()` followed by `onaftercreate()`;
 * `write()` persists fields without data validation, callbacks or an implicit state transition;
 * `instantiate()` validates the draft's required fields and uniqueness, changes its state to `instance`, and then invokes `onafterinstantiate()`;
 * `remove()` permanently deletes records without `canDelete()` or deletion callbacks.
+
+Creation and instantiation are separate events that can occur in the same operation. `create()`, `create(['state' => 'draft'])` and `draft()` invoke the creation hooks. When `create()` produces an `instance`, it additionally invokes `onafterinstantiate()` after `oncreate()` and `onaftercreate()`. A draft reaches the instance lifecycle later through `update()` or `instantiate()`.
+
+Draft creation always uses field `oncreate` callbacks and never field `onupdate` callbacks. `ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION` only applies when creation targets the `instance` state.
+
+Because `update()` targets `instance` when `state` is omitted, an update issued from `oncreate()` or `onaftercreate()` can unintentionally instantiate a draft. Prefer `write()` for a callback-side technical write that must preserve state. When update validation and callbacks are required, read the current state and include it explicitly in the values passed to `update()`.
 
 The `Collection` methods `create()`, `read()`, `update()` and `delete()` call `assertLifecycle()` with their matching operation. `draft()`, `write()` and `instantiate()` do not. Those three methods still enforce their declared structural and access checks. Calling methods directly on `ObjectManager` bypasses the secured façade entirely, and `remove()` is only exposed at that low level.
 
@@ -185,6 +191,166 @@ To store objects, the ORM utilizes a dedicated table in the database following t
 However, it is also possible to have inheritance that is distinct from the table assignment in the database.
 
 For example, the classes `sale\customer\Customer` and `identity\Contact` both inherit from the class `identity\Partner`. However, they are distinct objects which are preferable not to mix. In such cases, it is possible to manually define the table to be used for a class via the `getTable()` method.
+
+### Model Storage and Discrimination
+
+Several model APIs participate in inheritance, but each has a specific responsibility:
+
+| API | Responsibility |
+| --- | --- |
+| `getFlags()` | Effective cross-cutting characteristics such as system, private and audited behavior. |
+| `isAbstract()` | Whether the PHP class can be instantiated directly. |
+| `getSlug()` | Conventional conversion of a fully qualified class name to a SQL identifier. |
+| `getTable()` | Physical table containing the records manipulated through the model. |
+| `getModelScope()` | Optional logical restriction on the system `model` column. |
+
+Do not derive a model scope by comparing `getTable()` with `getSlug()`. A table name says where records are stored; a model scope says which records in that table belong to the logical model.
+
+#### Conventional SQL names
+
+`getSlug()` lowercases a fully qualified class name and replaces namespace separators with underscores:
+
+```text
+core\auth\AuthenticationFactor
+    -> core_auth_authenticationfactor
+```
+
+It is a naming utility only. It may be used by `getTable()`, but it never decides whether the ORM adds a `model` filter.
+
+#### Physical storage with `getTable()`
+
+Concrete models normally share the table of the first concrete class in their inheritance branch. For example:
+
+```text
+Model
+└── A              -> table A
+    └── B          -> table A
+        └── C      -> table A
+```
+
+The current default resolver also creates a storage boundary below an abstract parent. Each first concrete descendant starts its own branch table:
+
+```text
+Model
+└── AbstractBase (abstract)
+    ├── B          -> table B
+    │   └── C      -> table B
+    └── D          -> table D
+```
+
+This default table-boundary behavior is separate from flags and does not change the logical scope returned by `getModelScope()`.
+
+A model can create an explicit storage boundary by overriding `getTable()`:
+
+```php
+class B extends A {
+    public function getTable(): string {
+        // Bind this inherited implementation to the class where it is declared.
+        return static::getSlug(self::class);
+    }
+}
+```
+
+If `C` extends `B` and inherits this method, both `B` and `C` use B's table. A later descendant can override `getTable()` again to start another storage branch. An override may also return an arbitrary explicit table name:
+
+```php
+public function getTable(): string {
+    return 'custom_table_name';
+}
+```
+
+#### The system `model` column
+
+Every ORM schema includes a readonly `model` field containing the fully qualified persistent model name. The ORM supplies its default value; a standard update cannot use it as an ordinary mutable business field.
+
+`getModelScope()` determines whether operations performed through a class are restricted to a specific value in that column:
+
+```text
+null        -> no model discriminator restriction; operate on the full table
+class name  -> operate only on rows whose model value exactly matches that class
+```
+
+The default implementation gives the first entity directly below `Model` access to its full table and scopes every descendant to its exact class:
+
+```text
+Model
+└── A              getModelScope() -> null
+    └── B          getModelScope() -> B::class
+        └── C      getModelScope() -> C::class
+```
+
+Consequently, `B::search()` does not automatically include rows belonging to `C`. A dedicated table also does not imply a `null` scope. If `B` owns a table but retains its default child scope, the ORM may generate the redundant but valid equivalent of:
+
+```sql
+FROM table_b
+WHERE model = '...\B'
+```
+
+Return `null` explicitly only when the model must operate on the entire table:
+
+```php
+public static function getModelScope(): ?string {
+    return null;
+}
+```
+
+#### Behavioral extensions
+
+A PHP subclass can extend behavior without introducing a new persistent subtype. Such a class must explicitly reuse the scope of the model it represents:
+
+```php
+class BExtension extends B {
+    public static function getModelScope(): ?string {
+        return B::getModelScope();
+    }
+}
+```
+
+Both classes then operate on rows whose discriminator is B's scope. Name the represented model explicitly; `parent::getModelScope()` would preserve the late-static called class and can therefore resolve to the extension instead.
+
+The same pattern can extend an unrestricted root:
+
+```php
+class AExtension extends A {
+    public static function getModelScope(): ?string {
+        return A::getModelScope();
+    }
+}
+```
+
+Because A's scope is `null`, the extension keeps access to the full table. A later subclass can become a distinct persistent subtype again:
+
+```php
+class SpecializedB extends BExtension {
+    public static function getModelScope(): ?string {
+        return static::class;
+    }
+}
+```
+
+#### Abstract models and record creation
+
+PHP's native `abstract` keyword is the source of truth for instantiability. Use the final `$class::isAbstract()` model API when code must check it; abstractness is not represented by an entity flag.
+
+For a concrete class, the ORM derives the default persistent discriminator from its model scope:
+
+```php
+$scope = $class::getModelScope();
+$values['model'] = $scope ?? $class;
+```
+
+This produces the following behavior:
+
+| Class kind | Scope | Stored `model` value |
+| --- | --- | --- |
+| Normal subtype `B` | `B::class` | `B::class` |
+| Behavioral extension of `B` | `B::class` | `B::class` |
+| Root `A` | `null` | `A::class` |
+| Unrestricted extension of a root | `null` | The concrete extension class |
+
+A `null` scope means that reads and mutations are not restricted by a discriminator. It does not mean that the SQL `model` value is `NULL`.
+
+Model discrimination is enforced by the ORM across direct `ObjectManager` calls and typed `Collection` operations. Search adds the structural discriminator to every `OR` branch, so a caller-provided domain cannot widen the model scope. Identifier validation likewise rejects IDs belonging to another subtype before reads, writes, updates or deletions proceed. See [Searching](../data-rules-processing/searching.md#structural-model-scope) for the search behavior.
 
 ### Management of Relationships
 

@@ -33,7 +33,10 @@ use equal\services\Container;
  *
  * 2) `on...()` methods - event handlers:
  * @method static array onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
- * @method static void oncreate(mixed ...$params)       Hook invoked AFTER object creation for performing object-specific additional operations.
+ * @method static void oncreate(mixed ...$params)       Hook invoked AFTER object creation, including creation in the draft state.
+ * @method static void onaftercreate(mixed ...$params)  Hook invoked AFTER oncreate.
+ *                                                       An update without an explicit state from either creation hook can instantiate a draft; prefer write(), or read and preserve the current state when update callbacks are required.
+ * @method static void onafterinstantiate(mixed ...$params) Hook invoked after an object reaches the instance state, including during direct creation.
  * @method static void onbeforeupdate(mixed ...$params) Hook invoked BEFORE object update for performing object-specific additional operations.
  * @method static void onupdate(mixed ...$params)       Alias of onbeforeupdate.
  * @method static void onafterupdate(mixed ...$params)  Hook invoked AFTER object update for performing object-specific additional operations.

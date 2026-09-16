@@ -6,6 +6,23 @@ The [ORM (Object-Relational Mapping)](../entities-persistence/orm.md) handles se
 
 The `search()` method accepts a `domain` argument that describes the search criteria using a structured format. To understand the domain syntax and advanced filtering options, refer to the [domain documentation](domains.md).
 
+### Structural Model Scope
+
+When the requested class returns a non-null value from `getModelScope()`, the ORM adds an exact condition on the system `model` column. This condition is structural: it is applied in addition to the caller's domain and is added to every disjunctive branch. A user-provided `OR` expression therefore cannot widen the search to another subtype.
+
+For this hierarchy:
+
+```text
+Model
+└── A              getModelScope() -> null
+    └── B          getModelScope() -> B::class
+        └── C      getModelScope() -> C::class
+```
+
+`A::search()` can inspect the full shared table, while `B::search()` is restricted to rows whose `model` is exactly `B::class`. It does not include C rows unless B explicitly adopts a different scope.
+
+The same restriction applies whether search is called through `ObjectManager` or a `Collection`. Typed identifier-based operations also validate the discriminator, preventing an update or deletion through B from targeting a C record. See [Model Storage and Discrimination](../entities-persistence/orm.md#model-storage-and-discrimination) for table boundaries, behavioral extensions and record-creation rules.
+
 **Search results** consist of object identifiers that can be:
 
 * Used for reading values of filtered objects

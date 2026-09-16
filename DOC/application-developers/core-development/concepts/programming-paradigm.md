@@ -16,6 +16,14 @@ Unlike traditional OOP, eQual:
 
 This hybrid approach provides flexibility while maintaining simplicity in entity modeling and management.
 
+## Data-Oriented Immutability
+
+eQual complies with principle #3 of the Data-Oriented Programming paradigm: **treat data as immutable**.
+
+This does not mean that persistent records never change. It means that data returned by a read operation is treated as an input value or snapshot. Mutating a returned PHP array or object does not implicitly persist a change. Persistent state changes are requested explicitly through operations such as `create()`, `update()`, `write()` or a named entity action.
+
+This principle also shapes ORM callbacks. A callback receives execution context, identifiers and, when requested in its signature, a collection in `$self`; it must explicitly read the fields required by its computation. It must not rely on an implicitly populated mutable entity. See the [collection data contract](../entities-persistence/collections/collections-overview.md#immutable-data-flow) and the [callback data contract](../entities-persistence/computed-fields.md#callback-data-contract).
+
 ## Key Differences from Traditional OOP
 
 | Traditional OOP                           | eQual Approach                               |

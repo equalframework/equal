@@ -107,8 +107,10 @@ namespace {
             ],
 
         '5005' => [
-                'description' => 'Lifecycle: create invokes the oncreate hook.',
+                'description' => 'Lifecycle: direct instance creation invokes oncreate then onafterinstantiate.',
                 'act'         => function () {
+                        LifecycleProbe::resetLifecycleEvents();
+
                         $test = LifecycleProbe::create(['string_short' => 'create'])
                             ->read(['id'])
                             ->first();
@@ -117,10 +119,10 @@ namespace {
                     },
                 'assert'      => function($result) {
                         $events = LifecycleProbe::getLifecycleEvents();
-                        $event = end($events);
+                        $hooks = array_column($events, 'hook');
 
                         return $result > 0
-                            && ($event['hook'] ?? null) === 'oncreate';
+                            && $hooks === ['oncreate', 'onafterinstantiate'];
                     },
                 'rollback'    => function($result) {
                         if($result > 0) {
@@ -132,6 +134,8 @@ namespace {
         '5006' => [
                 'description' => 'Lifecycle: draft update invokes instantiate hooks.',
                 'arrange'     => function () {
+                        LifecycleProbe::resetLifecycleEvents();
+
                         $test = LifecycleProbe::create(['state' => 'draft'])
                             ->read(['id'])
                             ->first();
@@ -145,10 +149,9 @@ namespace {
                         return $id;
                     },
                 'assert'      => function($result) {
-                        $events = array_slice(LifecycleProbe::getLifecycleEvents(), -2);
-                        $hooks = array_column($events, 'hook');
+                        $hooks = array_column(LifecycleProbe::getLifecycleEvents(), 'hook');
 
-                        return $hooks === ['onbeforeinstantiate', 'onafterinstantiate'];
+                        return $hooks === ['oncreate', 'onbeforeinstantiate', 'onafterinstantiate'];
                     },
                 'rollback'    => function($result) {
                         if($result > 0) {
@@ -449,8 +452,10 @@ namespace {
             ],
 
         '5016' => [
-                'description' => 'Lifecycle: Collection::draft/instantiate assigns an id and promotes the draft.',
+                'description' => 'Lifecycle: Collection::draft invokes oncreate and instantiate promotes the draft.',
                 'arrange'     => function () {
+                        LifecycleProbe::resetLifecycleEvents();
+
                         $test = LifecycleProbe::draft()
                             ->first();
 
@@ -463,8 +468,11 @@ namespace {
                             ->first();
                     },
                 'assert'      => function($result) {
+                        $hooks = array_column(LifecycleProbe::getLifecycleEvents(), 'hook');
+
                         return ($result['id'] ?? 0) > 0
-                            && ($result['state'] ?? null) === 'instance';
+                            && ($result['state'] ?? null) === 'instance'
+                            && $hooks === ['oncreate', 'onafterinstantiate'];
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;

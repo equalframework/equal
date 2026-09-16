@@ -136,7 +136,9 @@ This convention ensures a clear and controlled interface for exposing object dat
 | getField($name)      | Returns the field descriptor for a given field name.                                                      |
 | getValues()          | Returns values of static instance.                                                                        |
 | getDefaults()        | Return default values.                                                                                    |
+| getSlug()            | Converts a model class name to its conventional SQL identifier.                                           |
 | getTable()           | Return the name of the DB table for storing objects of current class.                                     |
+| getModelScope()      | Returns the optional `model` discriminator that limits ORM operations for the class.                      |
 | getWorkflow()        | Returns the [workflow](../business-logic/workflows/workflows.md) associated with the entity.                             |
 | getRoles()           | Returns the list of [roles](../business-logic/actions.md#groups-vs-roles) explicitly associated with the entity.           |
 | getActions()         | Returns a list of available [actions](../business-logic/actions.md) that can be triggered on the entity.                 |
@@ -158,6 +160,10 @@ This convention ensures a clear and controlled interface for exposing object dat
 | candelete()      | Check whether the current user can delete the object. Returns an array of errors. |
 | canclone()       | Check whether the current user can clone the object. Returns an array of errors.  |
 | oncreate()       | Hook invoked after object creation for performing additional operations.          |
+| onaftercreate()  | Hook invoked after `oncreate()`.                                                    |
+| onbeforeinstantiate() | Hook invoked before an existing draft is promoted to an instance by `update()`. |
+| oninstantiate()  | Hook invoked after an existing draft is promoted by `update()`.                    |
+| onafterinstantiate() | Hook invoked after an object reaches `instance`, including through direct creation. |
 | onbeforeupdate() | Hook invoked before object update for performing additional operations.           |
 | onupdate()       | Alias of `onBeforeUpdate()`.                                                      |
 | onafterupdate()  | Hook invoked after object update for performing additional operations.            |
@@ -165,6 +171,32 @@ This convention ensures a clear and controlled interface for exposing object dat
 | ondelete()       | Alias of `onBeforeDelete()`.                                                      |
 | onafterdelete()  | Hook invoked after object deletion for performing additional operations.          |
 | onclone()        | Hook invoked after object cloning for performing additional operations.           |
+
+### Handler Data Contract
+
+Model handlers, including `oncreate()`, `onbeforeupdate()`, `onupdate()`, `onafterupdate()` and field callbacks, are responsible for requesting the data they need.
+
+An injected `$self` parameter is a collection scoped to the affected identifiers; it is not a fully populated mutable entity. Handlers must use an explicit projection such as `$self->read(['status', 'owner_id'])` before consuming current record data. Likewise, `$values` contains the submitted operation values, not a complete record.
+
+Treat data read by the handler as immutable input. Changing a returned PHP array or object does not persist anything; persistent changes require an explicit collection operation or named entity action. See the [computed-field callback contract](computed-fields.md#callback-data-contract) for signatures and an example.
+
+Creation hooks run whenever a persistent object is created, including by `draft()` and by `create(['state' => 'draft'])`. They also run for `create()` when the object is created directly in the `instance` state. In the latter case, `onafterinstantiate()` runs after `oncreate()` and `onaftercreate()` because the operation performs both creation and instantiation.
+
+!!! warning "Preserve draft state in creation hooks"
+    `update()` targets the `instance` state when `state` is omitted. Consequently, calling `$self->update([...])` from `oncreate()` or `onaftercreate()` can unintentionally instantiate a newly created draft.
+
+    Use `$self->write([...])` for a technical write that must preserve the current state and does not require update callbacks. If update validation and callbacks are required, explicitly read and pass the current state:
+
+    ```php
+    public static function oncreate($self) {
+        $object = $self->read(['state'])->first();
+
+        $self->update([
+            'reference' => '...',
+            'state'     => $object['state']
+        ]);
+    }
+    ```
 
 ## Custom Methods
 
@@ -608,6 +640,21 @@ public static function getFlags(): int {
 }
 ```
 
+When a child needs to adjust inherited flags, it can add or remove individual bits explicitly:
+
+```php
+public static function getFlags(): int {
+    $flags = parent::getFlags();
+
+    $flags |= EQ_FLAG_AUDIT;
+    $flags &= ~EQ_FLAG_PRIVATE;
+
+    return $flags;
+}
+```
+
+A class may instead return a complete flag set without consulting its parent. Test effective flags with `hasFlag()` rather than comparing the complete bit mask.
+
 The base `Model` also provides a helper:
 
 ```php
@@ -628,7 +675,9 @@ public static function getModelScope(): ?string {
 }
 ```
 
-By default, a hierarchy shares the table of its first class below `Model`. That root has no model scope; each descendant is restricted to its exact class. A class that only extends behavior must explicitly return the scope of the persistent model it represents.
+By default, a hierarchy shares the table of its first class below `Model`. There is one additional default storage boundary: the first concrete model below an abstract parent receives its own table. The root has no model scope; each descendant is restricted to its exact class. A class that only extends behavior must explicitly return the scope of the persistent model it represents.
+
+Table mapping and logical discrimination remain separate decisions. In particular, a dedicated table does not imply an unrestricted model scope, and `getSlug()` is only a naming utility. See [Model Storage and Discrimination](orm.md#model-storage-and-discrimination) for the complete inheritance rules and examples.
 
 Flags and capabilities are related but distinct:
 
@@ -950,6 +999,32 @@ The actual distinction is defined by two parts of the operation contract:
 | `instantiate()` | No                                  | Explicitly changes `draft` to `instance` after its required-field and uniqueness checks. |
 | `remove()`      | Not exposed by `Collection`         | Performs no state transition; it permanently removes the record. |
 
+The same operations can be summarized by the lifecycle events they trigger:
+
+| Operation | Creation | Instantiation |
+| --- | ---: | ---: |
+| `Entity::draft()` | Yes | No |
+| `Entity::create(['state' => 'draft'])` | Yes | No |
+| `Entity::create()` | Yes | Yes |
+| `Entity::create(['state' => 'instance'])` | Yes | Yes |
+| `draft->update(...)` to `instance` | No | Yes |
+| `draft->instantiate()` | No | Yes |
+| `instance->update(...)` | No | No |
+
+Creation and instantiation callbacks follow the actual lifecycle event rather than the final state alone:
+
+| Call | Creation callbacks | Instantiate callbacks |
+| --- | --- | --- |
+| `create()` | `oncreate()`, then `onaftercreate()` | `onafterinstantiate()`, after the creation callbacks. |
+| `create(['state' => 'draft'])` | `oncreate()`, then `onaftercreate()` | None. |
+| `draft()` | `oncreate()`, then `onaftercreate()` | None. |
+| `update()` on a draft, without an explicit `state: draft` | None | `onbeforeinstantiate()`, then `oninstantiate()` and `onafterinstantiate()`. |
+| `instantiate()` on a draft | None | `onafterinstantiate()`. |
+
+An `update()` on an existing instance invokes update callbacks instead. A `write()` preserves the current state and invokes neither creation, update nor instantiate callbacks.
+
+During creation, field callbacks remain state-sensitive. A draft creation always uses field `oncreate` callbacks and never field `onupdate` callbacks, including when `ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION` is enabled. That option can only force field `onupdate` callbacks when the object is created directly as an instance.
+
 This `assertLifecycle()` check is specifically the call to the entity's `canCreate()`, `canRead()`, `canUpdate()` or `canDelete()` method. It is distinct from field validation based on types, usages, constraints, required fields and unique keys.
 
 The mnemonic is still useful: the four similarly named `Collection` methods currently call `assertLifecycle()`, while the letters D-W-I-R recall the explicit technical operations that do not. The implementation contract above—not the acronym—is authoritative.
@@ -1264,6 +1339,10 @@ $is_abstract = $class::isAbstract();
 ```
 
 `Model::isAbstract()` delegates directly to `ReflectionClass::isAbstract()` and does not store or cache this state.
+
+The method is final, so derived models cannot redefine what abstractness means. Consumers should call `$class::isAbstract()` instead of using reflection directly or maintaining a parallel flag. A concrete child of an abstract class is instantiable without changing `getFlags()`.
+
+Abstractness and logical model scope answer different questions: `isAbstract()` controls whether PHP permits direct instantiation, while `getModelScope()` controls which discriminator is used for persistence operations. The current default table resolver does, however, treat the first concrete model below an abstract parent as a storage boundary; this table-mapping rule does not alter the child's model scope.
 
 
 #### Internal Private Entity

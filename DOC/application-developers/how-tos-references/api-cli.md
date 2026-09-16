@@ -24,6 +24,8 @@ These methods are primarily used for trusted backend operations. Direct `ObjectM
 
 Creates a new instance of a given class and assigns values to its fields.
 
+When `state` is omitted, creation targets `instance`: `oncreate()` and `onaftercreate()` run first, followed by `onafterinstantiate()`. An explicit `state: draft` runs only the creation hooks.
+
 ```php
 /**
  * @param string $entity Class of the object to create.
@@ -37,7 +39,7 @@ function create($entity, $fields, $lang = null, $use_draft = true)
 
 ##### `draft`
 
-Creates a persistent draft without data validation or lifecycle callbacks.
+Creates a persistent draft without data validation. Like `create()`, it invokes `oncreate()` followed by `onaftercreate()`, but it does not invoke instantiate hooks.
 
 ```php
 function draft($class, $fields = [], $lang = null)

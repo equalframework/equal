@@ -35,6 +35,9 @@ Most field types support these attributes:
 | multilang     | Marks the field as [translatable](../i18n/i18n-overview.md) (default: `false`).                     |
 | domain        | Additional conditions for relational field targets (see [Domains](../data-rules-processing/domains.md)). |
 
+!!! important "Field handler data contract"
+    Handlers referenced by field attributes, including `onupdate`, are responsible for requesting the data they need. An injected `$self` is a collection of the affected identifiers, not a fully populated mutable entity, and `$values` contains only the current operation payload. Read required fields explicitly and treat the resulting data as immutable input. See the [callback data contract](computed-fields.md#callback-data-contract) for details and an example.
+
 ---
 
 ### Scalar Types
