@@ -1329,7 +1329,7 @@ class ObjectManager extends Service {
             else {
                 $res = $called_class::$called_method(...$args);
             }
-            if($res !== null) {
+            if(empty($ids) || $res !== null) {
                 $result = $res;
             }
             // unstack global object_methods state

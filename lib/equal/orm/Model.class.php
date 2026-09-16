@@ -161,7 +161,7 @@ class Model implements \ArrayAccess, \Iterator {
                     // either a php function (or a function from the global scope) or a closure object
                     if(is_object($defaults[$field])) {
                         // default is a closure
-                        $this->values[$field] = $defaults[$field]();
+                        $this->values[$field] = $defaults[$field]($values);
                     }
                     else {
                         // do not call since there is an ambiguity with scalar (e.g. 'time')
