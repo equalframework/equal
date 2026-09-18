@@ -186,11 +186,11 @@ All model classes inherit from the class `equal\orm\Model`.
 
 ### Object Storage
 
-To store objects, the ORM utilizes a dedicated table in the database following the active record pattern. By convention, the name of the table for a given class is derived from the name of the first ancestor class that extends `equal\orm\Model`, with the full namespace converted to snake case. For example, objects of the class `realestate\RentalUnit` are stored in the `realestate_rentalunit` table.
+To store objects, the ORM utilizes a dedicated table in the database following the active record pattern. By convention, the name of the table is derived from the class that starts the current storage branch, with the full namespace converted to snake case. A storage branch starts at a class that inherits directly from `equal\orm\Model`, at the first concrete model below an abstract class, or at a model that explicitly defines its own table. For example, objects of the class `realestate\RentalUnit` are stored in the `realestate_rentalunit` table.
 
 However, it is also possible to have inheritance that is distinct from the table assignment in the database.
 
-For example, the classes `sale\customer\Customer` and `identity\Contact` both inherit from the class `identity\Partner`. However, they are distinct objects which are preferable not to mix. In such cases, it is possible to manually define the table to be used for a class via the `getTable()` method.
+For example, the classes `sale\customer\Customer` and `identity\Contact` both inherit from the class `identity\Partner`. However, they are distinct objects which are preferable not to mix. In such cases, it is possible to manually define the table to be used for a class via the `getModelTable()` method.
 
 ### Model Storage and Discrimination
 
@@ -201,10 +201,10 @@ Several model APIs participate in inheritance, but each has a specific responsib
 | `getFlags()` | Effective cross-cutting characteristics such as system, private and audited behavior. |
 | `isAbstract()` | Whether the PHP class can be instantiated directly. |
 | `getSlug()` | Conventional conversion of a fully qualified class name to a SQL identifier. |
-| `getTable()` | Physical table containing the records manipulated through the model. |
+| `getModelTable()` | Physical table containing the records manipulated through the model. |
 | `getModelScope()` | Optional logical restriction on the system `model` column. |
 
-Do not derive a model scope by comparing `getTable()` with `getSlug()`. A table name says where records are stored; a model scope says which records in that table belong to the logical model.
+Do not derive a model scope by comparing `getModelTable()` with `getSlug()`. A table name says where records are stored; a model scope says which records in that table belong to the logical model.
 
 #### Conventional SQL names
 
@@ -215,9 +215,9 @@ core\auth\AuthenticationFactor
     -> core_auth_authenticationfactor
 ```
 
-It is a naming utility only. It may be used by `getTable()`, but it never decides whether the ORM adds a `model` filter.
+It is a naming utility only. It may be used by `getModelTable()`, but it never decides whether the ORM adds a `model` filter.
 
-#### Physical storage with `getTable()`
+#### Physical storage with `getModelTable()`
 
 Concrete models normally share the table of the first concrete class in their inheritance branch. For example:
 
@@ -228,36 +228,47 @@ Model
         └── C      -> table A
 ```
 
-The current default resolver also creates a storage boundary below an abstract parent. Each first concrete descendant starts its own branch table:
+The default resolver also creates a storage boundary below an abstract parent. Each first concrete descendant starts its own branch table:
 
 ```text
 Model
 └── AbstractBase (abstract)
-    ├── B          -> table B
-    │   └── C      -> table B
-    └── D          -> table D
+    ├── B          -> table B, getModelScope() -> null
+    │   └── C      -> table B, getModelScope() -> C::class
+    └── D          -> table D, getModelScope() -> null
 ```
 
-This default table-boundary behavior is separate from flags and does not change the logical scope returned by `getModelScope()`.
+`B` and `D` each operate on their full table because their table differs from the one resolved for their abstract parent. Their descendants share the same table and are therefore scoped to their exact persistent model by default.
 
-A model can create an explicit storage boundary by overriding `getTable()`:
+A model can create an explicit storage boundary by overriding `getModelTable()`:
 
 ```php
 class B extends A {
-    public function getTable(): string {
+    public static function getModelTable(): string {
         // Bind this inherited implementation to the class where it is declared.
         return static::getSlug(self::class);
     }
 }
 ```
 
-If `C` extends `B` and inherits this method, both `B` and `C` use B's table. A later descendant can override `getTable()` again to start another storage branch. An override may also return an arbitrary explicit table name:
+If `C` extends `B` and inherits this method, both `B` and `C` use B's table. Since B's table differs from A's table, B is the unrestricted root of that storage branch, while C is scoped to its own records:
+
+```text
+Model
+└── A              -> table A, getModelScope() -> null
+    └── B          -> table B, getModelScope() -> null
+        └── C      -> table B, getModelScope() -> C::class
+```
+
+A later descendant can override `getModelTable()` again to start another storage branch. An override may also return an arbitrary explicit table name:
 
 ```php
-public function getTable(): string {
+public static function getModelTable(): string {
     return 'custom_table_name';
 }
 ```
+
+`getTable()` remains available as a deprecated instance-level compatibility accessor. New storage boundaries must override the static `getModelTable()` method so that `getModelScope()` can compare the model table with its parent's table.
 
 #### The system `model` column
 
@@ -270,7 +281,7 @@ null        -> no model discriminator restriction; operate on the full table
 class name  -> operate only on rows whose model value exactly matches that class
 ```
 
-The default implementation gives the first entity directly below `Model` access to its full table and scopes every descendant to its exact class:
+The default implementation gives every storage root access to its full table. A class is a storage root when it inherits directly from `Model` or when its resolved table differs from its parent's table. A class that shares its parent's table is scoped to its exact class:
 
 ```text
 Model
@@ -279,14 +290,21 @@ Model
         └── C      getModelScope() -> C::class
 ```
 
-Consequently, `B::search()` does not automatically include rows belonging to `C`. A dedicated table also does not imply a `null` scope. If `B` owns a table but retains its default child scope, the ORM may generate the redundant but valid equivalent of:
+Consequently, `B::search()` does not automatically include rows belonging to `C`.
 
-```sql
-FROM table_b
-WHERE model = '...\B'
+The two additional storage-root cases follow the same rule:
+
+```text
+Model
+├── AbstractBase (abstract)
+│   └── ConcreteRoot       -> own table, getModelScope() -> null
+│       └── ConcreteChild  -> same table, getModelScope() -> ConcreteChild::class
+└── SharedRoot               -> own table, getModelScope() -> null
+    └── ExplicitStorageRoot       -> overridden table, getModelScope() -> null
+        └── StorageChild          -> same table, getModelScope() -> StorageChild::class
 ```
 
-Return `null` explicitly only when the model must operate on the entire table:
+The default scope is therefore derived from the storage boundary. A model can still override `getModelScope()` when it must reuse another model's discriminator or explicitly operate on the full table:
 
 ```php
 public static function getModelScope(): ?string {
@@ -328,6 +346,45 @@ class SpecializedB extends BExtension {
 }
 ```
 
+#### Inheritance patterns at a glance
+
+The following summary compares the storage and default scope rules for the main inheritance patterns:
+
+| Pattern | Inheritance | Storage | Default scope | Meaning |
+| --- | --- | --- | --- | --- |
+| **Shared persistent inheritance** | `A > B > C` | A single table, `A` | `A: null` · `B: B::class` · `C: C::class` | `B` and `C` are distinct persistent subtypes of `A`. |
+| **New storage branch** | `A > B > C` | `A` in table `A`; `B` and `C` in table `B` | `A: null` · `B: null` · `C: C::class` | `B` inherits from `A` but starts its own storage branch; `C` is a persistent subtype of `B`. |
+| **Inheritance through an abstract class** | `A abstract > B > C` | `B` and `C` in table `B` | `B: null` · `C: C::class` | `A` shares structure and behavior but does not provide directly usable storage of its own. |
+| **Behavioral extension** | `A > B > C` | The same storage as the represented model | Scope explicitly reused | The subclass extends behavior without creating a new persistent subtype. |
+
+The same patterns can be visualized as inheritance trees:
+
+```text
+1. Shared storage
+
+A              -> table A, scope null
+└── B           -> table A, scope B::class
+    └── C       -> table A, scope C::class
+
+2. New storage branch
+
+A              -> table A, scope null
+└── B           -> table B, scope null
+    └── C       -> table B, scope C::class
+
+3. Abstract base
+
+A (abstract)
+└── B           -> table B, scope null
+    └── C       -> table B, scope C::class
+
+4. Behavioral extension
+
+A              -> table A, scope null
+└── B           -> table A, scope B::class
+    └── C       -> table A, explicitly reuses B's scope (B::class)
+```
+
 #### Abstract models and record creation
 
 PHP's native `abstract` keyword is the source of truth for instantiability. Use the final `$class::isAbstract()` model API when code must check it; abstractness is not represented by an entity flag.
@@ -343,9 +400,11 @@ This produces the following behavior:
 
 | Class kind | Scope | Stored `model` value |
 | --- | --- | --- |
-| Normal subtype `B` | `B::class` | `B::class` |
+| Root model below `Model` | `null` | Concrete class name |
+| First concrete model below an abstract class | `null` | Concrete class name |
+| Model defining a distinct table | `null` | Concrete class name |
+| Descendant sharing its parent's table | Exact descendant class | Exact descendant class |
 | Behavioral extension of `B` | `B::class` | `B::class` |
-| Root `A` | `null` | `A::class` |
 | Unrestricted extension of a root | `null` | The concrete extension class |
 
 A `null` scope means that reads and mutations are not restricted by a discriminator. It does not mean that the SQL `model` value is `NULL`.
