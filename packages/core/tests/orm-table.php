@@ -42,6 +42,8 @@ namespace {
     use core\tests\fixtures\get_table\abstract_storage\AbstractRoot;
     use core\tests\fixtures\get_table\abstract_storage\ConcreteRoot;
     use core\tests\fixtures\get_table\abstract_storage\ConcreteChild;
+    use core\email\Email;
+    use core\security\factor\Passkey;
     use equal\orm\ObjectManager;
 
     $get_table = static function(string $class): string {
@@ -116,6 +118,50 @@ namespace {
                 return [
                     $get_table(ConcreteRoot::class),
                     $get_table(ConcreteChild::class)
+                ];
+            }
+        ],
+
+        '1201' => [
+            'description'   => "A virtual root model keeps its parent's custom table and discriminator.",
+            'return'        => ['array'],
+            'expected'      => [
+                'table'                    => 'core_mail',
+                'inherits_discriminator'   => true
+            ],
+            'test'          => function() {
+                $virtual_class = 'virtual\\' . Email::class;
+                $virtual_model = ObjectManager::getInstance()->getModel($virtual_class);
+
+                if(!$virtual_model) {
+                    return [];
+                }
+
+                return [
+                    'table'                    => $virtual_model->getTable(),
+                    'inherits_discriminator'   => $virtual_class::getModelScope() === Email::getModelScope()
+                ];
+            }
+        ],
+
+        '1202' => [
+            'description'   => "A virtual subtype keeps its parent's table and non-null discriminator.",
+            'return'        => ['array'],
+            'expected'      => [
+                'table'         => 'core_security_authenticationfactor',
+                'discriminator' => Passkey::class
+            ],
+            'test'          => function() {
+                $virtual_class = 'virtual\\' . Passkey::class;
+                $virtual_model = ObjectManager::getInstance()->getModel($virtual_class);
+
+                if(!$virtual_model) {
+                    return [];
+                }
+
+                return [
+                    'table'         => $virtual_model->getTable(),
+                    'discriminator' => $virtual_class::getModelScope()
                 ];
             }
         ]
