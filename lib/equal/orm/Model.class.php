@@ -377,8 +377,8 @@ class Model implements \ArrayAccess, \Iterator {
      * Returns the model discriminator used to scope ORM operations.
      *
      * The discriminator corresponds to the value stored in the `model` field and is used to distinguish concrete models sharing the same table.
-     * The first entity in an inheritance hierarchy has no discriminator scope
-     * and therefore operates on the full underlying table. Child entities are scoped to records whose `model` value matches their discriminator.
+     * A model defining a new storage table has no discriminator scope and therefore operates on the full underlying table.
+     * Child entities sharing that table are scoped to records whose `model` value matches their discriminator.
      * Child classes may override this method to reuse another model discriminator or to disable model filtering by returning null.
      *
      * @return string|null Fully qualified model class used as discriminator, or null when no model restriction applies.
@@ -388,6 +388,11 @@ class Model implements \ArrayAccess, \Iterator {
 
         // first entity of hierarchy: full table
         if(!$parent || $parent === __CLASS__) {
+            return null;
+        }
+
+        // first entity using a distinct storage table: full table
+        if(static::getModelTable() !== $parent::getModelTable()) {
             return null;
         }
 
@@ -757,7 +762,7 @@ class Model implements \ArrayAccess, \Iterator {
      *
      * @return string
      */
-    public function getTable() {
+    public static function getModelTable(): string {
 
         $entity = static::class;
 
@@ -779,6 +784,17 @@ class Model implements \ArrayAccess, \Iterator {
         }
 
         return static::getSlug($entity);
+    }
+
+    /**
+     * Returns the DB table used for storing objects of the current class.
+     *
+     * @deprecated Use static::getModelTable() instead.
+     *
+     * @return string
+     */
+    public function getTable() {
+        return static::getModelTable();
     }
 
     /**

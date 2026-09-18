@@ -34,6 +34,25 @@ namespace core\tests\fixtures\get_table\abstract_storage {
     }
 }
 
+namespace core\tests\fixtures\get_table\explicit_storage {
+
+    use equal\orm\Model;
+
+    class SharedRoot extends Model {
+    }
+
+    class StorageRoot extends SharedRoot {
+
+        public static function getModelTable(): string {
+            return 'core_tests_fixtures_get_table_explicit_storage_root';
+        }
+    }
+
+    class StorageChild extends StorageRoot {
+    }
+
+}
+
 namespace {
 
     use core\tests\fixtures\get_table\default_storage\A as DefaultA;
@@ -42,6 +61,8 @@ namespace {
     use core\tests\fixtures\get_table\abstract_storage\AbstractRoot;
     use core\tests\fixtures\get_table\abstract_storage\ConcreteRoot;
     use core\tests\fixtures\get_table\abstract_storage\ConcreteChild;
+    use core\tests\fixtures\get_table\explicit_storage\StorageRoot;
+    use core\tests\fixtures\get_table\explicit_storage\StorageChild;
     use core\email\Email;
     use core\security\factor\Passkey;
     use equal\orm\ObjectManager;
@@ -118,6 +139,35 @@ namespace {
                 return [
                     $get_table(ConcreteRoot::class),
                     $get_table(ConcreteChild::class)
+                ];
+            }
+        ],
+
+        '1104' => [
+            'description'   => "A concrete storage root below an abstract model has no discriminator, while its child does.",
+            'return'        => ['array'],
+            'expected'      => [true, ConcreteChild::class],
+            'test'          => function() {
+                return [
+                    is_null(ConcreteRoot::getModelScope()),
+                    ConcreteChild::getModelScope()
+                ];
+            }
+        ],
+
+        '1105' => [
+            'description'   => "A model defining a distinct table has no discriminator, while descendants sharing that table do.",
+            'return'        => ['array'],
+            'expected'      => [
+                'table'         => 'core_tests_fixtures_get_table_explicit_storage_root',
+                'root_unscoped' => true,
+                'child_scope'   => StorageChild::class
+            ],
+            'test'          => function() {
+                return [
+                    'table'         => StorageRoot::getModelTable(),
+                    'root_unscoped' => is_null(StorageRoot::getModelScope()),
+                    'child_scope'   => StorageChild::getModelScope()
                 ];
             }
         ],
