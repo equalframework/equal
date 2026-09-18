@@ -738,6 +738,13 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
+     * @deprecated use getModelTable
+     */
+    public function getTable() {
+        return static::getModelTable();
+    }
+
+    /**
      * Returns the DB table used for storing objects of the current class.
      *
      * By default, models share the table of the first class inheriting directly
@@ -746,7 +753,7 @@ class Model implements \ArrayAccess, \Iterator {
      *
      * @return string
      */
-    public function getTable() {
+    public static function getModelTable() {
 
         $entity = static::class;
 
