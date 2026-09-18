@@ -293,8 +293,8 @@ class ObjectManager extends Service {
                                     public static function getModelScope(): ?string {
                                         return $parent::getModelScope();
                                     }
-                                    public function getTable() {
-                                        return (new $parent())->getTable();
+                                    public static function getModelTable(): string {
+                                        return $parent::getModelTable();
                                     }
                                 }
                             }");
