@@ -1480,14 +1480,18 @@ class ObjectManager extends Service {
      * @return boolean|Model   Returns the static instance of the model with default values. If no Model matches the class name returns false.
      */
     public function getModel($class) {
-        $model = false;
         try {
-            $model = $this->getStaticInstance($class);
+            $this->loadObjectClass($class);
+
+            if((new \ReflectionClass($class))->isAbstract()) {
+                return false;
+            }
+
+            return $this->getStaticInstance($class);
         }
         catch(Exception $e) {
-            // #memo - another autoload handler might be registered, so no exception must be raised here
+            return false;
         }
-        return $model;
     }
 
     public function getLastError() {
