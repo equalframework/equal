@@ -267,6 +267,66 @@ class ObjectManager extends Service {
     }
 
     /**
+     * Loads the specified object class without instantiating it.
+     *
+     * @param   string       $class      The full name of the class with its namespace.
+     * @throws  Exception
+     */
+    private function loadObjectClass($class) {
+        if(class_exists($class, false)) {
+            return;
+        }
+
+        $entity = new Entity($class);
+        $filename = $entity->getFullFilePath();
+
+        if(!file_exists($filename)) {
+            $parentEntity = $entity->getParent();
+            if($parentEntity && file_exists($parentEntity->getFullFilePath())) {
+                $class_name = $entity->getName();
+                $namespace = $entity->getNamespace();
+                $parent = '\\'.$parentEntity->getFullName();
+                eval("namespace $namespace {
+                    class $class_name extends $parent {
+                        public static function getModelScope(): ?string {
+                            return $parent::getModelScope();
+                        }
+                        public static function getModelTable(): string {
+                            return $parent::getModelTable();
+                        }
+                    }
+                }");
+            }
+            else {
+                throw new Exception("unknown_model", EQ_ERROR_UNKNOWN_OBJECT);
+            }
+        }
+        else {
+            // #todo - this should be tested in package-consistency controller
+            $parts = explode('\\', $class);
+            $class_name = array_pop($parts);
+            $file_content = file_get_contents($filename);
+            preg_match('/class(\s*)' . $class_name . '(.*)(\s*)\{/iU', $file_content, $matches);
+            if(!isset($matches[1])) {
+                throw new Exception("malformed class file for model '$class': class name do not match file name", EQ_ERROR_INVALID_CONFIG);
+            }
+
+            preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
+            if(!isset($matches[1])) {
+                throw new Exception("malformed class file for model '$class': parent class name not found in file", EQ_ERROR_INVALID_CONFIG);
+            }
+
+            if(!(include_once $filename)) {
+                throw new Exception("unable to load '$filename' for model '$class': script inclusion failed", EQ_ERROR_UNKNOWN_OBJECT);
+            }
+        }
+
+        if(!class_exists($class, false)) {
+            throw new Exception("unknown model (check file syntax): '$class'", EQ_ERROR_UNKNOWN_OBJECT);
+        }
+    }
+
+    /**
      * Returns a static instance for the specified object class (does not create a new object)
      *
      * @param   string       $class      The full name of the class with its namespace.
@@ -276,61 +336,11 @@ class ObjectManager extends Service {
     private function getStaticInstance($class) {
         if(!isset($this->models[$class])) {
             try {
-                // if class is unknown, load the file containing the class declaration of the requested object
-                if(!class_exists($class, false)) {
-
-                    $entity = new Entity($class);
-                    $filename = $entity->getFullFilePath();
-
-                    if(!file_exists($filename)) {
-                        $parentEntity = $entity->getParent();
-                        if($parentEntity && file_exists($parentEntity->getFullFilePath())) {
-                            $class_name = $entity->getName();
-                            $namespace = $entity->getNamespace();
-                            $parent = '\\'.$parentEntity->getFullName();
-                            eval("namespace $namespace {
-                                class $class_name extends $parent {
-                                    public static function getModelScope(): ?string {
-                                        return $parent::getModelScope();
-                                    }
-                                    public static function getModelTable(): string {
-                                        return $parent::getModelTable();
-                                    }
-                                }
-                            }");
-                        }
-                        else {
-                            throw new Exception("unknown_model", EQ_ERROR_UNKNOWN_OBJECT);
-                        }
-                    }
-                    else {
-                        // #todo - this should be tested in package-consistency controller
-                        $parts = explode('\\', $class);
-                        $class_name = array_pop($parts);
-                        $file_content = file_get_contents($filename);
-                        preg_match('/class(\s*)' . $class_name . '(.*)(\s*)\{/iU', $file_content, $matches);
-                        if(!isset($matches[1])) {
-                            throw new Exception("malformed class file for model '$class': class name do not match file name", EQ_ERROR_INVALID_CONFIG);
-                        }
-
-                        preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
-                        if(!isset($matches[1])) {
-                            throw new Exception("malformed class file for model '$class': parent class name not found in file", EQ_ERROR_INVALID_CONFIG);
-                        }
-
-                        if(!(include_once $filename)) {
-                            throw new Exception("unable to load '$filename' for model '$class': script inclusion failed", EQ_ERROR_UNKNOWN_OBJECT);
-                        }
-                    }
-
-                }
-                if(!class_exists($class, false)) {
-                    throw new Exception("unknown model (check file syntax): '$class'", EQ_ERROR_UNKNOWN_OBJECT);
-                }
+                $this->loadObjectClass($class);
 
                 $reflection = new \ReflectionClass($class);
                 if($reflection->isAbstract()) {
-                    throw new Exception("unknown_model", EQ_ERROR_UNKNOWN_OBJECT);
+                    throw new Exception("abstract_model", EQ_ERROR_UNKNOWN_OBJECT);
                 }
 
                 $this->models[$class] = new $class();
@@ -353,16 +363,26 @@ class ObjectManager extends Service {
      * @return  mixed(string|integer)       Returns the name of the table related to the Class, or an error code (integer) if class cannot be resolved.
      */
     public function getObjectTableName($class) {
-        $this->getStaticInstance($class);
-        return $class::getModelTable();
+        try {
+            $this->loadObjectClass($class);
+            return $class::getModelTable();
+        }
+        catch(Exception $e) {
+            return $e->getCode();
+        }
     }
 
     /**
      * Returns the discriminator that structurally scopes ORM operations for a model.
      */
     private function getObjectModelScope(string $class): ?string {
-        $this->getStaticInstance($class);
-        return $class::getModelScope();
+        try {
+            $this->loadObjectClass($class);
+            return $class::getModelScope();
+        }
+        catch(Exception $e) {
+            return $e->getCode();
+        }
     }
 
     /**
@@ -449,8 +469,13 @@ class ObjectManager extends Service {
      * @return  array
      */
     public function getObjectSchema($class) {
-        $object = $this->getStaticInstance($class);
-        return $object->getSchema();
+        try {
+            $object = $this->getStaticInstance($class);
+            return $object->getSchema();
+        }
+        catch(Exception $e) {
+            return $e->getCode();
+        }
     }
 
 

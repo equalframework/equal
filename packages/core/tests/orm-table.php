@@ -185,6 +185,24 @@ namespace {
             }
         ],
 
+        '1107' => [
+            'description'   => "The ORM resolves the table of an abstract model without instantiating it.",
+            'return'        => ['string'],
+            'expected'      => 'core_tests_fixtures_get_table_abstract_storage_abstractroot',
+            'test'          => function() {
+                return ObjectManager::getInstance()->getObjectTableName(AbstractRoot::class);
+            }
+        ],
+
+        '1108' => [
+            'description'   => "The ORM returns the unknown-object error code when a model table cannot be resolved.",
+            'return'        => ['integer'],
+            'expected'      => EQ_ERROR_UNKNOWN_OBJECT,
+            'test'          => function() {
+                return ObjectManager::getInstance()->getObjectTableName('unknown\\MissingModel');
+            }
+        ],
+
         '1201' => [
             'description'   => "A virtual root model keeps its parent's custom table and discriminator.",
             'return'        => ['array'],
