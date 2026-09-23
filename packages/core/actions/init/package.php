@@ -482,19 +482,33 @@ else {
 
                     // optional - copy binary to `/opt/bin` for persistency, if present
                     $opt_bin_dir = '/opt/bin';
-                    if(file_exists($opt_bin_dir) && is_dir($opt_bin_dir)) {
-                        $whereis = [];
-                        exec("command -v $bin 2>/dev/null", $whereis);
-                        if(!empty($whereis[0])) {
-                            $src = trim($whereis[0]);
-                            $dst = "$opt_bin_dir/$bin";
-                            if($src !== $dst) {
-                                if(file_exists($dst)) {
-                                    unlink($dst);
+                    if(is_dir($opt_bin_dir)) {
+                        $paths = [];
+                        exec('command -v ' . escapeshellarg($bin) . ' 2>/dev/null', $paths, $result_code);
+                        if($result_code !== 0 || empty($paths[0])) {
+                            throw new Exception('binary_not_found', EQ_ERROR_UNKNOWN);
+                        }
+
+                        $binary = trim($paths[0]);
+                        $libraries = [];
+                        exec('ldd ' . escapeshellarg($binary) . ' 2>/dev/null', $libraries, $result_code);
+                        foreach($libraries as $library) {
+                            if(preg_match('/=>\s+(\/\S+)/', $library, $matches)) {
+                                $filename = basename($matches[1]);
+                                // exclude system runtime libraries provided by the base image
+                                if(!preg_match('/^lib(?:c|dl|m|pthread|resolv|rt|util)\.so(?:\.|$)/', $filename)) {
+                                    $paths[] = $matches[1];
                                 }
-                                copy($src, $dst);
                             }
-                            chmod($dst, 0755);
+                        }
+
+                        foreach(array_unique($paths) as $path) {
+                            $path = trim($path);
+                            $destination = $opt_bin_dir . '/' . basename($path);
+                            if($path !== $destination && !copy($path, $destination)) {
+                                throw new Exception('unable_to_persist_binary', EQ_ERROR_UNKNOWN);
+                            }
+                            chmod($destination, $path === $binary ? 0755 : 0644);
                         }
                     }
                 }

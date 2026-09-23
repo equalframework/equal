@@ -752,6 +752,7 @@ class Model implements \ArrayAccess, \Iterator {
         return $capabilities;
     }
 
+
     /**
      * Returns the DB table used for storing objects of the current class.
      *
