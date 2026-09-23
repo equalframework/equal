@@ -346,7 +346,8 @@ class ObjectManager extends Service {
             $result = strtolower($object->getTable());
         }
         catch(Exception $e) {
-            return $e->getCode();
+            // #memo upon loading error, return empty string (this is improved in 2.0.2)
+            // return $e->getCode();
         }
         return $result;
     }
