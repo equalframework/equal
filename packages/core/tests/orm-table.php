@@ -172,12 +172,26 @@ namespace {
             }
         ],
 
+        '1106' => [
+            'description'   => "The object root is the first class using the model storage table.",
+            'return'        => ['array'],
+            'expected'      => [DefaultA::class, ConcreteRoot::class, StorageRoot::class],
+            'test'          => function() {
+                return [
+                    ObjectManager::getObjectRootClass(DefaultC::class),
+                    ObjectManager::getObjectRootClass(ConcreteChild::class),
+                    ObjectManager::getObjectRootClass(StorageChild::class)
+                ];
+            }
+        ],
+
         '1201' => [
             'description'   => "A virtual root model keeps its parent's custom table and discriminator.",
             'return'        => ['array'],
             'expected'      => [
                 'table'                    => 'core_mail',
-                'inherits_discriminator'   => true
+                'inherits_discriminator'   => true,
+                'inherits_root'            => true
             ],
             'test'          => function() {
                 $virtual_class = 'virtual\\' . Email::class;
@@ -189,7 +203,8 @@ namespace {
 
                 return [
                     'table'                    => $virtual_model->getTable(),
-                    'inherits_discriminator'   => $virtual_class::getModelScope() === Email::getModelScope()
+                    'inherits_discriminator'   => $virtual_class::getModelScope() === Email::getModelScope(),
+                    'inherits_root'            => ObjectManager::getObjectRootClass($virtual_class) === ObjectManager::getObjectRootClass(Email::class)
                 ];
             }
         ],
@@ -199,7 +214,8 @@ namespace {
             'return'        => ['array'],
             'expected'      => [
                 'table'         => 'core_security_authenticationfactor',
-                'discriminator' => Passkey::class
+                'discriminator' => Passkey::class,
+                'inherits_root' => true
             ],
             'test'          => function() {
                 $virtual_class = 'virtual\\' . Passkey::class;
@@ -211,7 +227,8 @@ namespace {
 
                 return [
                     'table'         => $virtual_model->getTable(),
-                    'discriminator' => $virtual_class::getModelScope()
+                    'discriminator' => $virtual_class::getModelScope(),
+                    'inherits_root' => ObjectManager::getObjectRootClass($virtual_class) === ObjectManager::getObjectRootClass(Passkey::class)
                 ];
             }
         ]

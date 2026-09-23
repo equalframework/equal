@@ -353,15 +353,8 @@ class ObjectManager extends Service {
      * @return  mixed(string|integer)       Returns the name of the table related to the Class, or an error code (integer) if class cannot be resolved.
      */
     public function getObjectTableName($class) {
-        $result = '';
-        try {
-            $object = $this->getStaticInstance($class);
-            $result = strtolower($object->getTable());
-        }
-        catch(Exception $e) {
-            return $e->getCode();
-        }
-        return $result;
+        $this->getStaticInstance($class);
+        return $class::getModelTable();
     }
 
     /**
@@ -387,26 +380,31 @@ class ObjectManager extends Service {
 
     /**
      * Retrieve the root parent class of a class.
-     * If there are several level of inheritance, the method loops up until the first class that defines its own DB table
-     * or inherits from the Model interface (`equal\orm\Model`).
+     * If there are several levels of inheritance, the method loops up to the first class using the same model table.
+     * This storage root is independent from the discriminator returned by `getModelScope()`.
      *
      * @param   string  $class   The full name of the entity with its namespace.
+     * @return  string           The full name of the class defining the storage root.
      */
     public static function getObjectRootClass($class) {
         $entity = $class;
-        while(true) {
-            if(method_exists($entity, 'getTable')) {
-                $reflectionClass = new \ReflectionClass($entity);
-                if($reflectionClass->getMethod('getTable')->class == $entity) {
-                    break;
-                }
-            }
-            $parent = (class_exists($entity)) ? get_parent_class($entity) : false;
-            if(!$parent || $parent == 'equal\orm\Model') {
+
+        if(!class_exists($entity) || !method_exists($entity, 'getModelTable')) {
+            return $entity;
+        }
+
+        $table = $entity::getModelTable();
+
+        while($parent = get_parent_class($entity)) {
+            if($parent === Model::class
+            || !method_exists($parent, 'getModelTable')
+            || $parent::getModelTable() !== $table) {
                 break;
             }
+
             $entity = $parent;
         }
+
         return $entity;
     }
 

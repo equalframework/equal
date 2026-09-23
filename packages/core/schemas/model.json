@@ -116,10 +116,30 @@
         },
         "default": {},
         "dependents": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "additionalProperties": true
