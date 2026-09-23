@@ -495,6 +495,7 @@ else {
                         foreach($libraries as $library) {
                             if(preg_match('/=>\s+(\/\S+)/', $library, $matches)) {
                                 $filename = basename($matches[1]);
+                                // exclude system runtime libraries provided by the base image
                                 if(!preg_match('/^lib(?:c|dl|m|pthread|resolv|rt|util)\.so(?:\.|$)/', $filename)) {
                                     $paths[] = $matches[1];
                                 }
