@@ -365,6 +365,11 @@ class ObjectManager extends Service {
     public function getObjectTableName($class) {
         try {
             $this->loadObjectClass($class);
+
+            if((new \ReflectionClass($class))->isAbstract()) {
+                return EQ_ERROR_UNKNOWN_OBJECT;
+            }
+
             return $class::getModelTable();
         }
         catch(Exception $e) {
@@ -488,7 +493,7 @@ class ObjectManager extends Service {
      */
     public function hasObjectRoles($class) {
         if(method_exists($class, 'getRoles')) {
-            /** @var \ReflectionClass */
+
             $reflectionClass = new \ReflectionClass($class);
             return ($reflectionClass->getMethod('getRoles')->class == $class);
         }

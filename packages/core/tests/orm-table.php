@@ -186,9 +186,9 @@ namespace {
         ],
 
         '1107' => [
-            'description'   => "The ORM resolves the table of an abstract model without instantiating it.",
-            'return'        => ['string'],
-            'expected'      => 'core_tests_fixtures_get_table_abstract_storage_abstractroot',
+            'description'   => "The ORM returns the unknown-object error code when an abstract model has no table.",
+            'return'        => ['integer'],
+            'expected'      => EQ_ERROR_UNKNOWN_OBJECT,
             'test'          => function() {
                 return ObjectManager::getInstance()->getObjectTableName(AbstractRoot::class);
             }

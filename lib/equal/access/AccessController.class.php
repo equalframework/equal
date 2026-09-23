@@ -276,10 +276,13 @@ class AccessController extends Service {
         $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
         if(count($parent_classes)) {
             $classes = [];
-            $storage_root = ObjectManager::getObjectRootClass($object_class);
-            foreach($parent_classes as $class) {
-                if(ObjectManager::getObjectRootClass($class) === $storage_root) {
-                    $classes[] = $class;
+            $table_name = $orm->getObjectTableName($object_class);
+            if(is_string($table_name)) {
+                foreach($parent_classes as $class) {
+                    $parent_table_name = $orm->getObjectTableName($class);
+                    if(is_string($parent_table_name) && $parent_table_name === $table_name) {
+                        $classes[] = $class;
+                    }
                 }
             }
             foreach($classes as $class) {
@@ -371,10 +374,13 @@ class AccessController extends Service {
         $classes = [$object_class];
         $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
 
-        $storage_root = ObjectManager::getObjectRootClass($object_class);
-        foreach($parent_classes as $class) {
-            if(ObjectManager::getObjectRootClass($class) === $storage_root) {
-                $classes[] = $class;
+        $table_name = $orm->getObjectTableName($object_class);
+        if(is_string($table_name)) {
+            foreach($parent_classes as $class) {
+                $parent_table_name = $orm->getObjectTableName($class);
+                if(is_string($parent_table_name) && $parent_table_name === $table_name) {
+                    $classes[] = $class;
+                }
             }
         }
 
