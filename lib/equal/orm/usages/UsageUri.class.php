@@ -111,10 +111,18 @@ class UsageUri extends Usage {
                         'message'   => 'Bank account must be a valid IBAN number.',
                         'function'  =>  function($value) {
                             $iban = substr($value, 4).substr($value, 0, 4);
-                            return bcmod(
-                                preg_replace_callback('/[A-Z]/', fn($m) => ord($m[0]) - 55, $iban),
-                                '97'
-                            ) === '1';
+                            $number = preg_replace_callback(
+                                '/[A-Z]/',
+                                fn($m) => ord($m[0]) - 55,
+                                $iban
+                            );
+
+                            $mod = 0;
+                            foreach(str_split($number) as $digit) {
+                                $mod = ($mod * 10 + (int) $digit) % 97;
+                            }
+
+                            return $mod === 1;
                         }
                     ]
                 ];
