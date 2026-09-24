@@ -101,10 +101,20 @@ class UsageUri extends Usage {
                 ];
             case 'urn.iban':
                 return [
-                    'invalid_iban' => [
+                    'invalid_iban_syntax' => [
                         'message'   => 'Bank account must be a valid IBAN number.',
                         'function'  =>  function($value) {
-                            return is_null($value) || (bool) (preg_match('/^[A-Z]{2}[0-9]{2}(?:[0-9]{4}){3,4}(?!(?:[0-9]){3})(?:[0-9]{1,2})?$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/', $value));
+                        }
+                    ],
+                   'invalid_iban_modulo' => [
+                        'message'   => 'Bank account must be a valid IBAN number.',
+                        'function'  =>  function($value) {
+                            $iban = substr($value, 4).substr($value, 0, 4);
+                            return bcmod(
+                                preg_replace_callback('/[A-Z]/', fn($m) => ord($m[0]) - 55, $iban),
+                                '97'
+                            ) === '1';
                         }
                     ]
                 ];
