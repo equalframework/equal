@@ -285,7 +285,14 @@ class ObjectManager extends Service {
             if($parentEntity && file_exists($parentEntity->getFullFilePath())) {
                 $class_name = $entity->getName();
                 $namespace = $entity->getNamespace();
-                $parent = '\\'.$parentEntity->getFullName();
+                $parent_class = $parentEntity->getFullName();
+                $this->loadObjectClass($parent_class);
+
+                if($parent_class::isAbstract()) {
+                    throw new Exception("abstract_parent", EQ_ERROR_UNKNOWN_OBJECT);
+                }
+
+                $parent = '\\'.$parent_class;
                 eval("namespace $namespace {
                     class $class_name extends $parent {
                         public static function getModelScope(): ?string {
@@ -338,8 +345,7 @@ class ObjectManager extends Service {
             try {
                 $this->loadObjectClass($class);
 
-                $reflection = new \ReflectionClass($class);
-                if($reflection->isAbstract()) {
+                if($class::isAbstract()) {
                     throw new Exception("abstract_model", EQ_ERROR_UNKNOWN_OBJECT);
                 }
 
@@ -366,7 +372,7 @@ class ObjectManager extends Service {
         try {
             $this->loadObjectClass($class);
 
-            if((new \ReflectionClass($class))->isAbstract()) {
+            if($class::isAbstract()) {
                 return EQ_ERROR_UNKNOWN_OBJECT;
             }
 
@@ -386,7 +392,7 @@ class ObjectManager extends Service {
             return $class::getModelScope();
         }
         catch(Exception $e) {
-            return $e->getCode();
+            return null;
         }
     }
 
@@ -405,7 +411,8 @@ class ObjectManager extends Service {
 
     /**
      * Retrieve the root parent class of a class.
-     * If there are several levels of inheritance, the method loops up to the first class using the same model table.
+     * If there are several levels of inheritance, the method loops up to the first concrete class using the same model table.
+     * Abstract parents are never selected as storage roots.
      * This storage root is independent from the discriminator returned by `getModelScope()`.
      *
      * @param   string  $class   The full name of the entity with its namespace.
@@ -423,6 +430,7 @@ class ObjectManager extends Service {
         while($parent = get_parent_class($entity)) {
             if($parent === Model::class
             || !method_exists($parent, 'getModelTable')
+            || $parent::isAbstract()
             || $parent::getModelTable() !== $table) {
                 break;
             }
@@ -1488,7 +1496,7 @@ class ObjectManager extends Service {
         try {
             $this->loadObjectClass($class);
 
-            if((new \ReflectionClass($class))->isAbstract()) {
+            if($class::isAbstract()) {
                 return false;
             }
 
@@ -2801,7 +2809,7 @@ class ObjectManager extends Service {
                     'core_translation',
                     $ids, [
                         [
-                            ['object_class', '=', $class]
+                            ['object_class', '=', self::getObjectRootClass($class)]
                         ]
                     ],
                     'object_id'

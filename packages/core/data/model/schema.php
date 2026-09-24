@@ -89,19 +89,19 @@ if(ctype_lower(substr($file, 0, 1))) {
 if(!count($data)) {
     $model = $orm->getModel($params['entity']);
     if(!is_object($model)) {
-        throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
     }
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
     // retrieve parent class
     $data = [
-        'name'          => $model->getName(),
-        'description'   => $model->getDescription(),
+        'name'          => $model::getName(),
+        'description'   => $model::getDescription(),
         'parent'        => get_parent_class($model),
         'root'          => ObjectManager::getObjectRootClass($params['entity']),
-        'table'         => $model->getTable(),
-        'link'          => $model->getLink(),
+        'table'         => $model::getModelTable(),
+        'link'          => $model::getLink(),
         'fields'        => $schema
     ];
 

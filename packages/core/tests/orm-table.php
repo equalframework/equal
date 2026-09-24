@@ -53,6 +53,24 @@ namespace core\tests\fixtures\get_table\explicit_storage {
 
 }
 
+namespace core\tests\fixtures\get_table\abstract_shared_storage {
+
+    use equal\orm\Model;
+
+    abstract class AbstractRoot extends Model {
+
+        public static function getModelTable(): string {
+            return 'core_tests_fixtures_get_table_abstract_shared_storage';
+        }
+    }
+
+    class ConcreteRoot extends AbstractRoot {
+    }
+
+    class ConcreteChild extends ConcreteRoot {
+    }
+}
+
 namespace {
 
     use core\tests\fixtures\get_table\default_storage\A as DefaultA;
@@ -63,6 +81,8 @@ namespace {
     use core\tests\fixtures\get_table\abstract_storage\ConcreteChild;
     use core\tests\fixtures\get_table\explicit_storage\StorageRoot;
     use core\tests\fixtures\get_table\explicit_storage\StorageChild;
+    use core\tests\fixtures\get_table\abstract_shared_storage\ConcreteRoot as AbstractSharedConcreteRoot;
+    use core\tests\fixtures\get_table\abstract_shared_storage\ConcreteChild as AbstractSharedConcreteChild;
     use core\email\Email;
     use core\security\factor\Passkey;
     use equal\orm\ObjectManager;
@@ -200,6 +220,29 @@ namespace {
             'expected'      => EQ_ERROR_UNKNOWN_OBJECT,
             'test'          => function() {
                 return ObjectManager::getInstance()->getObjectTableName('unknown\\MissingModel');
+            }
+        ],
+
+        '1109' => [
+            'description'   => "The object root never crosses an abstract parent sharing the same table.",
+            'return'        => ['array'],
+            'expected'      => [AbstractSharedConcreteRoot::class, AbstractSharedConcreteRoot::class],
+            'test'          => function() {
+                return [
+                    ObjectManager::getObjectRootClass(AbstractSharedConcreteRoot::class),
+                    ObjectManager::getObjectRootClass(AbstractSharedConcreteChild::class)
+                ];
+            }
+        ],
+
+        '1110' => [
+            'description'   => "The ORM returns null when a model scope cannot be resolved.",
+            'return'        => ['NULL'],
+            'expected'      => null,
+            'test'          => function() {
+                $method = new ReflectionMethod(ObjectManager::class, 'getObjectModelScope');
+                $method->setAccessible(true);
+                return $method->invoke(ObjectManager::getInstance(), 'unknown\\MissingModel');
             }
         ],
 
