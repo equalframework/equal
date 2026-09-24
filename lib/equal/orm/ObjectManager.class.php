@@ -343,7 +343,7 @@ class ObjectManager extends Service {
         $result = '';
         try {
             $object = $this->getStaticInstance($class);
-            $result = strtolower($object->getTable());
+            $result = strtolower($object::getModelTable());
         }
         catch(Exception $e) {
             // #memo upon loading error, return empty string (this is improved in 2.0.2)
@@ -375,9 +375,9 @@ class ObjectManager extends Service {
     public static function getObjectRootClass($class) {
         $entity = $class;
         while(true) {
-            if(method_exists($entity, 'getTable')) {
+            if(method_exists($entity, 'getModelTable')) {
                 $reflectionClass = new \ReflectionClass($entity);
-                if($reflectionClass->getMethod('getTable')->class == $entity) {
+                if($reflectionClass->getMethod('getModelTable')->class == $entity) {
                     break;
                 }
             }

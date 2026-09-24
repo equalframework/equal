@@ -96,12 +96,12 @@ if(!count($data)) {
 
     // retrieve parent class
     $data = [
-        'name'          => $model->getName(),
-        'description'   => $model->getDescription(),
+        'name'          => $model::getName(),
+        'description'   => $model::getDescription(),
         'parent'        => get_parent_class($model),
         'root'          => ObjectManager::getObjectRootClass($params['entity']),
-        'table'         => $model->getTable(),
-        'link'          => $model->getLink(),
+        'table'         => $model::getModelTable(),
+        'link'          => $model::getLink(),
         'fields'        => $schema
     ];
 

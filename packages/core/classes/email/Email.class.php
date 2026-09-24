@@ -13,7 +13,12 @@ use equal\orm\usages\UsageEmail;
 
 class Email extends Model {
 
+    /** @deprecated */
     public function getTable() {
+        return 'core_mail';
+    }
+
+    public static function getModelTable() {
         return 'core_mail';
     }
 

@@ -28,7 +28,7 @@ namespace core\tests\fixtures\get_table\storage_boundaries {
     }
 
     class B extends A {
-        public function getTable() {
+        public static function getModelTable() {
             return static::getSlug(self::class);
         }
     }
@@ -37,7 +37,7 @@ namespace core\tests\fixtures\get_table\storage_boundaries {
     }
 
     class D extends C {
-        public function getTable() {
+        public static function getModelTable() {
             return static::getSlug(self::class);
         }
     }
@@ -46,7 +46,7 @@ namespace core\tests\fixtures\get_table\storage_boundaries {
     }
 
     class ExplicitTable extends A {
-        public function getTable() {
+        public static function getModelTable() {
             return 'explicit_table';
         }
     }
@@ -84,7 +84,7 @@ namespace core\tests\fixtures\get_table\model_scope {
     }
 
     class DedicatedB extends A {
-        public function getTable() {
+        public static function getModelTable() {
             return static::getSlug(self::class);
         }
     }
@@ -110,7 +110,7 @@ namespace {
 
     $get_table = static function(string $class): string {
         $model = (new ReflectionClass($class))->newInstanceWithoutConstructor();
-        return $model->getTable();
+        return $model::getModelTable();
     };
 
     $tests = [

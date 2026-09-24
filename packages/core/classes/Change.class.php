@@ -15,7 +15,12 @@ class Change extends Model {
         return "Details of the modifications associated with a log (diff-type payload).";
     }
 
+    /** @deprecated */
     public function getTable() {
+        return 'core_change';
+    }
+
+    public static function getModelTable() {
         return 'core_change';
     }
 
