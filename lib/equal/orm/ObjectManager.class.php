@@ -3230,7 +3230,7 @@ class ObjectManager extends Service {
                             $fields = $domain->extractFields();
                             $data = $this->read($class, $id, $fields);
                             $object = reset($data);
-                            if(!$domain->evaluate($object)) {
+                            if(!$domain->evaluate($object->toArray())) {
                                 $res = ['broken_constraint' => "Object state does not comply with the constraints of transition '$transition'."];
                                 break 2;
                             }
