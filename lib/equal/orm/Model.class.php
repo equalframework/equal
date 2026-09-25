@@ -763,7 +763,7 @@ class Model implements \ArrayAccess, \Iterator {
      *
      * @return string
      */
-    public static function getModelTable(): string {
+    public static function getModelTable() /*: string*/ {
 
         $entity = static::class;
 
