@@ -91,23 +91,20 @@ namespace core\tests\fixtures\get_table\trait_storage {
 namespace core\tests\fixtures\get_table\trait_scope {
 
     use equal\orm\Model;
-    use equal\orm\traits\HasModelScope;
-    use equal\orm\traits\HasNoModelScope;
+    use equal\orm\traits\IsNotScoped;
 
-    class ScopedRoot extends Model {
+    class SharedRoot extends Model {
+    }
 
-        use HasModelScope;
+    class ScopedRoot extends SharedRoot {
     }
 
     class ScopedChild extends ScopedRoot {
     }
 
-    class SharedRoot extends Model {
-    }
-
     class UnscopedChild extends SharedRoot {
 
-        use HasNoModelScope;
+        use IsNotScoped;
     }
 
     class UnscopedGrandChild extends UnscopedChild {
@@ -311,7 +308,7 @@ namespace {
         ],
 
         '1112' => [
-            'description'   => "HasModelScope uses the discriminator of the called model.",
+            'description'   => "The default model scope uses the discriminator of the called model.",
             'return'        => ['array'],
             'expected'      => [ScopedRoot::class, ScopedChild::class],
             'test'          => function() {
@@ -323,7 +320,7 @@ namespace {
         ],
 
         '1113' => [
-            'description'   => "HasNoModelScope disables discriminator filtering for the model and its descendants.",
+            'description'   => "IsNotScoped disables discriminator filtering for the model and its descendants.",
             'return'        => ['array'],
             'expected'      => [true, true],
             'test'          => function() {
