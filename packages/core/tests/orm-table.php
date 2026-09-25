@@ -71,6 +71,49 @@ namespace core\tests\fixtures\get_table\abstract_shared_storage {
     }
 }
 
+namespace core\tests\fixtures\get_table\trait_storage {
+
+    use equal\orm\Model;
+    use equal\orm\traits\HasOwnTable;
+
+    class SharedRoot extends Model {
+    }
+
+    class StorageRoot extends SharedRoot {
+
+        use HasOwnTable;
+    }
+
+    class StorageChild extends StorageRoot {
+    }
+}
+
+namespace core\tests\fixtures\get_table\trait_scope {
+
+    use equal\orm\Model;
+    use equal\orm\traits\HasModelScope;
+    use equal\orm\traits\HasNoModelScope;
+
+    class ScopedRoot extends Model {
+
+        use HasModelScope;
+    }
+
+    class ScopedChild extends ScopedRoot {
+    }
+
+    class SharedRoot extends Model {
+    }
+
+    class UnscopedChild extends SharedRoot {
+
+        use HasNoModelScope;
+    }
+
+    class UnscopedGrandChild extends UnscopedChild {
+    }
+}
+
 namespace {
 
     use core\tests\fixtures\get_table\default_storage\A as DefaultA;
@@ -83,6 +126,12 @@ namespace {
     use core\tests\fixtures\get_table\explicit_storage\StorageChild;
     use core\tests\fixtures\get_table\abstract_shared_storage\ConcreteRoot as AbstractSharedConcreteRoot;
     use core\tests\fixtures\get_table\abstract_shared_storage\ConcreteChild as AbstractSharedConcreteChild;
+    use core\tests\fixtures\get_table\trait_scope\ScopedChild;
+    use core\tests\fixtures\get_table\trait_scope\ScopedRoot;
+    use core\tests\fixtures\get_table\trait_scope\UnscopedChild;
+    use core\tests\fixtures\get_table\trait_scope\UnscopedGrandChild;
+    use core\tests\fixtures\get_table\trait_storage\StorageChild as TraitStorageChild;
+    use core\tests\fixtures\get_table\trait_storage\StorageRoot as TraitStorageRoot;
     use core\email\Email;
     use core\security\factor\Passkey;
     use equal\orm\ObjectManager;
@@ -243,6 +292,45 @@ namespace {
                 $method = new ReflectionMethod(ObjectManager::class, 'getObjectModelScope');
                 $method->setAccessible(true);
                 return $method->invoke(ObjectManager::getInstance(), 'unknown\\MissingModel');
+            }
+        ],
+
+        '1111' => [
+            'description'   => "HasOwnTable defines a storage boundary inherited by descendants.",
+            'return'        => ['array'],
+            'expected'      => [
+                TraitStorageRoot::getSlug(TraitStorageRoot::class),
+                TraitStorageRoot::getSlug(TraitStorageRoot::class)
+            ],
+            'test'          => function() {
+                return [
+                    TraitStorageRoot::getModelTable(),
+                    TraitStorageChild::getModelTable()
+                ];
+            }
+        ],
+
+        '1112' => [
+            'description'   => "HasModelScope uses the discriminator of the called model.",
+            'return'        => ['array'],
+            'expected'      => [ScopedRoot::class, ScopedChild::class],
+            'test'          => function() {
+                return [
+                    ScopedRoot::getModelScope(),
+                    ScopedChild::getModelScope()
+                ];
+            }
+        ],
+
+        '1113' => [
+            'description'   => "HasNoModelScope disables discriminator filtering for the model and its descendants.",
+            'return'        => ['array'],
+            'expected'      => [true, true],
+            'test'          => function() {
+                return [
+                    is_null(UnscopedChild::getModelScope()),
+                    is_null(UnscopedGrandChild::getModelScope())
+                ];
             }
         ],
 

@@ -87,8 +87,8 @@ $tests = [
     '1004' => [
         'description'   => "Domain evaluation supports SQL wildcards, parsed object references, and integer timestamps.",
         'act'           => function () {
-            $like = new Domain(['field', 'like', 'Al_ce%']);
-            $ilike = new Domain(['field', 'ilike', 'al_ce%']);
+            $like = new Domain(['field', 'like', 'Al%ce%']);
+            $ilike = new Domain(['field', 'ilike', 'al%ce%']);
             $contextual = new Domain(['organization_id', '=', 'object.organization_id']);
             $contextual->parse(['organization_id' => 7]);
             $date_reference = new Domain(['created', '>=', 'date.this.day']);
