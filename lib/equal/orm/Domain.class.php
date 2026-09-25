@@ -112,8 +112,8 @@ class Domain {
     /**
      * Update domain by parsing conditions and replace any occurrence of `object.` and `user.` notations with related attributes of given objects.
      *
-     * @param values
-     * @returns Domain  Returns current instance with updated values.
+     * @param $values
+     * @return Domain  Returns current instance with updated values.
      */
     public function parse($object = [], $user = []) {
         foreach($this->clauses as $clause) {
@@ -153,7 +153,7 @@ class Domain {
                     $value = $user[$target];
                 }
                 elseif(is_string($value) && strpos($value, 'date.') === 0) {
-                    $value = (new DateReference($value)).getDate();
+                    $value = (new DateReference($value))->getDate();
                 }
 
                 $condition->value = $value;
@@ -164,13 +164,12 @@ class Domain {
 
     /**
      * Evaluate domain for a given object.
-     * Object structure has to comply with the operands mentioned in the conditions of the domain. If no, related conditions are ignored (skipped).
+     * The object structure must provide every operand required by a clause. A missing operand makes that clause fail.
      *
-     * @param object
+     * @param array $object Associative array holding the values to evaluate.
      * @return boolean Return true if the object matches the domain, false otherwise.
      */
     public function evaluate($object) {
-        $res = false;
         if(count($this->clauses) <= 0) {
             return true;
         }
@@ -180,67 +179,89 @@ class Domain {
         foreach($this->clauses as $clause) {
             $c_res = true;
             foreach($clause->conditions as $condition) {
-
-                if(!isset($object[$condition->operand])) {
-                    continue;
+                // A domain can only match when all fields required by one of its clauses are available.
+                if(!array_key_exists($condition->operand, $object)) {
+                    $c_res = false;
+                    break;
                 }
 
                 $operand = $object[$condition->operand];
-                $operator = $condition->operator;
-                $value = $condition->value;
-
-                $cc_res = false;
-
-                // handle special cases
-                if($operator == '=') {
-                    $operator = '==';
+                $c_res = self::evaluateCondition($operand, $condition->operator, $condition->value);
+                if(!$c_res) {
+                    break;
                 }
-                else if($operator == '<>') {
-                    $operator = '!=';
-                }
-
-                if($operator == 'is' && is_numeric($value)) {
-                    $operator = '==';
-                }
-
-                if($operator == 'is') {
-                    if( $value === true ) {
-                        $cc_res = $operand;
-                    }
-                    else if( in_array($value, [false, null, 'null', 'empty']) ) {
-                        $cc_res = ( in_array($operand, ['', false, null]) || (is_array($operand) && !count($operand)) );
-                    }
-                    else {
-                        continue;
-                    }
-                }
-                else if($operator == 'in') {
-                    if(!is_array($value)) {
-                        continue;
-                    }
-                    $cc_res = in_array($operand, $value);
-                }
-                else if($operator == 'not in') {
-                    if(!is_array($value)) {
-                        continue;
-                    }
-                    $cc_res = !in_array($operand, $value);
-                }
-                else if($operator == 'like') {
-                    $cc_res = (strpos($operand, str_replace('%', '', $value)) !== false);
-                }
-                else if($operator == 'ilike') {
-                    $cc_res = (stripos($operand, str_replace('%', '', $value)) !== false);
-                }
-                else {
-                    $c_condition = "return ( '".$operand."' ".$operator." '".$value."');";
-                    $cc_res = eval($c_condition);
-                }
-                $c_res = $c_res && $cc_res;
             }
-            $res = $res || $c_res;
+            if($c_res) {
+                return true;
+            }
         }
-        return $res;
+        return false;
+    }
+
+    /**
+     * Evaluate a single normalized domain condition using PHP values.
+     * Unknown operators and malformed operands fail closed.
+     */
+    private static function evaluateCondition($operand, $operator, $value): bool {
+        $operator = strtolower(trim((string) $operator));
+
+        switch($operator) {
+            case '=':
+                return $operand == $value;
+            case '<>':
+                return $operand != $value;
+            case '<':
+                return $operand < $value;
+            case '>':
+                return $operand > $value;
+            case '<=':
+                return $operand <= $value;
+            case '>=':
+                return $operand >= $value;
+            case 'in':
+                return is_array($value) && in_array($operand, $value);
+            case 'not in':
+                return is_array($value) && !in_array($operand, $value);
+            case 'contains':
+                $operands = is_array($operand) ? $operand : [$operand];
+                $values = is_array($value) ? $value : [$value];
+                return count(array_intersect($operands, $values)) > 0;
+            case 'like':
+                return self::matchLike($operand, $value, true);
+            case 'ilike':
+                return self::matchLike($operand, $value, false);
+            case 'is':
+            case 'is not':
+                $match = null;
+                if(is_numeric($value)) {
+                    $match = ($operand == $value);
+                }
+                elseif($value === true) {
+                    $match = (bool) $operand;
+                }
+                elseif(in_array($value, [false, null, 'null', 'empty'], true)) {
+                    $match = in_array($operand, ['', false, null], true)
+                        || (is_array($operand) && !count($operand));
+                }
+                return !is_null($match) && (($operator === 'is') ? $match : !$match);
+        }
+
+        return false;
+    }
+
+    /**
+     * Evaluate SQL-like `%` and `_` wildcards against scalar PHP values.
+     */
+    private static function matchLike($operand, $pattern, bool $case_sensitive): bool {
+        if(!is_scalar($operand) || !is_scalar($pattern)) {
+            return false;
+        }
+
+        $expression = preg_quote((string) $pattern, '/');
+        $expression = str_replace('%', '.*', $expression);
+        $modifiers = $case_sensitive ? 's' : 'is';
+
+        return preg_match('/^'.$expression.'$/'.$modifiers, (string) $operand) === 1;
     }
 
 
