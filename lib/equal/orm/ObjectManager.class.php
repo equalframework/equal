@@ -1634,8 +1634,8 @@ class ObjectManager extends Service {
                 // ignore fields with no constraints
                 continue;
             }
-            if($value === null && !($schema[$field]['required'] ?? false)) {
-                // all fields can be reset to null (unless marked as `required`)
+            if($value === null) {
+                // null values bypass field constraints; required fields are checked separately when requested
                 continue;
             }
             $excerpt = mb_strimwidth(json_encode($value, JSON_UNESCAPED_UNICODE), 0, 100, '...');

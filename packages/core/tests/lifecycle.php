@@ -515,5 +515,28 @@ namespace {
                         }
                     }
             ],
+
+        '5018' => [
+                'description' => 'Lifecycle consistency: draft creation accepts an explicit null required value.',
+                'act'         => function () {
+                        return LifecycleConsistencyProbe::create([
+                                'state'        => 'draft',
+                                'string_short' => null
+                            ])
+                            ->read(['id', 'state', 'string_short'])
+                            ->first();
+                    },
+                'assert'      => function($result) {
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['state'] ?? null) === 'draft'
+                            && ($result['string_short'] ?? null) === null;
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleConsistencyProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
     ];
 }
