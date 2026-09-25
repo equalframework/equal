@@ -807,6 +807,31 @@ class ObjectManager extends Service {
                 'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                     // #memo - this handler is for non-multilang fields
                     $lang = constant('DEFAULT_LANG');
+                    /*
+                     * #todo - Apply the field-level domain when loading many2many relations.
+                     * Keep all reads batched and filter the relation lists in memory:
+                     *
+                     * foreach($fields as $field) {
+                     *     $field_domain = $schema[$field]['domain'] ?? [];
+                     *     $foreign_fields = extract condition operands from $field_domain;
+                     *     $local_fields = extract fields referenced as `object.*` from $field_domain;
+                     *     $local_objects = $om->read($class, $ids, $local_fields, $lang);
+                     *     $related_ids_by_local = load relation-table IDs for all $ids;
+                     *     $foreign_ids = unique IDs from all $related_ids_by_local lists;
+                     *     $foreign_objects = $om->read($foreign_class, $foreign_ids, $foreign_fields, $lang);
+                     *
+                     *     foreach($related_ids_by_local as $local_id => $foreign_ids) {
+                     *         $domain = (new Domain($field_domain))->parse($local_objects[$local_id]);
+                     *         $related_ids_by_local[$local_id] = filter $foreign_ids by evaluating
+                     *             $domain against the matching object in $foreign_objects;
+                     *     }
+                     *
+                     *     store the filtered lists in the ORM cache;
+                     * }
+                     *
+                     * Domain::evaluate() must fail closed when a required field is missing and
+                     * support the same operators as ORM search before it is used for this filtering.
+                     */
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
