@@ -9,7 +9,7 @@
 error_reporting(0);
 define('MAX_LOG_READ_BYTES', 100 * 1000 * 1000);
 define('DEFAULT_THREAD_LIMIT', 100);
-define('MAX_THREAD_LIMIT', 500);
+define('MAX_THREAD_LIMIT', 1000);
 define('DEFAULT_LINE_LIMIT', 250);
 define('MAX_LINE_LIMIT', 1000);
 define('LOG_REVERSE_READ_BLOCK_BYTES', 1024 * 1024);
@@ -729,8 +729,8 @@ if(!$is_data_request) {
             }
         </style>
         <script>
-            const THREAD_PAGE_SIZE = 200;
-            const LINE_PAGE_SIZE = 250;
+            const THREAD_PAGE_SIZE = 1000;
+            const LINE_PAGE_SIZE = 1000;
             const QUICK_FILTER_LEVELS = ["SYSTEM", "DEBUG", "INFO", "WARNING", "ERROR"];
             const ALERT_LEVELS = ["WARNING", "ERROR", "FATAL"];
 
@@ -1082,39 +1082,48 @@ if(!$is_data_request) {
             }
 
             async function loadThreads() {
-                if(state.loadingThreads || !state.hasMoreThreads && state.threadCursor !== null) {
+                if(state.loadingThreads || !state.hasMoreThreads) {
                     return;
                 }
 
                 const requestId = state.requestId;
+                let loadedThreads = 0;
                 state.loadingThreads = true;
                 setLoading(true);
                 updateRootLoadMoreVisibility();
 
                 try {
-                    const params = {
-                        ...state.params,
-                        limit: THREAD_PAGE_SIZE
-                    };
-                    if(state.threadCursor !== null) {
-                        params.cursor = state.threadCursor;
-                    }
-                    const data = await apiFetch("threads", params);
+                    while(state.hasMoreThreads && loadedThreads < THREAD_PAGE_SIZE) {
+                        const previousCursor = state.threadCursor;
+                        const params = {
+                            ...state.params,
+                            limit: THREAD_PAGE_SIZE - loadedThreads
+                        };
+                        if(state.threadCursor !== null) {
+                            params.cursor = state.threadCursor;
+                        }
 
-                    if(requestId !== state.requestId) {
-                        return;
+                        const data = await apiFetch("threads", params);
+                        if(requestId !== state.requestId) {
+                            return;
+                        }
+
+                        const items = data.items ?? [];
+                        const fragment = document.createDocumentFragment();
+                        for(const thread of items) {
+                            fragment.append(createThreadElement(thread));
+                        }
+                        document.getElementById("list").append(fragment);
+                        loadedThreads += items.length;
+
+                        state.threadCursor = data.next_cursor ?? null;
+                        state.hasMoreThreads = !!data.has_more
+                            && state.threadCursor !== null
+                            && state.threadCursor !== previousCursor;
                     }
 
-                    const fragment = document.createDocumentFragment();
-                    for(const thread of data.items ?? []) {
-                        fragment.append(createThreadElement(thread));
-                    }
-                    document.getElementById("list").append(fragment);
                     applyQuickFilters();
-                    state.threadCursor = data.next_cursor ?? null;
-                    state.hasMoreThreads = !!data.has_more;
-
-                    if(state.threadCursor === null && !(data.items ?? []).length && !document.querySelector("#list .thread")) {
+                    if(!loadedThreads && !state.hasMoreThreads && !document.querySelector("#list .thread")) {
                         showFeedback("", true);
                     }
                 }
@@ -1255,6 +1264,7 @@ if(!$is_data_request) {
                 state.threadCursor = null;
                 state.hasMoreThreads = true;
                 state.requestId++;
+                state.loadingThreads = false;
                 document.getElementById("list").replaceChildren();
                 document.getElementById("loadMoreThreads").style.display = "none";
                 await loadThreads();
