@@ -54,7 +54,9 @@ $send_invalid_link_response = static function(?string $language = null) use ($co
     exit();
 };
 
-$credentials = base64_decode($params['code'], true);
+$code = strtr(str_replace(' ', '+', $params['code']), '-_', '+/');
+$padding_length = (4 - strlen($code) % 4) % 4;
+$credentials = base64_decode($code.str_repeat('=', $padding_length), true);
 
 if($credentials === false || strpos($credentials, ':') === false) {
     $send_invalid_link_response();

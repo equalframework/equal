@@ -74,10 +74,10 @@ $template = new HtmlTemplate($html, [
             return $params['username'];
         },
         'confirm_url' => function($params, $attributes) use ($context) {
-            $code = base64_encode($params['login'].':'.$params['password']);
+            $code = rtrim(strtr(base64_encode($params['login'].':'.$params['password']), '+/', '-_'), '=');
             $uri = $context->getHttpRequest()->getUri();
             $url = $uri->getScheme().'://'.$uri->getAuthority();
-            $url .= "/?do=user_confirm&code={$code}";
+            $url .= '/?do=user_confirm&code='.rawurlencode($code);
             return "<a href=\"$url\">{$attributes['title']}</a>";
         },
         'origin' => function($params, $attributes) {
