@@ -1114,7 +1114,7 @@ if(!$is_data_request) {
                     state.threadCursor = data.next_cursor ?? null;
                     state.hasMoreThreads = !!data.has_more;
 
-                    if(state.threadCursor === null && !(data.items ?? []).length) {
+                    if(state.threadCursor === null && !(data.items ?? []).length && !document.querySelector("#list .thread")) {
                         showFeedback("", true);
                     }
                 }
@@ -1571,9 +1571,27 @@ else {
         return true;
     }
 
-    function console_reverse_log_lines($f, int $filesize, int $min_offset, ?int $cursor): Generator {
-        $position = ($cursor !== null && $cursor > 0) ? min($cursor, $filesize) : $filesize;
-        $position = max($min_offset, $position);
+    function console_log_window_start($f, int $end_offset, int $max_bytes): int {
+        $start_offset = max(0, $end_offset - $max_bytes);
+        if($start_offset === 0 || fseek($f, $start_offset) !== 0) {
+            return $start_offset;
+        }
+
+        // Move past the partial line at the start of the window.
+        if(fgets($f) === false) {
+            return $start_offset;
+        }
+
+        $aligned_offset = ftell($f);
+        if($aligned_offset === false || $aligned_offset >= $end_offset) {
+            return $start_offset;
+        }
+
+        return $aligned_offset;
+    }
+
+    function console_reverse_log_lines($f, int $min_offset, int $max_offset): Generator {
+        $position = max($min_offset, $max_offset);
         $pending = '';
 
         while($position > $min_offset) {
@@ -1667,19 +1685,8 @@ else {
 
         // read raw data from log file
         if($f = fopen('../log/'.$log_file, 'r')) {
-            // limit processing to the tail of the log file to prevent overload
+            // Limit each request to a bounded window to prevent overload.
             $max_read_bytes = constant('MAX_LOG_READ_BYTES');
-            $read_offset = 0;
-
-            if($filesize > $max_read_bytes) {
-                // start reading from the last MAX_LOG_READ_BYTES bytes
-                $read_offset = $filesize - $max_read_bytes;
-                fseek($f, $read_offset);
-
-                // discard first partial line (we are likely in the middle of a line)
-                fgets($f);
-                $read_offset = ftell($f) ?: $read_offset;
-            }
 
             // lines request (return lines matching filters within a given thread_id)
             if($api === 'lines') {
@@ -1687,11 +1694,16 @@ else {
                 $end_offset = console_optional_int_param('end_offset');
                 $read_until = null;
 
-                if($start_offset !== null && $end_offset !== null && $start_offset >= $read_offset && $start_offset < $end_offset && $end_offset <= $filesize) {
+                if($start_offset !== null
+                    && $end_offset !== null
+                    && $start_offset < $end_offset
+                    && $end_offset <= $filesize
+                    && $end_offset - $start_offset <= $max_read_bytes) {
                     fseek($f, $start_offset);
                     $read_until = $end_offset;
                 }
                 else {
+                    $read_offset = console_log_window_start($f, $filesize, $max_read_bytes);
                     fseek($f, $read_offset);
                 }
 
@@ -1728,8 +1740,10 @@ else {
                 $ignored_threads = [];
                 $cursor = console_optional_int_param('cursor');
                 $thread_skip = $cursor === null ? $item_offset : 0;
+                $scan_end = $cursor === null ? $filesize : min($cursor, $filesize);
+                $scan_start = console_log_window_start($f, $scan_end, $max_read_bytes);
 
-                foreach(console_reverse_log_lines($f, $filesize, $read_offset, $cursor) as $entry) {
+                foreach(console_reverse_log_lines($f, $scan_start, $scan_end) as $entry) {
                     $line = $entry['line'];
                     if(!isset($line['thread_id'])) {
                         continue;
@@ -1791,6 +1805,11 @@ else {
                         }
                         ++$map_threads[$thread_id]['lines'];
                     }
+                }
+
+                if(!$response['has_more'] && $scan_start > 0) {
+                    $response['has_more'] = true;
+                    $response['next_cursor'] = $scan_start;
                 }
 
                 $threads = [];
