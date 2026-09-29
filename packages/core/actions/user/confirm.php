@@ -43,7 +43,7 @@ $send_invalid_link_response = static function(?string $language = null) use ($co
     $file = "packages/core/i18n/{$language}/user_confirm_invalid.html";
 
     if(!($html = @file_get_contents($file))) {
-        throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("missing_template", EQ_ERROR_INVALID_CONFIG);
     }
 
     $context->httpResponse()
@@ -59,12 +59,14 @@ $padding_length = (4 - strlen($code) % 4) % 4;
 $credentials = base64_decode($code.str_repeat('=', $padding_length), true);
 
 if($credentials === false || strpos($credentials, ':') === false) {
+    trigger_error("APP::core_user_confirm.invalid_link.malformed_code", EQ_REPORT_WARNING);
     $send_invalid_link_response();
 }
 
 [$login, $password] = explode(':', $credentials, 2);
 
 if(!strlen($login) || !strlen($password)) {
+    trigger_error("APP::core_user_confirm.invalid_link.empty_credentials", EQ_REPORT_WARNING);
     $send_invalid_link_response();
 }
 
@@ -74,14 +76,30 @@ $auth->su();
 $ids = $orm->search('core\User', [['login', '=', $login]]);
 
 if(!count($ids)) {
+    trigger_error("APP::core_user_confirm.invalid_link.unknown_login", EQ_REPORT_WARNING);
     $send_invalid_link_response();
 }
 
 $list = $orm->read(User::getType(), $ids, ['id', 'login', 'password', 'language']);
-$user = reset($list);
+$user = null;
+$language = null;
 
-if(!is_array($user) || !isset($user['password']) || !password_verify($password, $user['password'])) {
-    $send_invalid_link_response($user['language'] ?? null);
+foreach($list as $candidate) {
+    if(!is_array($candidate)) {
+        continue;
+    }
+
+    $language = $language ?? ($candidate['language'] ?? null);
+
+    if(isset($candidate['password']) && password_verify($password, $candidate['password'])) {
+        $user = $candidate;
+        break;
+    }
+}
+
+if($user === null) {
+    trigger_error("APP::core_user_confirm.invalid_link.credential_mismatch", EQ_REPORT_WARNING);
+    $send_invalid_link_response($language);
 }
 
 // mark user as validated (will update status according to USER_ACCOUNT_VALIDATION)
