@@ -23,7 +23,7 @@ use core\User;
             'default'       => 'auth/#/reset'
         ]
     ],
-    'constants'     => ['BACKEND_URL', 'AUTH_SECRET_KEY'],
+    'constants'     => ['BACKEND_URL', 'AUTH_SECRET_KEY', 'DEFAULT_LANG'],
     'access'        => [
         'visibility'        => 'public'
     ],
@@ -38,60 +38,13 @@ use core\User;
 // initialize local vars with inputs
 ['orm' => $orm, 'context' => $context, 'auth' => $auth] = $providers;
 
-$send_invalid_link_response = static function() use ($context) {
-    $html = <<<'HTML'
-<!doctype html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lien invalide</title>
-    <style>
-        :root { color-scheme: light; }
-        * { box-sizing: border-box; }
-        body {
-            display: grid;
-            min-height: 100vh;
-            margin: 0;
-            padding: 24px;
-            place-items: center;
-            color: #263238;
-            background: #f5f7f8;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-        main {
-            width: min(100%, 560px);
-            padding: 40px;
-            border: 1px solid #e3e7e9;
-            border-radius: 12px;
-            background: #fff;
-            box-shadow: 0 8px 28px rgba(38, 50, 56, .08);
-        }
-        h1 {
-            margin: 0 0 16px;
-            font-size: clamp(1.4rem, 4vw, 1.8rem);
-            line-height: 1.25;
-        }
-        p {
-            margin: 0;
-            margin-bottom: 10px;
-            color: #59656b;
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-    </style>
-</head>
-<body>
-    <main>
-        <h1>Ce lien est invalide ou a déjà été utilisé</h1>
-        <p>
-            Si vous avez déjà défini un mot de passe, vous pouvez l'utiliser pour <a href="/auth/#/signin">vous identifier</a>.
-        </p>
-        <p>Dans le cas contraire, supprimez le message email correspondant et demandez à votre syndic de vous en envoyer un nouveau.</p>
-    </main>
-</body>
-</html>
-HTML;
+$send_invalid_link_response = static function(?string $language = null) use ($context) {
+    $language = $language ?: constant('DEFAULT_LANG');
+    $file = "packages/core/i18n/{$language}/user_confirm_invalid.html";
+
+    if(!($html = @file_get_contents($file))) {
+        throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
+    }
 
     $context->httpResponse()
             ->status(400)
@@ -122,11 +75,11 @@ if(!count($ids)) {
     $send_invalid_link_response();
 }
 
-$list = $orm->read(User::getType(), $ids, ['id', 'login', 'password']);
+$list = $orm->read(User::getType(), $ids, ['id', 'login', 'password', 'language']);
 $user = reset($list);
 
 if(!is_array($user) || !isset($user['password']) || !password_verify($password, $user['password'])) {
-    $send_invalid_link_response();
+    $send_invalid_link_response($user['language'] ?? null);
 }
 
 // mark user as validated (will update status according to USER_ACCOUNT_VALIDATION)

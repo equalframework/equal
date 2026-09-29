@@ -1,6 +1,4 @@
 <?php
-use equal\html\HtmlTemplate;
-use equal\email\Email;
 use core\Mail;
 use core\User;
 
@@ -59,7 +57,7 @@ use core\User;
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'constants'     => ['USER_ACCOUNT_REGISTRATION', 'DEFAULT_LANG', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
+    'constants'     => ['USER_ACCOUNT_REGISTRATION', 'DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
@@ -104,7 +102,7 @@ if($params['resend']) {
         throw new Exception('invalid_request', QN_ERROR_INVALID_USER);
     }
     $user_id = reset($ids);
-    $user = User::id($user_id)->read(['status', 'login', 'username', 'firstname', 'lastname'])->first(true);
+    $user = User::id($user_id)->read(['id', 'status', 'login', 'username', 'firstname', 'lastname'])->first(true);
     $message_id = $params['resend'];
     // if message is still in pool : abort
     $send_confirm = !(Mail::isQueued($message_id) || $user['status'] != 'created');
@@ -133,50 +131,12 @@ else {
         ->first(true);
 }
 
-// #todo - handle this part in another controller (user_send-confirmation)
 if($send_confirm) {
-    // we need the original password to generate confirmation code in the email
-    $user['password'] = $password;
-    // subject of the email should be defined in the template, as a <var> tag holding a 'title' attribute
-    $subject = '';
-    // read template according to user preferred language
-    $file = "packages/core/i18n/{$user['language']}/mail_user_confirm.html";
-    if(!($html = @file_get_contents($file))) {
-        throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
-    }
-    $template = new HtmlTemplate($html, [
-            'subject'		=>	function ($params, $attributes) use (&$subject) {
-                                    $subject = $attributes['title'];
-                                    return '';
-                                },
-            'username'		=>	function ($params, $attributes) {
-                                    return $params['username'];
-                                },
-            'confirm_url'	=>	function ($params, $attributes) use ($context) {
-                                    $code = base64_encode($params['login'].':'.$params['password']);
-                                    $uri = $context->getHttpRequest()->getUri();
-                                    $url = $uri->getScheme().'://'.$uri->getAuthority();
-                                    $url = $url."/?do=user_confirm&code={$code}";
-                                    return "<a href=\"$url\">{$attributes['title']}</a>";
-                                },
-            'origin'        =>  function ($params, $attributes) {
-                                    return constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME');
-                                }
-        ],
-        $user);
-
-    // parse template as html
-    $body = $template->getHtml();
-
-    // create message
-    $message = new Email();
-    $message->setTo($user['login'])
-            ->setSubject($subject)
-            ->setContentType("text/html")
-            ->setBody($body);
-
-    // queue message
-    $message_id = Mail::queue($message);
+    $result = eQual::run('do', 'core_user_send-confirmation', [
+        'id'       => $user['id'],
+        'password' => $password
+    ]);
+    $message_id = $result['message_id'];
 }
 
 $context->httpResponse()

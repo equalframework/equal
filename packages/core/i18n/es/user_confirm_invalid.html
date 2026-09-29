@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Enlace no válido</title>
+    <style>
+        :root { color-scheme: light; }
+        * { box-sizing: border-box; }
+        body {
+            display: grid;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            place-items: center;
+            color: #263238;
+            background: #f5f7f8;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        main {
+            width: min(100%, 560px);
+            padding: 40px;
+            border: 1px solid #e3e7e9;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 8px 28px rgba(38, 50, 56, .08);
+        }
+        h1 {
+            margin: 0 0 16px;
+            font-size: clamp(1.4rem, 4vw, 1.8rem);
+            line-height: 1.25;
+        }
+        p {
+            margin: 0;
+            margin-bottom: 10px;
+            color: #59656b;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Este enlace no es válido o ya se ha utilizado</h1>
+        <p>
+            Si ya ha definido una contraseña, puede utilizarla para <a href="/auth/#/signin">iniciar sesión</a>.
+        </p>
+        <p>De lo contrario, elimine el correo electrónico correspondiente y solicite al administrador de su propiedad que le envíe uno nuevo.</p>
+    </main>
+</body>
+</html>

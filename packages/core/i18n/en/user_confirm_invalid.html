@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Invalid link</title>
+    <style>
+        :root { color-scheme: light; }
+        * { box-sizing: border-box; }
+        body {
+            display: grid;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            place-items: center;
+            color: #263238;
+            background: #f5f7f8;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        main {
+            width: min(100%, 560px);
+            padding: 40px;
+            border: 1px solid #e3e7e9;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 8px 28px rgba(38, 50, 56, .08);
+        }
+        h1 {
+            margin: 0 0 16px;
+            font-size: clamp(1.4rem, 4vw, 1.8rem);
+            line-height: 1.25;
+        }
+        p {
+            margin: 0;
+            margin-bottom: 10px;
+            color: #59656b;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>This link is invalid or has already been used</h1>
+        <p>
+            If you have already set a password, you can use it to <a href="/auth/#/signin">sign in</a>.
+        </p>
+        <p>Otherwise, delete the corresponding email and ask your property manager to send you a new one.</p>
+    </main>
+</body>
+</html>
