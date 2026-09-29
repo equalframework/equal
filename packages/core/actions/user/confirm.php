@@ -74,6 +74,7 @@ $send_invalid_link_response = static function() use ($context) {
         }
         p {
             margin: 0;
+            margin-bottom: 10px;
             color: #59656b;
             font-size: 1rem;
             line-height: 1.6;
@@ -84,7 +85,7 @@ $send_invalid_link_response = static function() use ($context) {
     <main>
         <h1>Ce lien est invalide ou a déjà été utilisé</h1>
         <p>
-            Si vous avez déjà défini un mot de passe, vous pouvez l'utiliser pour <a href="/auth/#/reset">vous identifier</a>.
+            Si vous avez déjà défini un mot de passe, vous pouvez l'utiliser pour <a href="/auth/#/signin">vous identifier</a>.
         </p>
         <p>Dans le cas contraire, supprimez le message email correspondant et demandez à votre syndic de vous en envoyer un nouveau.</p>
     </main>
