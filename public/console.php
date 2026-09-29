@@ -1093,11 +1093,11 @@ if(!$is_data_request) {
                 updateRootLoadMoreVisibility();
 
                 try {
-                    while(state.hasMoreThreads && loadedThreads < THREAD_PAGE_SIZE) {
+                    while(state.hasMoreThreads && !loadedThreads) {
                         const previousCursor = state.threadCursor;
                         const params = {
                             ...state.params,
-                            limit: THREAD_PAGE_SIZE - loadedThreads
+                            limit: THREAD_PAGE_SIZE
                         };
                         if(state.threadCursor !== null) {
                             params.cursor = state.threadCursor;
