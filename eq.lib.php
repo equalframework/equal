@@ -1065,8 +1065,14 @@ namespace config {
                             $f_args = [];
                             foreach($functionParams as $functionParam) {
                                 $f_param = $functionParam->getName();
-                                if(isset($body[$f_param])) {
+                                if(array_key_exists($f_param, $body)) {
                                     $f_args[] = $body[$f_param];
+                                }
+                                elseif($functionParam->isDefaultValueAvailable()) {
+                                    $f_args[] = $functionParam->getDefaultValue();
+                                }
+                                else {
+                                    $f_args[] = null;
                                 }
                             }
                             $default_value = $default_value(...$f_args);

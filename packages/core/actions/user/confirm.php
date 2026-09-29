@@ -43,7 +43,7 @@ $send_invalid_link_response = static function(?string $language = null) use ($co
     $file = "packages/core/i18n/{$language}/user_confirm_invalid.html";
 
     if(!($html = @file_get_contents($file))) {
-        throw new Exception("missing_template", EQ_ERROR_INVALID_CONFIG);
+        throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
     }
 
     $context->httpResponse()
@@ -72,7 +72,7 @@ if(!strlen($login) || !strlen($password)) {
 
 $auth->su();
 
-// received password is expected to be encrypted the same way it is stored
+// received password is plain text and must match the stored hash
 $ids = $orm->search('core\User', [['login', '=', $login]]);
 
 if(!count($ids)) {
@@ -85,19 +85,21 @@ $user = null;
 $language = null;
 
 foreach($list as $candidate) {
-    if(!is_array($candidate)) {
+    if(!is_array($candidate) && !($candidate instanceof \ArrayAccess)) {
         continue;
     }
 
     $language = $language ?? ($candidate['language'] ?? null);
+    $candidate_password = $candidate['password'] ?? '';
+    $password_matches = strlen($candidate_password) && password_verify($password, $candidate_password);
 
-    if(isset($candidate['password']) && password_verify($password, $candidate['password'])) {
+    if($password_matches) {
         $user = $candidate;
         break;
     }
 }
 
-if($user === null) {
+if(!$user) {
     trigger_error("APP::core_user_confirm.invalid_link.credential_mismatch", EQ_REPORT_WARNING);
     $send_invalid_link_response($language);
 }
