@@ -43,7 +43,7 @@ $send_invalid_link_response = static function(?string $language = null) use ($co
     $file = "packages/core/i18n/{$language}/user_confirm_invalid.html";
 
     if(!($html = @file_get_contents($file))) {
-        throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("missing_template", EQ_ERROR_INVALID_CONFIG);
     }
 
     $context->httpResponse()

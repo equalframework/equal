@@ -13,10 +13,11 @@ Unless explicitly told otherwise:
 3. When running commands from PowerShell, read and follow `AGENTS/00-general/POWERSHELL.md`.
 4. If a task impacts multiple layers (for example class + view + i18n), read every matching task folder before making changes.
 5. For model behavior involving hooks, synchronization logic, ORM actions, or public helper APIs, follow the related conventions in `AGENTS/AGENTS_REFERENCE.md`.
-6. Documentation examples may use `./equal.run`; when executing commands from PowerShell, run the equivalent `php run.php ...` command from the project root.
-7. For any task that creates or modifies `packages/**/classes/*.class.php`, run `./equal.run --do=test_db-access` before package initialization. If it exits `0`, continue. If the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
-8. After any `packages/{package}/classes/*.class.php` change, reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true`.
-9. Finish every task by running:
+6. Before generating code that consumes relational values loaded by ORM `read()`, read `AGENTS/reference/orm.md`; the projection and any explicit array conversion determine whether the value is an ID, an array of IDs, a `Model`, a `Collection`, or a PHP array. Keep collections iterable by default, and prefer `toArray()` when conversion is required.
+7. Documentation examples may use `./equal.run`; when executing commands from PowerShell, run the equivalent `php run.php ...` command from the project root.
+8. For any task that creates or modifies `packages/**/classes/*.class.php`, run `./equal.run --do=test_db-access` before package initialization. If it exits `0`, continue. If the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
+9. After any `packages/{package}/classes/*.class.php` change, reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true`.
+10. Finish every task by running:
    - the task-specific `VALIDATION.md`
    - `AGENTS/00-general/VALIDATION.md`
    - `AGENTS/90-final-validation/VALIDATION.md`

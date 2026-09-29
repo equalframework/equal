@@ -95,6 +95,16 @@ Each class:
 
 Avoid calling `update()` inside a computed field function.
 
+### Runtime Shape of Relations Loaded by `read()`
+
+The relation type alone does not determine the runtime value. The projection passed to `read()` and any subsequent array conversion do:
+
+- without subfields, `many2one` yields `int|null`, while `one2many` and `many2many` yield `int[]`;
+- with subfields, `many2one` yields a related `Model|null`, while `one2many` and `many2many` yield a `Collection`;
+- `toArray()` recursively converts models and nested collections to PHP arrays.
+
+Keep a `Collection` as a collection and iterate over it by default; do not call `get()` merely to iterate. When a PHP array is actually required, prefer the explicit `toArray()` method. Use PHP array functions only for array values and the ORM collection API only for `Collection` values. Never pass a `Collection` directly to a relational `update()`. Before generating or reviewing code that consumes a relation, read the complete rules and examples in `AGENTS/reference/orm.md`.
+
 ------
 
 ## 🚀 Inline Actions on Entities
