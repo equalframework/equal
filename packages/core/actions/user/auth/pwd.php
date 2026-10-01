@@ -120,12 +120,18 @@ $now = time();
 
 $auth_token = null;
 if($totp_required || $email_otp_required) {
+    $exp = $now + 300;
+    if($email_otp_required) {
+        $period = Setting::get_value('core', 'security', 'auth.email_otp.period', 600);
+        $exp = $now + $period;
+    }
+
     $auth_token = $auth->encodeToken([
         'type'  => 'mfa_challenge',
         'amr'   => ['pwd'],
         'sub'   => $user['id'],
         'iat'   => $now,
-        'exp'   => $now + 300
+        'exp'   => $exp
     ]);
 
     if($totp_required) {
@@ -159,7 +165,7 @@ if($totp_required || $email_otp_required) {
         EmailOtpKey::create([
             'user_id'           => $user['id'],
             'code_hash'         => password_hash($otp_code, PASSWORD_BCRYPT),
-            'code_expires_at'   => $now + $period
+            'code_expires_at'   => $exp
         ]);
 
         $message = new Email();
@@ -207,7 +213,7 @@ else {
     $auth_method = [
         'method'    => 'pwd',
         'level'     => 1,
-        'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+        'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
     ];
 
     $jwt = $auth->retrieveAccessToken();
