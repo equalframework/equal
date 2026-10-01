@@ -1790,7 +1790,10 @@ class ObjectManager extends Service {
             $effective_values = [];
 
             foreach($stored_fields as $field) {
-                $effective_values[$field] = $stored_values[$id][$field] ?? null;
+                $stored_value = $stored_values[$id][$field] ?? null;
+                if(!is_null($stored_value)) {
+                    $effective_values[$field] = $stored_value;
+                }
             }
 
             foreach($required_fields as $field) {
@@ -2399,15 +2402,19 @@ class ObjectManager extends Service {
                 $this->load($class, $ids, array_keys($dependents['related']), $lang);
 
                 foreach($dependents['related'] as $field => $subfields) {
+                    $target_lang = constant('DEFAULT_LANG');
+                    if(($schema[$field]['multilang'] ?? false)) {
+                        $target_lang = $lang;
+                    }
                     $values = [];
                     foreach($subfields as $subfield) {
                         $values[$subfield] = null;
                     }
                     foreach($ids as $oid) {
-                        if(!isset($this->cache[$table_name][$oid][$lang][$field])) {
+                        if(!isset($this->cache[$table_name][$oid][$target_lang][$field])) {
                             continue;
                         }
-                        $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
+                        $target_ids = (array) $this->cache[$table_name][$oid][$target_lang][$field];
                         // allow cascade update (circular dependencies are checked in `core_test_package`)
                         $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
                     }
