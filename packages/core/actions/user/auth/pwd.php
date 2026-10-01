@@ -163,6 +163,7 @@ elseif($email_otp_required) {
     $period = Setting::get_value('core', 'security', 'auth.email_otp.period', 600);
 
     EmailOtpKey::create([
+        'user_id'           => $user['id'],
         'code_hash'         => password_hash($otp_code, PASSWORD_BCRYPT),
         'code_expires_at'   => $now + $period
     ]);
