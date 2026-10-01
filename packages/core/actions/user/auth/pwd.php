@@ -76,7 +76,7 @@ if(!$user_id) {
 }
 
 $user = User::id($user_id)
-    ->read(['validated', 'allow_auth', 'login', 'firstname'])
+    ->read(['validated', 'allow_auth', 'login', 'firstname', 'language'])
     ->first(true);
 
 if(!$user || !$user['validated']) {
@@ -171,7 +171,7 @@ elseif($email_otp_required) {
     $message = new EmailMessage();
 
     $subject = '';
-    $file = "packages/core/i18n/{$user['language']}/mail_user_pass_recover.html";
+    $file = "packages/core/i18n/{$user['language']}/mail_user_auth_email_otp.html";
     if(!($html = @file_get_contents($file))) {
         throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
     }
