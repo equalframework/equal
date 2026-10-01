@@ -31,6 +31,7 @@ class AuthenticationFactor extends Model {
                 'selection'         => [
                     'passkey',
                     'totp',
+                    'email_otp_key',
                     'recovery_code'
                 ],
                 'description'       => 'Type of authentication factor.',

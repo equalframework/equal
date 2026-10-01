@@ -1913,8 +1913,89 @@
         "translations": {
             "fr": {
                 "title": "TOTP nombre de tentatives autorisées",
-                "description": "",
-                "help": ""
+                "description": "Le nombre de tentatives dont dispose un utilisateur pour saisir le code d'authentification correct.",
+                "help": "Par défaut, 5 tentatives sont autorisées."
+            }
+        }
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.password.email_otp_required",
+        "title": "Email OTP authentication required (MFA)",
+        "form_control": "toggle",
+        "description": "Require a valid OTP code after successful password authentication.",
+        "help": "The code is sent to the user after successful password authentication.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Authentification email OTP requise (MFA)",
+                "description": "Exiger un code OTP valide après une authentification réussie par mot de passe.",
+                "help": "Le code est envoyé à l'utilisateur après une authentification réussie par mot de passe."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.email_otp.period",
+        "title": "Email OTP period",
+        "form_control": "input",
+        "description": "Validity period of a generated OTP code, in seconds.",
+        "help": "The default validity period is 10 minutes, enough time for the user to receive the email and enter the authentication code.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Période TOTP",
+                "description": "Durée de validité d'un code OTP généré, en secondes.",
+                "help": "La durée de validité par défaut est de 10 minutes, ce qui laisse suffisamment de temps à l'utilisateur pour recevoir l'e-mail et saisir le code d'authentification."
+            }
+        },
+        "value": "600"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.email_otp.digits",
+        "title": "Email OTP code length",
+        "form_control": "select",
+        "description": "Number of digits in generated OTP codes that are sent by email.",
+        "help": "OTP codes can contain six or eight digits.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Longueur du code email OTP",
+                "description": "Nombre de chiffres composant les codes OTP générés et envoyés par email.",
+                "help": "Les codes OTP peuvent contenir six ou huit chiffres."
+            }
+        },
+        "choices": [
+            {
+                "name": "6",
+                "value": "6"
+            },
+            {
+                "name": "8",
+                "value": "8"
+            }
+        ],
+        "value": "6"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.email_otp.allowed_failed_attempts",
+        "title": "Email OTP allowed failed attempts",
+        "form_control": "input",
+        "description": "The quantity of attempts a user can make to enter the correct authentication code.",
+        "help": "By default 5 attempts are allowed.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Email OTP nombre de tentatives autorisées",
+                "description": "Le nombre de tentatives dont dispose un utilisateur pour saisir le code d'authentification correct.",
+                "help": "Par défaut, 5 tentatives sont autorisées."
             }
         }
     },
