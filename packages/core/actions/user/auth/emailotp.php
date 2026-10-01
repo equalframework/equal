@@ -114,7 +114,7 @@ $email_otp_key = EmailOtpKey::search([
 
 $now = time();
 if($email_otp_key['code_expires_at'] < $now) {
-    throw new Exception('code_expired', EQ_ERROR_NOT_ALLOWED);
+    throw new Exception('email_otp_key_expired', EQ_ERROR_NOT_ALLOWED);
 }
 
 if(!password_verify($params['auth_code'], $email_otp_key['code_hash'])) {
@@ -124,14 +124,14 @@ if(!password_verify($params['auth_code'], $email_otp_key['code_hash'])) {
     if($failed_attempts > $allowed_failed_attempts) {
         EmailOtpKey::id($email_otp_key['id'])->transition('revoke');
 
-        throw new Exception('failed_attempts_limit_reached', EQ_ERROR_NOT_ALLOWED);
+        throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
     }
     else {
         EmailOtpKey::id($email_otp_key['id'])
             ->update(['failed_attempts' => $failed_attempts]);
     }
 
-    throw new Exception('code_mismatch', EQ_ERROR_NOT_ALLOWED);
+    throw new Exception('auth_code_mismatch', EQ_ERROR_NOT_ALLOWED);
 }
 
 $auth_method = [
