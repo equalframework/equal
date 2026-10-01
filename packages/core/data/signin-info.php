@@ -119,8 +119,8 @@ if($auth_passkey_enabled) {
             // make sure the handle is not already assigned
             while(true) {
                 $values = SettingValue::search([
-                        ['setting_id', '=', $setting['id']],
-                        ['value', '=', $user_handle]]
+                    ['setting_id', '=', $setting['id']],
+                    ['value', '=', $user_handle]]
                 )
                     ->get();
 
@@ -142,20 +142,25 @@ if($auth_passkey_enabled) {
     Totp key
 */
 
-$global_auth_password_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
-$auth_password_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_auth_password_totp_enabled, ['user_id' => $user['id']]);
+$global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
+$totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
 
-if($auth_password_totp_enabled) {
-    $auth_method_data['otp']['enabled'] = true;
+if($totp_enabled) {
+    $auth_method_data['totp']['enabled'] = true;
     if($auth_password_totp_required) {
-        $auth_method_data['pwd']['otp_required'] = true;
+        $auth_method_data['pwd']['mfa_required'] = true;
     }
+}
+
+$auth_password_email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required');
+if($auth_password_email_otp_required) {
+    $auth_method_data['pwd']['mfa_required'] = true;
 }
 
 $global_totpkey_creation = Setting::get_value('core', 'security', 'auth.totp.creation');
 $totpkey_creation = Setting::get_value('core', 'security', 'auth.totp.creation', $global_totpkey_creation, ['user_id' => $user['id']]);
 
-if($auth_password_totp_enabled && ($totpkey_creation || $auth_password_totp_required)) {
+if($totp_enabled && ($totpkey_creation || $auth_password_totp_required)) {
     $allowed_creations[] = 'totpkey';
 }
 

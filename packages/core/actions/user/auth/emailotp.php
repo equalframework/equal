@@ -13,16 +13,15 @@ use core\User;
 [$params, $providers] = eQual::announce([
     'description'	=>	'Attempts to log a user in or elevate its privileges using an email totp.',
     'params' 		=>	[
-        'user_id' => [
-            'type'              => 'many2one',
-            'foreign_object'    => 'core\User',
-            'description'       => 'The user that wants to authenticate.',
-            'help'              => 'Is required for authentication but forbidden for elevation.'
+        'login' => [
+            'type'          => 'string',
+            'description'   => 'The user that wants to authenticate.',
+            'help'          => 'Is required for authentication but forbidden for elevation.'
         ],
         'auth_code' => [
-            'type'              => 'string',
-            'description'       => 'The authentication code that was emailed to the user.',
-            'required'          => true
+            'type'          => 'string',
+            'description'   => 'The authentication code that was emailed to the user.',
+            'required'      => true
         ]
     ],
     'access'        => [
@@ -50,21 +49,33 @@ if($user_id <= 0) {
     $is_authenticated = false;
 }
 
-if($is_authenticated && isset($params['user_id'])) {
-    throw new Exception('user_id_fobidden_for_elevation', EQ_ERROR_INVALID_PARAM);
+if($is_authenticated && !empty($params['login'])) {
+    throw new Exception('login_fobidden_for_elevation', EQ_ERROR_INVALID_PARAM);
 }
 
+$user_fields = ['validated', 'allow_auth'];
+
+$user = null;
 if(!$is_authenticated) {
-    if(!isset($params['user_id'])) {
+    if(empty($params['login'])) {
         throw new Exception('user_id_required_for_authentication', EQ_ERROR_INVALID_PARAM);
     }
 
-    $user_id = $params['user_id'];
-}
+    if(strpos($params['login'], '@') > 0) {
+        [$username, $domain] = explode('@', strtolower(trim($params['login'])));
+        $username .= '+';
+        $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
+    }
 
-$user = User::id($user_id)
-    ->read(['validated', 'allow_auth'])
-    ->first();
+    $user = User::search(['username', '=', $params['login']])
+        ->read($user_fields)
+        ->first();
+}
+else {
+    $user = User::id($user_id)
+        ->read($user_fields)
+        ->first();
+}
 
 if(!$user || !$user['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
