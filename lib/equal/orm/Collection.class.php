@@ -1312,8 +1312,11 @@ class Collection implements \Iterator, \Countable {
         $res = $this->orm->instantiate($this->class, $ids, ($lang) ? $lang : $this->lang);
 
         if(is_int($res) && $res < 0) {
-            trigger_error("ORM::unexpected error when instantiating {$this->class} objects:" . $this->orm->getLastError(), EQ_REPORT_INFO);
-            throw new \Exception('instantiate_failed', $res);
+            $last_error = $this->orm->getLastError();
+            trigger_error("ORM::unexpected error when instantiating {$this->class} objects:" . $last_error, EQ_REPORT_INFO);
+
+            $error_data = @unserialize($last_error);
+            throw new \Exception(is_array($error_data) ? $last_error : 'instantiate_failed', $res);
         }
 
         foreach($ids as $id) {
@@ -1468,8 +1471,11 @@ class Collection implements \Iterator, \Countable {
         // #memo - unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
         $res = $this->orm->update($this->class, $ids, $values, ($lang) ? $lang : $this->lang);
         if($res <= 0) {
-            trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
-            throw new \Exception('update_failed', $res);
+            $last_error = $this->orm->getLastError();
+            trigger_error("ORM::unexpected error when updating {$this->class} objects:".$last_error, EQ_REPORT_INFO);
+
+            $error_data = @unserialize($last_error);
+            throw new \Exception(is_array($error_data) ? $last_error : 'update_failed', $res);
         }
 
         // by convention, `orm::update()` forces a 'draft' to an 'instance' - keep collection value accurate

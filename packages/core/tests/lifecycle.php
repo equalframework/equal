@@ -218,8 +218,9 @@ namespace {
                     },
                 'act'         => function ($id) {
                         $result = [
-                            'id'    => $id,
-                            'error' => 0
+                            'id'      => $id,
+                            'error'   => 0,
+                            'details' => []
                         ];
 
                         try {
@@ -228,12 +229,15 @@ namespace {
                         }
                         catch(Exception $e) {
                             $result['error'] = $e->getCode();
+                            $details = @unserialize($e->getMessage());
+                            $result['details'] = is_array($details) ? $details : [];
                         }
 
                         return $result;
                     },
                 'assert'      => function($result) {
-                        return ($result['error'] ?? 0) === EQ_ERROR_INVALID_PARAM;
+                        return ($result['error'] ?? 0) === EQ_ERROR_MISSING_PARAM
+                            && ($result['details']['string_short']['missing_mandatory'] ?? null) === 'Missing mandatory parameter.';
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;
@@ -303,10 +307,12 @@ namespace {
                         return count($ids) ? max(array_map('intval', $ids)) : 0;
                     },
                 'act'         => function ($last_id) {
+                        $om = ObjectManager::getInstance();
+
                         return [
-                            'last_id' => $last_id,
-                            'result'  => ObjectManager::getInstance()
-                                ->create(LifecycleConsistencyProbe::getType(), [])
+                            'last_id'    => $last_id,
+                            'result'     => $om->create(LifecycleConsistencyProbe::getType(), []),
+                            'last_error' => $om->getLastError()
                         ];
                     },
                 'assert'      => function($result) {
@@ -317,8 +323,11 @@ namespace {
                                 ['deleted', 'in', ['0', '1']]
                             ]
                         );
+                        $details = @unserialize($result['last_error'] ?? '');
 
-                        return ($result['result'] ?? 0) === EQ_ERROR_INVALID_PARAM
+                        return ($result['result'] ?? 0) === EQ_ERROR_MISSING_PARAM
+                            && is_array($details)
+                            && ($details['string_short']['missing_mandatory'] ?? null) === 'Missing mandatory parameter.'
                             && count($ids) === 1;
                     },
                 'rollback'    => function($result) {
@@ -347,12 +356,17 @@ namespace {
                         $class = LifecycleConsistencyProbe::getType();
 
                         return [
-                            'id'     => $id,
-                            'update' => $om->update($class, [$id], ['state' => 'instance'])
+                            'id'         => $id,
+                            'update'     => $om->update($class, [$id], ['state' => 'instance']),
+                            'last_error' => $om->getLastError()
                         ];
                     },
                 'assert'      => function($result) {
-                        return ($result['update'] ?? 0) === EQ_ERROR_INVALID_PARAM;
+                        $details = @unserialize($result['last_error'] ?? '');
+
+                        return ($result['update'] ?? 0) === EQ_ERROR_MISSING_PARAM
+                            && is_array($details)
+                            && ($details['string_short']['missing_mandatory'] ?? null) === 'Missing mandatory parameter.';
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;
@@ -530,6 +544,85 @@ namespace {
                         return ($result['id'] ?? 0) > 0
                             && ($result['state'] ?? null) === 'draft'
                             && ($result['string_short'] ?? null) === null;
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleConsistencyProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5019' => [
+                'description' => 'Lifecycle consistency: draft update reports an explicit null mandatory field.',
+                'arrange'     => function () {
+                        $test = LifecycleConsistencyProbe::create(['state' => 'draft'])
+                            ->read(['id'])
+                            ->first();
+
+                        return $test['id'];
+                    },
+                'act'         => function ($id) {
+                        $result = [
+                            'id'      => $id,
+                            'error'   => 0,
+                            'details' => []
+                        ];
+
+                        try {
+                            LifecycleConsistencyProbe::id($id)
+                                ->update(['string_short' => null]);
+                        }
+                        catch(Exception $e) {
+                            $result['error'] = $e->getCode();
+                            $details = @unserialize($e->getMessage());
+                            $result['details'] = is_array($details) ? $details : [];
+                        }
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        return ($result['error'] ?? 0) === EQ_ERROR_INVALID_PARAM
+                            && ($result['details']['string_short']['null_mandatory'] ?? null) === 'Mandatory field cannot be null.';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleConsistencyProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5020' => [
+                'description' => 'Lifecycle consistency: explicit instantiation reports a missing mandatory field.',
+                'arrange'     => function () {
+                        $test = LifecycleConsistencyProbe::create(['state' => 'draft'])
+                            ->read(['id'])
+                            ->first();
+
+                        return $test['id'];
+                    },
+                'act'         => function ($id) {
+                        $result = [
+                            'id'      => $id,
+                            'error'   => 0,
+                            'details' => []
+                        ];
+
+                        try {
+                            LifecycleConsistencyProbe::id($id)->instantiate();
+                        }
+                        catch(Exception $e) {
+                            $result['error'] = $e->getCode();
+                            $details = @unserialize($e->getMessage());
+                            $result['details'] = is_array($details) ? $details : [];
+                        }
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        return ($result['error'] ?? 0) === EQ_ERROR_MISSING_PARAM
+                            && ($result['details']['string_short']['missing_mandatory'] ?? null) === 'Missing mandatory parameter.';
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;
