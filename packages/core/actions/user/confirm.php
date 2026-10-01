@@ -38,7 +38,7 @@ use core\User;
 // initialize local vars with inputs
 ['orm' => $orm, 'context' => $context, 'auth' => $auth] = $providers;
 
-$send_invalid_link_response = static function(?string $language = null) use ($context) {
+$showInvalidLinkPage = static function(?string $language = null) use ($context) {
     $language = $language ?: constant('DEFAULT_LANG');
     $file = "packages/core/i18n/{$language}/user_confirm_invalid.html";
 
@@ -60,14 +60,14 @@ $credentials = base64_decode($code.str_repeat('=', $padding_length), true);
 
 if($credentials === false || strpos($credentials, ':') === false) {
     trigger_error("APP::core_user_confirm.invalid_link.malformed_code", EQ_REPORT_WARNING);
-    $send_invalid_link_response();
+    $showInvalidLinkPage();
 }
 
 [$login, $password] = explode(':', $credentials, 2);
 
 if(!strlen($login) || !strlen($password)) {
     trigger_error("APP::core_user_confirm.invalid_link.empty_credentials", EQ_REPORT_WARNING);
-    $send_invalid_link_response();
+    $showInvalidLinkPage();
 }
 
 $auth->su();
@@ -77,31 +77,29 @@ $ids = $orm->search('core\User', [['login', '=', $login]]);
 
 if(!count($ids)) {
     trigger_error("APP::core_user_confirm.invalid_link.unknown_login", EQ_REPORT_WARNING);
-    $send_invalid_link_response();
+    $showInvalidLinkPage();
 }
 
-$list = $orm->read(User::getType(), $ids, ['id', 'login', 'password', 'language']);
+$users = $orm->read(User::getType(), $ids, ['id', 'login', 'password', 'language']);
 $user = null;
 $language = null;
 
-foreach($list as $candidate) {
-    if(!is_array($candidate) && !($candidate instanceof \ArrayAccess)) {
-        continue;
-    }
+if(is_array($users)) {
+    foreach($users as $candidate) {
+        $language = $language ?? ($candidate['language'] ?? null);
+        $candidate_password = $candidate['password'] ?? '';
+        $password_matches = strlen($candidate_password) && password_verify($password, $candidate_password);
 
-    $language = $language ?? ($candidate['language'] ?? null);
-    $candidate_password = $candidate['password'] ?? '';
-    $password_matches = strlen($candidate_password) && password_verify($password, $candidate_password);
-
-    if($password_matches) {
-        $user = $candidate;
-        break;
+        if($password_matches) {
+            $user = $candidate;
+            break;
+        }
     }
 }
 
 if(!$user) {
     trigger_error("APP::core_user_confirm.invalid_link.credential_mismatch", EQ_REPORT_WARNING);
-    $send_invalid_link_response($language);
+    $showInvalidLinkPage($language);
 }
 
 // mark user as validated (will update status according to USER_ACCOUNT_VALIDATION)
