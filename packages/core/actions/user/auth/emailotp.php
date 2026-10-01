@@ -13,10 +13,9 @@ use core\User;
 [$params, $providers] = eQual::announce([
     'description'	=>	'Attempts to log a user in or elevate its privileges using an email totp.',
     'params' 		=>	[
-        'login' => [
+        'auth_token' =>  [
             'type'          => 'string',
-            'description'   => 'The user that wants to authenticate.',
-            'help'          => 'Is required for authentication but forbidden for elevation.'
+            'description'   => 'The temporary token that proves the correct password was given.'
         ],
         'auth_code' => [
             'type'          => 'string',
@@ -32,7 +31,7 @@ use core\User;
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
+    'constants'     => ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -42,40 +41,61 @@ use core\User;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
+/**
+ * Methods
+ */
+
+$checkToken = function($auth_token) use($auth) {
+    try {
+        $check = $auth->verifyToken($auth_token, constant('AUTH_SECRET_KEY'));
+    }
+    catch(Exception $e) {
+        $check = false;
+    }
+
+    if($check === false || $check <= 0) {
+        throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
+    }
+
+    $token = $auth->decodeToken($auth_token);
+
+    $payload = $token['payload'] ?? null;
+    $now = time();
+
+    $amr = $payload['amr'] ?? null;
+    if($payload['type'] !== 'mfa_challenge' || ($amr !== ['pwd'] && $amr !== 'pwd')) {
+        throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
+    }
+
+    if((int) $payload['iat'] > $now || (int) $payload['exp'] < $now) {
+        throw new Exception('expired_token', EQ_ERROR_INVALID_PARAM);
+    }
+
+    return $payload['sub'];
+};
+
+/**
+ * Action
+ */
+
 $user_id = $auth->userId();
 
 $is_authenticated = true;
 if($user_id <= 0) {
     $is_authenticated = false;
-}
-
-if($is_authenticated && !empty($params['login'])) {
-    throw new Exception('login_fobidden_for_elevation', EQ_ERROR_INVALID_PARAM);
-}
-
-$user_fields = ['validated', 'allow_auth'];
-
-$user = null;
-if(!$is_authenticated) {
-    if(empty($params['login'])) {
-        throw new Exception('user_id_required_for_authentication', EQ_ERROR_INVALID_PARAM);
+    if(empty($params['auth_token'])) {
+        throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
     }
 
-    if(strpos($params['login'], '@') > 0) {
-        [$username, $domain] = explode('@', strtolower(trim($params['login'])));
-        $username .= '+';
-        $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
-    }
+    $user_id = $checkToken($params['auth_token']);
+}
+elseif(!empty($params['auth_token'])) {
+    throw new Exception('auth_token_not_allowed', EQ_ERROR_INVALID_PARAM);
+}
 
-    $user = User::search(['username', '=', $params['login']])
-        ->read($user_fields)
-        ->first();
-}
-else {
-    $user = User::id($user_id)
-        ->read($user_fields)
-        ->first();
-}
+$user = User::id($user_id)
+    ->read(['validated', 'allow_auth'])
+    ->first();
 
 if(!$user || !$user['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);

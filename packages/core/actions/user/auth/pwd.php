@@ -118,7 +118,8 @@ if(!$totp_required) {
 
 $now = time();
 
-if($totp_required) {
+$auth_token = null;
+if($totp_required || $email_otp_required) {
     $auth_token = $auth->encodeToken([
         'type'  => 'mfa_challenge',
         'amr'   => ['pwd'],
@@ -127,18 +128,71 @@ if($totp_required) {
         'exp'   => $now + 300
     ]);
 
-    $totpkey = TotpKey::search([
-        ['user_id', '=', $user['id']],
-        ['type', '=', 'totp'],
-        ['status', '=', 'active']
-    ])
-        ->read(['failed_attempts'])
-        ->first();
+    if($totp_required) {
+        $totpkey = TotpKey::search([
+            ['user_id', '=', $user['id']],
+            ['type', '=', 'totp'],
+            ['status', '=', 'active']
+        ])
+            ->read(['failed_attempts'])
+            ->first();
 
-    $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
+        $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
 
-    if($totpkey && $totpkey['failed_attempts'] >= $allowed_failed_attempts) {
-        throw new Exception('failled_attempts_reached');
+        if($totpkey && $totpkey['failed_attempts'] >= $allowed_failed_attempts) {
+            throw new Exception('failled_attempts_reached');
+        }
+    }
+    else {
+        EmailOtpKey::search([
+            ['user_id', '=', $user['id']],
+            ['status', '=', 'active']
+        ])
+            ->transition('revoke');
+
+        $digits = Setting::get_value('core', 'security', 'auth.email_otp.digits', 6);
+        $max = (10 ** $digits) - 1;
+        $otp_code = str_pad((string) random_int(0, $max), $digits, '0', STR_PAD_LEFT);
+
+        $period = Setting::get_value('core', 'security', 'auth.email_otp.period', 600);
+
+        EmailOtpKey::create([
+            'user_id'           => $user['id'],
+            'code_hash'         => password_hash($otp_code, PASSWORD_BCRYPT),
+            'code_expires_at'   => $now + $period
+        ]);
+
+        $message = new Email();
+
+        $subject = '';
+        $file = "packages/core/i18n/{$user['language']}/mail_user_auth_email_otp.html";
+        if(!($html = @file_get_contents($file))) {
+            throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
+        }
+
+        $vars_callbacks = [
+            // retrieve from template
+            'subject'   => function($data, $attributes) use(&$subject) {
+                $subject = $attributes['title'];
+                return '';
+            },
+            // inject in template
+            'username'  => fn() => $user['firstname'],
+            'validity'  => fn() => (int) floor($period / 60),
+            'otp_code'  => fn() => $otp_code,
+            'origin'    => fn() => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME'),
+            'abuse'     => fn() => "<a href=\"mailto:".constant('EMAIL_SMTP_ABUSE_EMAIL')."\">".constant('EMAIL_SMTP_ABUSE_EMAIL')."</a>"
+        ];
+
+        $template = new HtmlTemplate($html, $vars_callbacks);
+
+        $message
+            ->setTo($user['login'])
+            ->setSubject($subject)
+            ->setContentType('text/html')
+            ->setBody($template->getHtml());
+
+        Mail::send($message);
     }
 
     $context
@@ -147,62 +201,6 @@ if($totp_required) {
             'mfa_required'  => true,
             'auth_token'    => $auth_token
         ])
-        ->send();
-}
-elseif($email_otp_required) {
-    EmailOtpKey::search([
-        ['user_id', '=', $user['id']],
-        ['status', '=', 'active']
-    ])
-        ->transition('revoke');
-
-    $digits = Setting::get_value('core', 'security', 'auth.email_otp.digits', 6);
-    $max = (10 ** $digits) - 1;
-    $otp_code = str_pad((string) random_int(0, $max), $digits, '0', STR_PAD_LEFT);
-
-    $period = Setting::get_value('core', 'security', 'auth.email_otp.period', 600);
-
-    EmailOtpKey::create([
-        'user_id'           => $user['id'],
-        'code_hash'         => password_hash($otp_code, PASSWORD_BCRYPT),
-        'code_expires_at'   => $now + $period
-    ]);
-
-    $message = new Email();
-
-    $subject = '';
-    $file = "packages/core/i18n/{$user['language']}/mail_user_auth_email_otp.html";
-    if(!($html = @file_get_contents($file))) {
-        throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
-    }
-
-    $vars_callbacks = [
-        // retrieve from template
-        'subject'   => function($data, $attributes) use(&$subject) {
-            $subject = $attributes['title'];
-            return '';
-        },
-        // inject in template
-        'username'  => fn() => $user['firstname'],
-        'validity'  => fn() => (int) floor($period / 60),
-        'otp_code'  => fn() => $otp_code,
-        'origin'    => fn() => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME'),
-        'abuse'     => fn() => "<a href=\"mailto:".constant('EMAIL_SMTP_ABUSE_EMAIL')."\">".constant('EMAIL_SMTP_ABUSE_EMAIL')."</a>"
-    ];
-
-    $template = new HtmlTemplate($html, $vars_callbacks);
-
-    $message
-        ->setTo($user['login'])
-        ->setSubject($subject)
-        ->setContentType('text/html')
-        ->setBody($template->getHtml());
-
-    Mail::send($message);
-
-    $context
-        ->httpResponse()
-        ->body(['mfa_required' => true])
         ->send();
 }
 else {
