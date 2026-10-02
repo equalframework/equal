@@ -11,6 +11,18 @@
             "operation": "?do=core_user_auth_totp"
         }
     },
+    "/auth/totp": {
+        "POST": {
+            "description": "Attempt to authenticate user with authentication code, at this point the credentials have already been validated.",
+            "operation": "?do=core_user_auth_totp"
+        }
+    },
+    "/auth/emailotp": {
+        "POST": {
+            "description": "Attempt to authenticate user with authentication code received by email, at this point the credentials have already been validated.",
+            "operation": "?do=core_user_auth_emailotp"
+        }
+    },
     "/auth/passkey": {
         "POST": {
             "description": "Attempt to authenticate user with passkey.",

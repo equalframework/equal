@@ -11,7 +11,7 @@ use core\setting\Setting;
 use core\User;
 
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Attempts to log a user in.",
+    'description'	=>	"Attempts to log a user in or elevate its privileges using a totp.",
     'params' 		=>	[
         'auth_token' =>  [
             'description'   => "The temporary token that proves the correct password was given.",
