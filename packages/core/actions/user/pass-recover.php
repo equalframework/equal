@@ -5,8 +5,9 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use equal\email\EmailMessage;
 use equal\html\HtmlTemplate;
-use equal\email\Email;
 use core\User;
 use core\Mail;
 
@@ -101,7 +102,7 @@ try {
     $body = $template->getHtml();
 
     // create message
-    $message = new Email();
+    $message = new EmailMessage();
     $message
         ->setTo($params['email'])
         ->setSubject($subject)

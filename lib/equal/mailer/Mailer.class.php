@@ -8,7 +8,7 @@
 
 namespace equal\mailer;
 
-use equal\email\Email;
+use equal\email\EmailMessage;
 
 class Mailer {
 
@@ -42,7 +42,7 @@ class Mailer {
     /**
      * Sends given email
      *
-     * @param Email $email
+     * @param EmailMessage $email
      * @param array{
      *     from?: string,
      *     username?: string
@@ -50,7 +50,7 @@ class Mailer {
      * @return int
      * @throws \Exception
      */
-    public function send(Email $email, $options = []): int {
+    public function send(EmailMessage $email, $options = []): int {
         if(!$this->mailer) {
             throw new \Exception("mailer_not_created");
         }
