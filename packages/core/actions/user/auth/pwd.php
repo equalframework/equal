@@ -146,7 +146,7 @@ if($totp_required || $email_otp_required) {
         $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
 
         if($totpkey && $totpkey['failed_attempts'] >= $allowed_failed_attempts) {
-            throw new Exception('failled_attempts_reached');
+            throw new Exception('failled_attempts_reached', EQ_ERROR_NOT_ALLOWED);
         }
     }
     else {
@@ -155,6 +155,16 @@ if($totp_required || $email_otp_required) {
             ['status', '=', 'active']
         ])
             ->transition('revoke');
+
+        $email_otp_keys_count = EmailOtpKey::search([
+            ['user_id', '=', $user['id']],
+            ['created', '>=', time() - 600]
+        ])
+            ->count();
+
+        if($email_otp_keys_count >= 3) {
+            throw new Exception('max_sent_email_reached', EQ_ERROR_NOT_ALLOWED);
+        }
 
         $digits = Setting::get_value('core', 'security', 'auth.email_otp.digits', 6);
         $max = (10 ** $digits) - 1;
@@ -173,7 +183,7 @@ if($totp_required || $email_otp_required) {
         $subject = '';
         $file = "packages/core/i18n/{$user['language']}/mail_user_auth_email_otp.html";
         if(!($html = @file_get_contents($file))) {
-            throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
+            throw new Exception('missing_template', EQ_ERROR_INVALID_CONFIG);
         }
 
         $vars_callbacks = [
