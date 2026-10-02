@@ -11,7 +11,7 @@ use core\security\factor\EmailOtpKey;
 use core\security\factor\TotpKey;
 use core\setting\Setting;
 use core\User;
-use equal\email\Email;
+use equal\email\EmailMessage;
 use equal\html\HtmlTemplate;
 
 [$params, $providers] = eQual::announce([
@@ -168,7 +168,7 @@ if($totp_required || $email_otp_required) {
             'code_expires_at'   => $exp
         ]);
 
-        $message = new Email();
+        $message = new EmailMessage();
 
         $subject = '';
         $file = "packages/core/i18n/{$user['language']}/mail_user_auth_email_otp.html";

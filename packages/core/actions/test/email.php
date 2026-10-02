@@ -5,8 +5,8 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\email\Email;
 use core\Mail;
+use equal\email\EmailMessage;
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
@@ -49,7 +49,7 @@ $body = (function ($template, $map_values) {
     ]);
 
 // create message
-$message = new Email();
+$message = new EmailMessage();
 
 $message->setTo(constant('EMAIL_SMTP_ACCOUNT_EMAIL'))
     ->setSubject('Test Email from eQual')

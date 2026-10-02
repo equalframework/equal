@@ -8,7 +8,7 @@
 
 namespace equal\mailer;
 
-use equal\email\Email;
+use equal\email\EmailMessage;
 use Swift_Mailer;
 
 class MailerSmtp extends Mailer {
@@ -179,7 +179,7 @@ class MailerSmtp extends Mailer {
     }
 
     /**
-     * @param Email $email
+     * @param EmailMessage $email
      * @param array{
      *     from?: string,
      *     username?: string
@@ -187,7 +187,7 @@ class MailerSmtp extends Mailer {
      * @return int
      * @throws \Exception
      */
-    public function send(Email $email, $options = []): int {
+    public function send(EmailMessage $email, $options = []): int {
         if(!$this->swiftMailer) {
             throw new \Exception("mailer_not_created");
         }
