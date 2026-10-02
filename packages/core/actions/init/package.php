@@ -582,7 +582,7 @@ else {
     }
 }
 
-$result = [$params['package'] => 'updated'];
+$result = [$params['package'] => 'initialized'];
 
 $context
     ->httpResponse()
