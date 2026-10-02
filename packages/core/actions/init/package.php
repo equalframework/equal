@@ -582,6 +582,9 @@ else {
     }
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$result = [$params['package'] => 'updated'];
+
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();
