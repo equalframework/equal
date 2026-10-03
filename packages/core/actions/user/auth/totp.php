@@ -14,12 +14,13 @@ use core\User;
     'description'	=>	"Attempts to log a user in or elevate its privileges using a totp.",
     'params' 		=>	[
         'auth_token' =>  [
-            'description'   => "The temporary token that proves the correct password was given.",
-            'type'          => 'string'
+            'type'          => 'string',
+            'usage'         => 'text/plain:20248',
+            'description'   => "The temporary token that proves the correct password was given."
         ],
         'auth_code' => [
-            'description'   => "The code given by the user's authenticator application.",
             'type'          => 'string',
+            'description'   => "The code given by the user's authenticator application.",
             'required'      => true
         ]
     ],

@@ -19,6 +19,7 @@ use core\User;
         ],
         'auth_code' => [
             'type'          => 'string',
+            'usage'         => 'text/plain:20248',
             'description'   => 'The authentication code that was emailed to the user.',
             'required'      => true
         ]
