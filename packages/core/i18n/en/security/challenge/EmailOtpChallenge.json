@@ -1,0 +1,62 @@
+{
+    "name": "Email OTP challenge",
+    "plural": "Email OTP challenges",
+    "description": "Temporary challenges used to verify codes sent to users by email.",
+    "model": {
+        "user_id": {
+            "label": "User",
+            "description": "User for whom the email OTP challenge was issued.",
+            "help": "Links the challenge to the account that must provide the emailed code."
+        },
+        "code_hash": {
+            "label": "Code hash",
+            "description": "Hash of the temporary code sent by email.",
+            "help": "Stores a non-reversible representation of the code used for verification."
+        },
+        "expires_at": {
+            "label": "Expires at",
+            "description": "Date and time after which the challenge can no longer be completed.",
+            "help": "Codes submitted after this time are rejected."
+        },
+        "failed_attempts": {
+            "label": "Failed attempts",
+            "description": "Number of unsuccessful attempts to complete the challenge.",
+            "help": "The challenge is invalidated when the configured attempt limit is exceeded."
+        },
+        "status": {
+            "label": "Status",
+            "description": "Current lifecycle status of the email OTP challenge.",
+            "help": "Indicates whether the challenge is pending, consumed, or invalidated.",
+            "selection": {
+                "pending": "Pending",
+                "consumed": "Consumed",
+                "invalidated": "Invalidated"
+            }
+        },
+        "consumed_at": {
+            "label": "Consumed at",
+            "description": "Date and time when the challenge was successfully completed.",
+            "help": "Empty until the correct code is submitted."
+        },
+        "invalidated_at": {
+            "label": "Invalidated at",
+            "description": "Date and time when the challenge was invalidated.",
+            "help": "Empty while the challenge remains pending or was successfully consumed."
+        },
+        "invalidated_reason": {
+            "label": "Invalidation reason",
+            "description": "Reason why the challenge was invalidated.",
+            "help": "Records whether the challenge expired, was superseded, or exceeded its attempt limit."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Email OTP challenge form",
+            "description": "Email OTP challenge details."
+        },
+        "list.default": {
+            "name": "Email OTP challenges",
+            "description": "List of email OTP authentication challenges."
+        }
+    }
+}

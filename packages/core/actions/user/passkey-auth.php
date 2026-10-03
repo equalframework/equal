@@ -171,10 +171,8 @@ if($sign_count && $sign_count != $passkey['signature_counter']) {
         ->update(['signature_counter' => $sign_count]);
 }
 
-// #todo - set the authentication level and AMR method based on $passkey['fmt']
 $auth_method = [
     'method'    => 'passkey',
-    'level'     => 2,
     'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
 ];
 

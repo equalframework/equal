@@ -32,7 +32,7 @@ use core\User;
         'accept-origin' => '*'
     ],
     'providers'     => ['context', 'auth'],
-    'constants'     => ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
 ]);
 
 /**
@@ -40,39 +40,6 @@ use core\User;
  * @var equal\auth\AuthenticationManager    $auth
  */
 ['context' => $context, 'auth' => $auth] = $providers;
-
-/**
- * Methods
- */
-
-$checkToken = function($auth_token) use($auth) {
-    try {
-        $check = $auth->verifyToken($auth_token, constant('AUTH_SECRET_KEY'));
-    }
-    catch(Exception $e) {
-        $check = false;
-    }
-
-    if($check === false || $check <= 0) {
-        throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
-    }
-
-    $token = $auth->decodeToken($auth_token);
-
-    $payload = $token['payload'] ?? null;
-    $now = time();
-
-    $amr = $payload['amr'] ?? null;
-    if($payload['type'] !== 'mfa_challenge' || ($amr !== ['pwd'] && $amr !== 'pwd')) {
-        throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
-    }
-
-    if((int) $payload['iat'] > $now || (int) $payload['exp'] < $now) {
-        throw new Exception('expired_token', EQ_ERROR_INVALID_PARAM);
-    }
-
-    return $payload['sub'];
-};
 
 $base32Decode = function(string $encoded): string {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -137,6 +104,7 @@ $getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
  */
 
 $user_id = $auth->userId();
+$mfa_challenge = null;
 
 $is_authenticated = true;
 if($user_id <= 0) {
@@ -145,7 +113,8 @@ if($user_id <= 0) {
         throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
     }
 
-    $user_id = $checkToken($params['auth_token']);
+    $mfa_challenge = $auth->verifyMfaChallengeToken($params['auth_token'], 'totp');
+    $user_id = $mfa_challenge['sub'];
 }
 elseif(!empty($params['auth_token'])) {
     throw new Exception('auth_token_not_allowed', EQ_ERROR_INVALID_PARAM);
@@ -227,22 +196,20 @@ TotpKey::id($totpkey['id'])
 
 $now = time();
 
+$previous_auth_methods = [];
+if(!$is_authenticated) {
+    $previous_auth_methods = $mfa_challenge['auth'] ?? [[
+        'method'    => 'pwd',
+        'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+    ]];
+}
+
 $auth_method = [
-    'method'    => 'otp',
-    'level'     => 2,
+    'method'    => 'totp',
     'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
 ];
 
-$jwt = $auth->retrieveAccessToken();
-
-if($jwt) {
-    // update the authentication state without extending the JWT lifetime
-    $access_token = $auth->addAuthMethod($auth_method);
-}
-else {
-    // generate a JWT access token
-    $access_token = $auth->token($user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
-}
+$access_token = $auth->issueAccessToken($user['id'], $auth_method, $previous_auth_methods);
 
 $context
     ->httpResponse()

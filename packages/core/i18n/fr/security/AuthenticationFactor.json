@@ -15,7 +15,6 @@
             "selection": {
                 "passkey": "Clé d'accès",
                 "totp": "TOTP",
-                "email_otp_key": "Email OTP",
                 "recovery_code": "Code de récupération"
             }
         },

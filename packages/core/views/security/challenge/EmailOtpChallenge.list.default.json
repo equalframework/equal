@@ -1,0 +1,33 @@
+{
+    "name": "Email OTP challenges",
+    "description": "This view displays email OTP authentication challenges.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "user_id",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "created",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "expires_at",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "failed_attempts",
+                "width": "15%"
+            }
+        ]
+    }
+}

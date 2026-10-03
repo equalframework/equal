@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use core\security\factor\EmailOtpKey;
+use core\security\challenge\EmailOtpChallenge;
 use core\setting\Setting;
 use core\User;
 
@@ -31,7 +31,7 @@ use core\User;
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'constants'     => ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -42,43 +42,11 @@ use core\User;
 ['context' => $context, 'auth' => $auth] = $providers;
 
 /**
- * Methods
- */
-
-$checkToken = function($auth_token) use($auth) {
-    try {
-        $check = $auth->verifyToken($auth_token, constant('AUTH_SECRET_KEY'));
-    }
-    catch(Exception $e) {
-        $check = false;
-    }
-
-    if($check === false || $check <= 0) {
-        throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
-    }
-
-    $token = $auth->decodeToken($auth_token);
-
-    $payload = $token['payload'] ?? null;
-    $now = time();
-
-    $amr = $payload['amr'] ?? null;
-    if($payload['type'] !== 'mfa_challenge' || ($amr !== ['pwd'] && $amr !== 'pwd')) {
-        throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
-    }
-
-    if((int) $payload['iat'] > $now || (int) $payload['exp'] < $now) {
-        throw new Exception('expired_token', EQ_ERROR_INVALID_PARAM);
-    }
-
-    return $payload['sub'];
-};
-
-/**
  * Action
  */
 
 $user_id = $auth->userId();
+$mfa_challenge = null;
 
 $is_authenticated = true;
 if($user_id <= 0) {
@@ -87,7 +55,8 @@ if($user_id <= 0) {
         throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
     }
 
-    $user_id = $checkToken($params['auth_token']);
+    $mfa_challenge = $auth->verifyMfaChallengeToken($params['auth_token'], 'email_otp');
+    $user_id = $mfa_challenge['sub'];
 }
 elseif(!empty($params['auth_token'])) {
     throw new Exception('auth_token_not_allowed', EQ_ERROR_INVALID_PARAM);
@@ -105,54 +74,62 @@ if(!$user['allow_auth']) {
     throw new Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
 }
 
-$email_otp_key = EmailOtpKey::search([
-    ['user_id', '=', $user['id']],
-    ['status', '=', 'active']
-])
-    ->read(['code_hash', 'code_expires_at', 'failed_attempts'])
+$email_otp_challenge = EmailOtpChallenge::search([
+        ['user_id', '=', $user['id']],
+        ['status', '=', 'pending']
+    ])
+    ->read(['code_hash', 'expires_at', 'failed_attempts'])
     ->first();
 
 $now = time();
-if($email_otp_key['code_expires_at'] < $now) {
+if(!$email_otp_challenge) {
     throw new Exception('email_otp_key_expired', EQ_ERROR_NOT_ALLOWED);
 }
 
-if(!password_verify($params['auth_code'], $email_otp_key['code_hash'])) {
+if($email_otp_challenge['expires_at'] < $now) {
+    EmailOtpChallenge::id($email_otp_challenge['id'])
+        ->update(['invalidated_reason' => 'expired'])
+        ->transition('invalidate');
+
+    throw new Exception('email_otp_key_expired', EQ_ERROR_NOT_ALLOWED);
+}
+
+if(!password_verify($params['auth_code'], $email_otp_challenge['code_hash'])) {
     $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.email_otp.allowed_failed_attempts', 5);
 
-    $failed_attempts = $email_otp_key['failed_attempts'] + 1;
-    if($failed_attempts > $allowed_failed_attempts) {
-        EmailOtpKey::id($email_otp_key['id'])->transition('revoke');
+    $failed_attempts = $email_otp_challenge['failed_attempts'] + 1;
+    if($failed_attempts >= $allowed_failed_attempts) {
+        EmailOtpChallenge::id($email_otp_challenge['id'])
+            ->update(['invalidated_reason' => 'failed_attempts'])
+            ->transition('invalidate');
 
         throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
     }
     else {
-        EmailOtpKey::id($email_otp_key['id'])
+        EmailOtpChallenge::id($email_otp_challenge['id'])
             ->update(['failed_attempts' => $failed_attempts]);
     }
 
     throw new Exception('auth_code_mismatch', EQ_ERROR_NOT_ALLOWED);
 }
 
+$previous_auth_methods = [];
+if(!$is_authenticated) {
+    $previous_auth_methods = $mfa_challenge['auth'] ?? [[
+        'method'    => 'pwd',
+        'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+    ]];
+}
+
 $auth_method = [
-    'method'    => 'otp',
-    'level'     => 2,
+    'method'    => 'email_otp',
     'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
 ];
 
-$jwt = $auth->retrieveAccessToken();
+$access_token = $auth->issueAccessToken($user['id'], $auth_method, $previous_auth_methods);
 
-if($jwt) {
-    // update the authentication state without extending the JWT lifetime
-    $access_token = $auth->addAuthMethod($auth_method);
-}
-else {
-    // generate a JWT access token
-    $access_token = $auth->token($user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
-}
-
-EmailOtpKey::id($email_otp_key['id'])
-    ->transition('revoke');
+EmailOtpChallenge::id($email_otp_challenge['id'])
+    ->transition('consume');
 
 $context
     ->httpResponse()
@@ -163,4 +140,3 @@ $context
     ])
     ->status(204)
     ->send();
-

@@ -43,24 +43,25 @@ The level is the confidence granted to the current session by eQual policy. It i
 | Level | Intended use | Current built-in examples |
 | :---- | :----------- | :------------------------ |
 | `0` | No currently valid authentication entry. A renewed session token can still identify a user at this level. | Expired authentication entries. |
-| `1` | Basic authentication. | Password, email nonce, federated login, tracked access token, HTTP Basic authentication. |
-| `2` | Enhanced authentication or step-up. | TOTP and passkey. |
+| `1` | Basic authentication. | Any single valid built-in proof other than a passkey, including password, TOTP, email OTP, email nonce, federated login, tracked access token, or HTTP Basic authentication. |
+| `2` | Enhanced authentication or step-up. | Password plus TOTP, password plus email OTP, or a passkey proof. |
 | `3` | Reserved for policies requiring stronger verified guarantees. | No built-in authentication controller currently grants level 3. |
 
-Two level-1 methods do not automatically produce level 2. The effective level is the highest level granted by a non-expired authentication event. The authentication controller that has verified the proof assigns that event's level according to framework policy.
+Methods do not carry an intrinsic level. `AuthenticationManager` calculates the effective level from the complete set of non-expired proofs. Arbitrary combinations remain level 1 unless the central policy explicitly recognizes them.
 
 ## Built-in Methods
 
 The following method references are currently issued by core controllers:
 
-| Reference | Method | Granted level | Notes |
-| :-------- | :----- | :------------ | :---- |
-| `pwd` | Password | `1` | Can open a session. When TOTP is required, successful password verification produces a short-lived MFA challenge instead of an access token. |
-| `email` | Signed email nonce | `1` | Can open a session or refresh the same method on an existing session. |
-| `fed` | Legacy Facebook or Google OAuth integration | `1` | This is a direct legacy integration, not yet a generic provider model. |
-| `token` | Stored access token | `1` | Tracked server-side and revocable. Intended for explicit API access-token workflows. |
-| `passkey` | WebAuthn passkey | `2` | Can open a passwordless session or strengthen an existing session. See [Passkeys](passkeys.md). |
-| `otp` | TOTP code | `2` | Used after the password MFA challenge, during enrollment validation, or to strengthen an existing session. |
+| Reference | Method | Assurance behavior | Notes |
+| :-------- | :----- | :----------------- | :---- |
+| `pwd` | Password | Level 1 alone; level 2 with `totp` or `email_otp`. | Can open a session. When an OTP is required, successful password verification produces a short-lived MFA challenge carrying the password proof. |
+| `email` | Signed email nonce | Level 1. | Can open a session or refresh the same method on an existing session. |
+| `fed` | Legacy Facebook or Google OAuth integration | Level 1. | This is a direct legacy integration, not yet a generic provider model. |
+| `token` | Stored access token | Level 1. | Tracked server-side and revocable. Intended for explicit API access-token workflows. |
+| `passkey` | WebAuthn passkey | Level 2. | Current built-in passkey controllers require WebAuthn user verification before issuing the proof. See [Passkeys](passkeys.md). |
+| `totp` | TOTP code | Level 1 alone; level 2 with `pwd`. | Used after the password MFA challenge, during enrollment validation, or to strengthen an existing session. |
+| `email_otp` | Code sent by email | Level 1 alone; level 2 with `pwd`. | Used after the password MFA challenge or to strengthen an existing session. |
 
 HTTP Basic authentication is also recognized when no usable JWT is found. It authenticates the request at level 1 but does not create an access token.
 
@@ -76,7 +77,7 @@ The built-in sign-in UI follows this general sequence:
 4. The token is returned as the `access_token` `HttpOnly` cookie.
 5. Protected controllers resolve the user and, when `access.level` is present, enforce the effective level.
 
-`core_signin-info` exposes `allowed_methods`, `allowed_creations`, method-specific data, and whether active passkey or TOTP factors exist. Detailed factor records are returned only when the requested account is the current resolved user.
+`core_signin-info` exposes `allowed_methods`, `allowed_creations`, method-specific data, and whether active passkey or TOTP factors exist. TOTP capabilities use the canonical `methods_data.totp` key, while email OTP requirements and code length use `methods_data.email_otp`. The legacy `methods_data.otp.digits` alias is deprecated and retained temporarily for compatibility. Detailed factor records are returned only when the requested account is the current resolved user.
 
 During step-up, the additional method updates the authentication state without extending the JWT lifetime. The client must keep the new `access_token` cookie and retry the operation that required the higher level.
 

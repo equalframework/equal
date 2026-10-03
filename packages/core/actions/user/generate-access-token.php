@@ -9,7 +9,7 @@
 use core\User;
 
 [$params, $providers] = eQual::announce([
-    'description'   => "Generates an access token for a specific user.",
+    'description'   => "Generates a tracked access token for a specific user.",
     'params'        => [
 
         'login' => [
@@ -23,13 +23,13 @@ use core\User;
             'type'          => 'integer',
             'min'           => 0,
             'description'   => "Validity duration of the generated token.",
-            'help'          => "Zero means use config value.",
+            'help'          => "Zero means 'use config value'.",
             'default'       => 0
         ],
 
         'no_expiry' => [
             'type'          => 'boolean',
-            'description'   => "If true the generated token will not expire.",
+            'description'   => "If true the generated token will never expire.",
             'default'       => false
         ]
 
@@ -68,13 +68,7 @@ if(!$params['no_expiry']) {
     }
 }
 
-$auth_method = [
-    'method'    => 'token',
-    'level'     => 1,
-    'exp'       => $validity ? time() + $validity : PHP_INT_MAX
-];
-
-$access_token = $auth->token($user['id'], $validity, $auth_method);
+$access_token = $auth->issueTrackedAccessToken($user['id'], $validity);
 
 $context->httpResponse()
         ->status(200)

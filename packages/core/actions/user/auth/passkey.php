@@ -172,26 +172,12 @@ if($sign_count && $sign_count != $passkey['signature_counter']) {
         ->update(['signature_counter' => $sign_count]);
 }
 
-// #todo - set the authentication level and AMR method based on $passkey['fmt'] (could be level 2 or 3)
 $auth_method = [
     'method'    => 'passkey',
-    'level'     => 2,
     'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
 ];
 
-$jwt = $auth->retrieveAccessToken();
-if($jwt && (int) $jwt['id'] !== (int) $passkey['user_id']['id']) {
-    throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
-}
-
-if($jwt) {
-    // update the authentication state without extending the JWT lifetime
-    $access_token = $auth->addAuthMethod($auth_method);
-}
-else {
-    // generate new access token
-    $access_token = $auth->token($passkey['user_id']['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
-}
+$access_token = $auth->issueAccessToken($passkey['user_id']['id'], $auth_method);
 
 $context
     ->httpResponse()

@@ -95,7 +95,6 @@ $response = $context->httpResponse();
 if(strlen($params['token'])) {
     $auth_method = [
         'method'    => 'email',
-        'level'     => 1,
         'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
     ];
 

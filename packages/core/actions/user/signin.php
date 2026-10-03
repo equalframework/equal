@@ -82,7 +82,6 @@ if(Setting::get_value('core', 'security', 'auth.password.totp_required', $global
 
 $auth_method = [
     'method'    => 'pwd',
-    'level'     => 1,
     'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
 ];
 

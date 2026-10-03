@@ -145,14 +145,29 @@ if($auth_passkey_enabled) {
 $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
 $totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
 
+$auth_method_data['totp']['enabled'] = (bool) $totp_enabled;
+
 if($totp_enabled) {
-    $auth_method_data['totp']['enabled'] = true;
     if($auth_password_totp_required) {
         $auth_method_data['pwd']['mfa_required'] = true;
     }
 }
 
-$auth_password_email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required');
+$global_auth_password_email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required');
+$auth_password_email_otp_required = Setting::get_value(
+    'core',
+    'security',
+    'auth.password.email_otp_required',
+    $global_auth_password_email_otp_required,
+    ['user_id' => $user['id']]
+);
+$email_otp_digits = Setting::get_value('core', 'security', 'auth.email_otp.digits', 6);
+
+$auth_method_data['email_otp'] = [
+    'required'  => (bool) $auth_password_email_otp_required,
+    'digits'    => (int) $email_otp_digits
+];
+
 if($auth_password_email_otp_required) {
     $auth_method_data['pwd']['mfa_required'] = true;
 }
@@ -177,6 +192,7 @@ $result = [
 
 $auth_factors = AuthenticationFactor::search([
     ['user_id', '=', $user['id']],
+    ['type', 'in', ['passkey', 'totp', 'recovery_code']],
     ['status', '=', 'active']
 ])
     ->read(['type', 'label'])
@@ -189,10 +205,16 @@ foreach($auth_factors as $auth_factor) {
     if($auth_factor['type'] === 'totp') {
         $result['user_data']['has_totpkey'] = true;
 
+        if($totp_enabled) {
+            $result['methods_data']['pwd']['mfa_required'] = true;
+        }
+
         $totpkey = TotpKey::id($auth_factor['id'])
             ->read(['digits'])
             ->first();
 
+        $result['methods_data']['totp']['digits'] = $totpkey['digits'];
+        // Deprecated compatibility alias. Consumers should use methods_data.totp.
         $result['methods_data']['otp']['digits'] = $totpkey['digits'];
     }
 }

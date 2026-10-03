@@ -1904,6 +1904,24 @@
     {
         "package": "core",
         "section": "security",
+        "code": "auth.totp.timeout",
+        "title": "TOTP challenge timeout",
+        "form_control": "input",
+        "description": "Validity period of a signed TOTP authentication challenge, in seconds.",
+        "help": "The default challenge validity period is 5 minutes.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Expiration du challenge TOTP",
+                "description": "Durée de validité d'un challenge d'authentification TOTP signé, en secondes.",
+                "help": "La durée de validité du challenge est de 5 minutes par défaut."
+            }
+        },
+        "value": "300"
+    },
+    {
+        "package": "core",
+        "section": "security",
         "code": "auth.totp.allowed_failed_attempts",
         "title": "TOTP allowed failed attempts",
         "form_control": "input",
@@ -1939,20 +1957,20 @@
     {
         "package": "core",
         "section": "security",
-        "code": "auth.email_otp.period",
-        "title": "Email OTP period",
+        "code": "auth.email_otp.timeout",
+        "title": "Email OTP timeout",
         "form_control": "input",
         "description": "Validity period of a generated OTP code, in seconds.",
-        "help": "The default validity period is 10 minutes, enough time for the user to receive the email and enter the authentication code.",
+        "help": "The default validity period is 5 minutes, enough time for the user to receive the email and enter the authentication code.",
         "type": "integer",
         "translations": {
             "fr": {
-                "title": "Période TOTP",
+                "title": "Expiration de l'email OTP",
                 "description": "Durée de validité d'un code OTP généré, en secondes.",
-                "help": "La durée de validité par défaut est de 10 minutes, ce qui laisse suffisamment de temps à l'utilisateur pour recevoir l'e-mail et saisir le code d'authentification."
+                "help": "La durée de validité par défaut est de 5 minutes, ce qui laisse suffisamment de temps à l'utilisateur pour recevoir l'e-mail et saisir le code d'authentification."
             }
         },
-        "value": "600"
+        "value": "300"
     },
     {
         "package": "core",

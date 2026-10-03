@@ -1,0 +1,62 @@
+{
+    "name": "Desafío OTP por correo electrónico",
+    "plural": "Desafíos OTP por correo electrónico",
+    "description": "Desafíos temporales utilizados para verificar códigos enviados a los usuarios por correo electrónico.",
+    "model": {
+        "user_id": {
+            "label": "Usuario",
+            "description": "Usuario para el que se emitió el desafío OTP por correo electrónico.",
+            "help": "Vincula el desafío con la cuenta que debe proporcionar el código recibido por correo electrónico."
+        },
+        "code_hash": {
+            "label": "Hash del código",
+            "description": "Hash del código temporal enviado por correo electrónico.",
+            "help": "Almacena una representación no reversible del código utilizado para la verificación."
+        },
+        "expires_at": {
+            "label": "Expira el",
+            "description": "Fecha y hora después de las cuales el desafío ya no puede completarse.",
+            "help": "Los códigos enviados después de esta fecha se rechazan."
+        },
+        "failed_attempts": {
+            "label": "Intentos fallidos",
+            "description": "Número de intentos fallidos para completar el desafío.",
+            "help": "El desafío se invalida cuando se supera el límite de intentos configurado."
+        },
+        "status": {
+            "label": "Estado",
+            "description": "Estado actual del ciclo de vida del desafío OTP por correo electrónico.",
+            "help": "Indica si el desafío está pendiente, consumido o invalidado.",
+            "selection": {
+                "pending": "Pendiente",
+                "consumed": "Consumido",
+                "invalidated": "Invalidado"
+            }
+        },
+        "consumed_at": {
+            "label": "Consumido el",
+            "description": "Fecha y hora en que el desafío se completó correctamente.",
+            "help": "Vacío hasta que se envíe el código correcto."
+        },
+        "invalidated_at": {
+            "label": "Invalidado el",
+            "description": "Fecha y hora en que se invalidó el desafío.",
+            "help": "Vacío mientras el desafío siga pendiente o se haya consumido correctamente."
+        },
+        "invalidated_reason": {
+            "label": "Motivo de invalidación",
+            "description": "Razón por la que se invalidó el desafío.",
+            "help": "Indica si el desafío expiró, fue reemplazado o superó su límite de intentos."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Formulario de desafío OTP por correo electrónico",
+            "description": "Detalles del desafío OTP por correo electrónico."
+        },
+        "list.default": {
+            "name": "Desafíos OTP por correo electrónico",
+            "description": "Lista de desafíos de autenticación OTP por correo electrónico."
+        }
+    }
+}

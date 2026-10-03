@@ -1,0 +1,62 @@
+{
+    "name": "Challenge OTP par email",
+    "plural": "Challenges OTP par email",
+    "description": "Challenges temporaires utilisés pour vérifier les codes envoyés aux utilisateurs par email.",
+    "model": {
+        "user_id": {
+            "label": "Utilisateur",
+            "description": "Utilisateur pour lequel le challenge OTP par email a été émis.",
+            "help": "Associe le challenge au compte qui doit fournir le code reçu par email."
+        },
+        "code_hash": {
+            "label": "Empreinte du code",
+            "description": "Empreinte du code temporaire envoyé par email.",
+            "help": "Stocke une représentation non réversible du code utilisé pour la vérification."
+        },
+        "expires_at": {
+            "label": "Expire le",
+            "description": "Date et heure après lesquelles le challenge ne peut plus être complété.",
+            "help": "Les codes soumis après cette date sont refusés."
+        },
+        "failed_attempts": {
+            "label": "Tentatives échouées",
+            "description": "Nombre de tentatives infructueuses pour compléter le challenge.",
+            "help": "Le challenge est invalidé lorsque la limite de tentatives configurée est dépassée."
+        },
+        "status": {
+            "label": "Statut",
+            "description": "Statut courant du cycle de vie du challenge OTP par email.",
+            "help": "Indique si le challenge est en attente, consommé ou invalidé.",
+            "selection": {
+                "pending": "En attente",
+                "consumed": "Consommé",
+                "invalidated": "Invalidé"
+            }
+        },
+        "consumed_at": {
+            "label": "Consommé le",
+            "description": "Date et heure auxquelles le challenge a été complété avec succès.",
+            "help": "Vide tant que le code correct n'a pas été soumis."
+        },
+        "invalidated_at": {
+            "label": "Invalidé le",
+            "description": "Date et heure auxquelles le challenge a été invalidé.",
+            "help": "Vide tant que le challenge reste en attente ou a été consommé avec succès."
+        },
+        "invalidated_reason": {
+            "label": "Raison de l'invalidation",
+            "description": "Raison pour laquelle le challenge a été invalidé.",
+            "help": "Indique si le challenge a expiré, a été remplacé ou a dépassé sa limite de tentatives."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Formulaire de challenge OTP par email",
+            "description": "Détails du challenge OTP par email."
+        },
+        "list.default": {
+            "name": "Challenges OTP par email",
+            "description": "Liste des challenges d'authentification OTP par email."
+        }
+    }
+}

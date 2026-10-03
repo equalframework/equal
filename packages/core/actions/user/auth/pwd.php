@@ -6,13 +6,8 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use core\Mail;
-use core\security\factor\EmailOtpKey;
-use core\security\factor\TotpKey;
 use core\setting\Setting;
 use core\User;
-use equal\email\Email;
-use equal\html\HtmlTemplate;
 
 [$params, $providers] = eQual::announce([
     'description'	=>	"Attempts to log a user in.",
@@ -36,7 +31,7 @@ use equal\html\HtmlTemplate;
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME', 'EMAIL_SMTP_ABUSE_EMAIL'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -76,8 +71,8 @@ if(!$user_id) {
 }
 
 $user = User::id($user_id)
-    ->read(['validated', 'allow_auth', 'login', 'firstname', 'language'])
-    ->first(true);
+    ->read(['validated', 'allow_auth'])
+    ->first();
 
 if(!$user || !$user['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
@@ -87,157 +82,47 @@ if(!$user['allow_auth']) {
     throw new Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
 }
 
-$totp_required = false;
-$email_otp_required = false;
+$mfa_method = $auth->getUserMfa();
 
-$global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
-$totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
-if($totp_enabled) {
-    $global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
-    $totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_totp_required, ['user_id' => $user['id']]);
-    if(!$totp_required) {
-        // check if user configured a totpkey even if it isn't required
-        $totpkey = TotpKey::search([
-            ['user_id', '=', $user['id']],
-            ['type', '=', 'totp'],
-            ['status', '=', 'active']
-        ])
-            ->first();
+if($mfa_method) {
+    $now = time();
+    $timeout_setting = $mfa_method === 'totp'
+        ? 'auth.totp.timeout'
+        : 'auth.email_otp.timeout';
+    $validity = Setting::get_value('core', 'security', $timeout_setting, 300);
 
-        if($totpkey) {
-            $totp_required = true;
-        }
-    }
-}
-
-// #memo - totp has the priority over email_otp
-if(!$totp_required) {
-    $global_email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required');
-    $email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required', $global_email_otp_required, ['user_id' => $user['id']]);
-}
-
-$now = time();
-
-$auth_token = null;
-if($totp_required || $email_otp_required) {
-    $exp = $now + 300;
-    if($email_otp_required) {
-        $period = Setting::get_value('core', 'security', 'auth.email_otp.period', 600);
-        $exp = $now + $period;
+    if($mfa_method === 'email_otp') {
+        eQual::run('do', 'core_user_emailotp-request');
     }
 
-    $auth_token = $auth->encodeToken([
-        'type'  => 'mfa_challenge',
-        'amr'   => ['pwd'],
-        'sub'   => $user['id'],
-        'iat'   => $now,
-        'exp'   => $exp
-    ]);
-
-    if($totp_required) {
-        $totpkey = TotpKey::search([
-            ['user_id', '=', $user['id']],
-            ['type', '=', 'totp'],
-            ['status', '=', 'active']
-        ])
-            ->read(['failed_attempts'])
-            ->first();
-
-        $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
-
-        if($totpkey && $totpkey['failed_attempts'] >= $allowed_failed_attempts) {
-            throw new Exception('failled_attempts_reached', EQ_ERROR_NOT_ALLOWED);
-        }
-    }
-    else {
-        EmailOtpKey::search([
-            ['user_id', '=', $user['id']],
-            ['status', '=', 'active']
-        ])
-            ->transition('revoke');
-
-        $email_otp_keys_count = EmailOtpKey::search([
-            ['user_id', '=', $user['id']],
-            ['created', '>=', time() - 600]
-        ])
-            ->count();
-
-        if($email_otp_keys_count >= 3) {
-            throw new Exception('max_sent_email_reached', EQ_ERROR_NOT_ALLOWED);
-        }
-
-        $digits = Setting::get_value('core', 'security', 'auth.email_otp.digits', 6);
-        $max = (10 ** $digits) - 1;
-        $otp_code = str_pad((string) random_int(0, $max), $digits, '0', STR_PAD_LEFT);
-
-        $period = Setting::get_value('core', 'security', 'auth.email_otp.period', 600);
-
-        EmailOtpKey::create([
-            'user_id'           => $user['id'],
-            'code_hash'         => password_hash($otp_code, PASSWORD_BCRYPT),
-            'code_expires_at'   => $exp
-        ]);
-
-        $message = new Email();
-
-        $subject = '';
-        $file = "packages/core/i18n/{$user['language']}/mail_user_auth_email_otp.html";
-        if(!($html = @file_get_contents($file))) {
-            throw new Exception('missing_template', EQ_ERROR_INVALID_CONFIG);
-        }
-
-        $vars_callbacks = [
-            // retrieve from template
-            'subject'   => function($data, $attributes) use(&$subject) {
-                $subject = $attributes['title'];
-                return '';
-            },
-            // inject in template
-            'username'  => fn() => $user['firstname'],
-            'validity'  => fn() => (int) floor($period / 60),
-            'otp_code'  => fn() => $otp_code,
-            'origin'    => fn() => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME'),
-            'abuse'     => fn() => "<a href=\"mailto:".constant('EMAIL_SMTP_ABUSE_EMAIL')."\">".constant('EMAIL_SMTP_ABUSE_EMAIL')."</a>"
-        ];
-
-        $template = new HtmlTemplate($html, $vars_callbacks);
-
-        $message
-            ->setTo($user['login'])
-            ->setSubject($subject)
-            ->setContentType('text/html')
-            ->setBody($template->getHtml());
-
-        Mail::send($message);
-    }
+    $auth_token = $auth->issueMfaChallengeToken(
+        $user['id'],
+        $mfa_method,
+        $validity,
+        [[
+            'method'    => 'pwd',
+            'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+        ]]
+    );
 
     $context
         ->httpResponse()
         ->body([
-            'mfa_required'  => true,
-            'auth_token'    => $auth_token
+            'status'        => 'challenge',
+            'auth_token'    => $auth_token,
+            'challenge'     => [
+                'method'        => $mfa_method
+            ]
         ])
         ->send();
 }
 else {
     $auth_method = [
         'method'    => 'pwd',
-        'level'     => 1,
-        'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+        'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
     ];
 
-    $jwt = $auth->retrieveAccessToken();
-    $token_user_id = (int) $jwt['id'];
-    if($jwt && $token_user_id !== $user['id']) {
-        throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
-    }
-
-    if($jwt) {
-        $access_token = $auth->addAuthMethod($auth_method);
-    }
-    else {
-        $access_token = $auth->token($user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
-    }
+    $access_token = $auth->issueAccessToken($user['id'], $auth_method);
 
     $context
         ->httpResponse()

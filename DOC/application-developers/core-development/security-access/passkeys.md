@@ -84,6 +84,6 @@ Keep `register_token` and `auth_token` unchanged between the options request and
 
 ## Assurance Policy
 
-The current passkey controller always grants level 2 after successful WebAuthn verification. Although attestation formats and authenticator properties may support a future distinction between levels 2 and 3, that mapping is not implemented today. App code must therefore not infer a level from `fmt`, transport, biometrics, or the `passkey` method name.
+The current passkey controllers require WebAuthn user verification before issuing the authentication proof. `AuthenticationManager` grants level 2 to every valid `passkey` proof. Although attestation formats and authenticator characteristics may support a future distinction between levels 2 and 3, that mapping is not implemented today. App code must therefore not infer a different level from `fmt`, transport, or biometrics.
 
 Use [`access.level`](authentication.md#protecting-an-app-controller) to state the required assurance and let `AuthenticationManager` evaluate the session. Core contributors can find the factor and token contracts in [Authentication internals](../../../community/internal-architecture/authentication.md).

@@ -140,7 +140,6 @@ $orm->update('core\User', $user_id, [
 
 $auth_method = [
     'method'    => 'fed',
-    'level'     => 1,
     'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
 ];
 
