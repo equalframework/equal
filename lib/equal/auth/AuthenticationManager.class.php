@@ -28,7 +28,7 @@ class AuthenticationManager extends Service {
     private $user_id;
 
     /**
-     * @var integer Authenticated user identifier, as provided by the access token or Basic Auth, before applying impersonation.
+     * @var integer Authenticated user identifier, before applying impersonation.
      */
     private $authenticated_user_id;
 
@@ -67,7 +67,7 @@ class AuthenticationManager extends Service {
     /**
      * Returns the highest non-expired authentication level granted by the current JWT token.
      *
-     * Basic authentication has level 1. A missing JWT authentication state has level 0.
+     * Without a JWT, a previously resolved authenticated identity has level 1; otherwise the level is 0.
      */
     public function getAuthLevel($token = null) {
         $jwt = $this->retrieveAccessToken($token);
@@ -89,9 +89,34 @@ class AuthenticationManager extends Service {
      *   - auth: detailed authentication methods (`method`, `exp`)
      *   - acr : assurance level resolved when this JWT representation is issued
      *   - iat : the datetime (timestamp) at which the token was issued
-     *   - trk : is the token tracked or not
      *   - exp : (optional) the datetime (timestamp) at which the token expires
+     *   - trk : is the token tracked or not
      *   - jti : (optional) id of the token to allow tracking
+     *
+     * Example:
+     * {
+     *     "id": 42,
+     *     "sub": 42,
+     *     "iat": 1760000000,
+     *     "auth": [
+     *         {
+     *             "method": "pwd",
+     *             "exp": 1760003600
+     *         },
+     *         {
+     *             "method": "totp",
+     *             "exp": 1760000900
+     *         }
+     *     ],
+     *     "amr": [
+     *         "pwd",
+     *         "otp"
+     *     ],
+     *     "acr": "urn:equal:auth:level:2",
+     *     "exp": 1760003600,
+     *     "trk": true,
+     *     "jti": 123
+     * }
      *
      * The third argument accepts a list of authentication methods. A single method
      * remains accepted, and its historical singular parameter name is preserved,
@@ -190,7 +215,6 @@ class AuthenticationManager extends Service {
 
         return $this->encodeToken([
             'type'          => 'mfa_challenge',
-            'auth_v'        => 1,
             'mfa_method'    => $mfa_method,
             'auth'          => $auth_methods,
             'amr'           => $this->extractAmrReferences($auth_methods),
@@ -228,7 +252,6 @@ class AuthenticationManager extends Service {
         if(
             !is_array($payload)
             || ($payload['type'] ?? null) !== 'mfa_challenge'
-            || ($payload['auth_v'] ?? null) !== 1
             || !is_string($payload['mfa_method'] ?? null)
             || $payload['mfa_method'] === ''
             || $payload['mfa_method'] !== $expected_mfa_method
@@ -631,7 +654,7 @@ class AuthenticationManager extends Service {
     /**
      * Provides the authenticated user identifier, before applying impersonation.
      *
-     * This is the user id provided by the access token, or by Basic Auth when used.
+     * This is normally the user id provided by the access token.
      * If no authenticated user has been resolved yet, this method resolves the
      * current user first.
      *
@@ -706,29 +729,6 @@ class AuthenticationManager extends Service {
                 }
                 $authenticated_user_id = $jwt['id'];
             }
-            // no jwt found: attempt using other Basic HTTP auth, if allowed
-            else {
-                // #todo - add a config setting to enable Basic http auth
-
-                // check the request headers for a JWT
-                $context = $this->container->get('context');
-
-                /** @var \equal\http\HttpRequest  */
-                $request = $context->httpRequest();
-
-                $auth_header = $request->header('Authorization');
-
-                if($auth_header) {
-                    if(strpos($auth_header, 'Basic ') !== false) {
-                        [$token] = sscanf($auth_header, 'Basic %s');
-                        [$username, $password] = explode(':', base64_decode($token));
-                        // leave $jwt unset and authenticate (sets $user_id)
-                        $this->authenticate($username, $password);
-                        $authenticated_user_id = $this->user_id;
-                    }
-                }
-            }
-
             if($authenticated_user_id > 0) {
                 // validate the real authenticated user
                 $this->assertActiveUser($authenticated_user_id);
