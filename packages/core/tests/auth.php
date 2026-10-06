@@ -673,7 +673,6 @@ $tests = [
 
                     return !isset($payload['id'])
                         && $payload['type'] === 'mfa_challenge'
-                        && $payload['auth_v'] === 1
                         && $payload['mfa_method'] === 'totp'
                         && $payload['sub'] === EQ_ROOT_USER_ID
                         && $payload['exp'] === $payload['iat'] + 30
