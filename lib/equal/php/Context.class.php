@@ -278,22 +278,26 @@ class Context extends Service {
     }
 
     private function getHttpUri() {
-        $scheme = isset($_SERVER['HTTPS']) ? "https" : "http";
-        $auth = '';
-        if(isset($_SERVER['PHP_AUTH_USER']) && strlen($_SERVER['PHP_AUTH_USER']) > 0) {
-            $auth = $_SERVER['PHP_AUTH_USER'];
-            if(isset($_SERVER['PHP_AUTH_PW']) && strlen($_SERVER['PHP_AUTH_PW']) > 0) {
-                $auth .= ':'.$_SERVER['PHP_AUTH_PW'];
-            }
-            $auth .= '@';
-        }
-        $host = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
-        // make sure host does not contain a port number (strip if any)
-        $host = substr($host.':', 0, strpos($host.':', ':'));
+        $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
+            ? 'https'
+            : 'http';
 
-        $port = isset($_SERVER['SERVER_PORT'])?$_SERVER['SERVER_PORT']:80;
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+
+        if(substr($host, 0, 1) === '[') {
+            // IPv6 literal
+            $pos = strpos($host, ']');
+            $host = ($pos !== false) ? substr($host, 0, $pos + 1) : $host;
+        }
+        // make sure host does not contain a port number (strip if any)
+        $host = preg_replace('/:\d+$/', '', $host);
+
+        $port = isset($_SERVER['SERVER_PORT'])
+            ? (int) $_SERVER['SERVER_PORT']
+            : ($scheme === 'https' ? 443 : 80);
+
         // fallback to current script name (using CLI, REQUEST_URI is not set), i.e. '/index.php'
-        $uri = '/'.$_SERVER['SCRIPT_NAME'];
+        $uri = '/' . ltrim($_SERVER['SCRIPT_NAME'] ?? 'index.php', '/');
 
         if(isset($_SERVER['REQUEST_URI'])) {
             if(substr($_SERVER['REQUEST_URI'], 0, 1) == '/') {
@@ -302,10 +306,12 @@ class Context extends Service {
             }
             else {
                 // absolute URI
-                $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH).'?'.parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+                $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+                $query = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+                $uri = ($query !== null) ? $uri . '?' . $query : $uri;
             }
         }
-        else if(php_sapi_name() === 'cli' || defined('STDIN')) {
+        elseif(php_sapi_name() === 'cli' || defined('STDIN')) {
             $args = [];
             // follow getopt long options specs (http://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html)
             for($i = 1; $i < $_SERVER['argc']; ++$i) {
@@ -338,9 +344,17 @@ class Context extends Service {
                     }
                 }
             }
-            $uri .= '?'.http_build_query($args);
+            $uri .= '?' . http_build_query($args);
         }
-        return $scheme."://".$auth."$host:$port{$uri}";
+
+        $authority = $host;
+
+        if( ($scheme === 'http' && $port !== 80) || ($scheme === 'https' && $port !== 443) ) {
+            $authority .= ':' . $port;
+        }
+
+        // #memo - no userinfo in URI as of RFC 9110 - HTTP Semantics (§4.2.4)
+        return "$scheme://$authority{$uri}";
     }
 
     private static function normalizeFiles() {
