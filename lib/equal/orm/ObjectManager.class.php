@@ -266,6 +266,20 @@ class ObjectManager extends Service {
         return $this->packages;
     }
 
+    private function isValidClassName($class): bool {
+        if(!is_string($class) || ($class = ltrim($class, '\\')) === '') {
+            return false;
+        }
+
+        foreach(explode('\\', $class) as $part) {
+            if(!preg_match('/\A[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*\z/', $part)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Loads the specified object class without instantiating it.
      *
@@ -275,6 +289,10 @@ class ObjectManager extends Service {
     private function loadObjectClass($class) {
         if(class_exists($class, false)) {
             return;
+        }
+
+        if(!$this->isValidClassName($class)) {
+            throw new Exception("invalid_model_name", EQ_ERROR_UNKNOWN_OBJECT);
         }
 
         $entity = new Entity($class);
@@ -292,7 +310,13 @@ class ObjectManager extends Service {
                     throw new Exception("abstract_parent", EQ_ERROR_UNKNOWN_OBJECT);
                 }
 
-                $parent = '\\'.$parent_class;
+                $parent = '\\' . $parent_class;
+                /*
+                * #security #security-risk-cwe-94
+                *
+                * Runtime subclass generation for virtual models.
+                * Every interpolated class and namespace identifier is validated as a PHP identifier before reaching eval().
+                */
                 eval("namespace $namespace {
                     class $class_name extends $parent {
                         public static function getModelScope(): ?string {
