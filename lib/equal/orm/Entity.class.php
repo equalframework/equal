@@ -153,7 +153,6 @@ class Entity {
         }
     }
 
-
     private function updateMethodCode(ReflectionClass $class, string $methodName, string $newCode) {
         try {
             $file = $class->getFileName();
@@ -200,9 +199,6 @@ class Entity {
             throw $e;
         }
     }
-
-
-
 
     private function arrayExport($array, $indent_spaces = 4, $pad_indents = 0, $ignore_first_indent = false) {
         if (!is_array($array)) {
