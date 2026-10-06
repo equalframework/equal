@@ -350,40 +350,125 @@ class SpecializedB extends BExtension {
 
 The following summary compares the storage and default scope rules for the main inheritance patterns:
 
-| Pattern | Inheritance | Storage | Default scope | Meaning |
+| Pattern | Inheritance | Storage | Effective scope | Implementation |
 | --- | --- | --- | --- | --- |
-| **Shared persistent inheritance** | `A > B > C` | A single table, `A` | `A: null` · `B: B::class` · `C: C::class` | `B` and `C` are distinct persistent subtypes of `A`. |
-| **New storage branch** | `A > B > C` | `A` in table `A`; `B` and `C` in table `B` | `A: null` · `B: null` · `C: C::class` | `B` inherits from `A` but starts its own storage branch; `C` is a persistent subtype of `B`. |
-| **Inheritance through an abstract class** | `A abstract > B > C` | `B` and `C` in table `B` | `B: null` · `C: C::class` | `A` shares structure and behavior but does not provide directly usable storage of its own. |
-| **Behavioral extension** | `A > B > C` | The same storage as the represented model | Scope explicitly reused | The subclass extends behavior without creating a new persistent subtype. |
+| **Shared persistent inheritance** | `A > B > C` | A single table, `A` | `A: null` · `B: B::class` · `C: C::class` | Use ordinary concrete inheritance; do not override `getModelTable()` or `getModelScope()`. |
+| **New storage branch** | `A > B > C` | `A` in table `A`; `B` and `C` in table `B` | `A: null` · `B: null` · `C: C::class` | Override `getModelTable()` in `B`; the default scope resolver then returns `null` for `B` automatically. |
+| **Inheritance through an abstract class** | `A abstract > B > C` | `B` and `C` in table `B` | `B: null` · `C: C::class` | Declare `A` as an abstract PHP class; no table or scope override is required in `B` or `C`. |
+| **Behavioral extension** | `A > B > C` | The same storage as the represented model | `C: B::class` | Override `getModelScope()` in `C` and explicitly return the represented model's scope. |
 
-The same patterns can be visualized as inheritance trees:
+The corresponding minimal declarations are shown below. Method bodies unrelated to storage and discrimination are omitted.
+
+**1. Shared storage**
+
+Shared persistent inheritance uses the default behavior throughout the hierarchy:
 
 ```text
-1. Shared storage
-
-A              -> table A, scope null
+A               -> table A, scope null
 └── B           -> table A, scope B::class
     └── C       -> table A, scope C::class
+```
 
-2. New storage branch
+```php
+class A extends Model {
+}
 
-A              -> table A, scope null
+class B extends A {
+}
+
+class C extends B {
+}
+```
+
+No storage or scope method is overridden. `A` owns the table, while the default discriminator scope makes `B` and `C` distinct persistent subtypes.
+
+**2. New storage branch**
+
+A new storage branch is created by overriding `getModelTable()` in the class that starts the branch:
+
+```text
+A               -> table A, scope null
 └── B           -> table B, scope null
     └── C       -> table B, scope C::class
+```
 
-3. Abstract base
+```php
+class A extends Model {
+}
 
+class B extends A {
+    public static function getModelTable(): string {
+        return static::getSlug(self::class);
+    }
+}
+
+class C extends B {
+}
+```
+
+`B` and `C` both use B's table. No `getModelScope()` override is needed in `B`: because its table differs from A's table, the default implementation already returns `null`. Overriding only `getModelScope()` to return `null` would not create a storage branch; `B` would still use A's table and would operate on that table without a discriminator restriction.
+
+The same table override can be provided by the `HasOwnTable` trait:
+
+```php
+use equal\orm\traits\HasOwnTable;
+
+class B extends A {
+    use HasOwnTable;
+}
+```
+
+**3. Abstract base**
+
+Inheritance through an abstract class relies on the PHP `abstract` keyword and the default table resolver:
+
+```text
 A (abstract)
 └── B           -> table B, scope null
     └── C       -> table B, scope C::class
+```
 
-4. Behavioral extension
+```php
+abstract class A extends Model {
+}
 
-A              -> table A, scope null
+class B extends A {
+}
+
+class C extends B {
+}
+```
+
+No storage or scope method is overridden. As the first concrete descendant of `A`, `B` starts its own table and receives a default scope of `null`; `C` inherits B's table and is scoped to `C::class`.
+
+**4. Behavioral extension**
+
+A behavioral extension keeps the represented model's table and explicitly reuses its scope:
+
+```text
+A               -> table A, scope null
 └── B           -> table A, scope B::class
     └── C       -> table A, explicitly reuses B's scope (B::class)
 ```
+
+```php
+class A extends Model {
+}
+
+class B extends A {
+}
+
+class C extends B {
+    public static function getModelScope(): ?string {
+        return B::getModelScope();
+    }
+}
+```
+
+`C` therefore operates on B's persistent records instead of introducing records discriminated as `C`. Name `B` explicitly: `parent::getModelScope()` would preserve `C` as the late-static called class and would resolve to `C::class`. If a behavioral extension represents an unrestricted storage root instead, return that root's scope explicitly; for example, `A::getModelScope()` returns `null`.
+
+
+
 
 #### Abstract models and record creation
 
