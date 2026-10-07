@@ -2128,14 +2128,22 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Writes specified fields of selected objects without lifecycle callbacks or implicit state transition.
+     * Persists the same field values on every selected object as a privileged technical write.
      *
-     * @param   string    $class        Class of the objects to write.
-     * @param   mixed     $ids          Identifier(s) of the object(s) to update.
-     * @param   mixed     $fields       Array mapping fields names with values to assign.
-     * @param   string    $lang         Language under which fields have to be stored.
+     * This low-level method performs no:
+     *   - capabilities, ACL or operation-policy checks
+     *   - data validation
+     *   - entity and field lifecycle callbacks
+     *   - dependent-field invalidation/recomputation
+     *   - automatic workflow transitions
+     *   - lifecycle changes on `state` field
      *
-     * @return  int|int[] Returns an array of updated ids, or an error identifier in case an error occurred.
+     * @param   string      $class   Class of the objects to write.
+     * @param   mixed       $ids     Identifier(s) of the object(s) to update.
+     * @param   mixed       $fields  Array mapping field names to values to assign.
+     * @param   string|null $lang    Language under which fields have to be stored.
+     *
+     * @return  int|int[]  Updated existing ids, an empty array when none exist, or a negative error code.
      */
     public function write($class, $ids=null, $fields=null, $lang=null) {
         // init result
