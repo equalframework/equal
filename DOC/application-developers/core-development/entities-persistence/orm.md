@@ -4,12 +4,12 @@ eQual comes with an Object-Relational Mapper (ORM) that greatly eases interactio
 
 The ORM service is dedicated to low-level operations on entities. It handles all tasks related to object search and manipulation, offering an abstract layer for DBMS queries.
 
-Controllers normally manipulate entities through `Collection`, the secured façade that applies capabilities, ACLs, operation policies, business-validity guards and data validation where applicable. Direct `ObjectManager` calls are privileged: they do not perform user authorization or call the CRUD guards `canCreate()`, `canRead()`, `canUpdate()` and `canDelete()`.
+Controllers normally manipulate entities through `Collection`, the secured façade that applies capabilities, ACLs, operation policies and data validation where applicable. Deprecated `can...()` guards are still executed for backward compatibility. Direct `ObjectManager` calls are privileged and do not perform user authorization.
 
 !!! important "Logical restriction is not technical immutability"
     Rules declared by an entity govern the secured `Collection` path. They can refuse a user-facing operation without making the underlying record impossible to modify. Trusted code can still perform a direct technical operation through `ObjectManager`, but must provide the authorization and business checks appropriate to its use case. Database constraints and method-specific invariants still apply.
 
-The operation contract matters along two independent axes: whether `Collection` calls `assertLifecycle()`, and whether the operation changes `state` implicitly, explicitly or not at all.
+The operation contract matters along two independent axes: whether `Collection` calls the matching operation guard, and whether the operation changes `state` implicitly, explicitly or not at all.
 
 The acronyms **CRUD** (`create`, `read`, `update`, `delete`) and **DWIR** (`draft`, `write`, `instantiate`, `remove`) can be used as informal memory aids for the current method mapping. They are not formal operation families. The authoritative behavior is the contract of each method.
 
@@ -18,7 +18,7 @@ The explicit technical primitives have different lifecycle semantics:
 * `draft()` creates an incomplete persistent object without data validation and invokes `oncreate()` followed by `onaftercreate()`;
 * `write()` persists fields without data validation, callbacks or an implicit state transition;
 * `instantiate()` validates the draft's required fields and uniqueness, changes its state to `instance`, and then invokes `onafterinstantiate()`;
-* `remove()` permanently deletes records without `canDelete()` or deletion callbacks.
+* `remove()` permanently deletes records without the legacy `canDelete()` guard or deletion callbacks.
 
 Creation and instantiation are separate events that can occur in the same operation. `create()`, `create(['state' => 'draft'])` and `draft()` invoke the creation hooks. When `create()` produces an `instance`, it additionally invokes `onafterinstantiate()` after `oncreate()` and `onaftercreate()`. A draft reaches the instance lifecycle later through `update()` or `instantiate()`.
 
@@ -26,7 +26,62 @@ Draft creation always uses field `oncreate` callbacks and never field `onupdate`
 
 Because `update()` targets `instance` when `state` is omitted, an update issued from `oncreate()` or `onaftercreate()` can unintentionally instantiate a draft. Prefer `write()` for a callback-side technical write that must preserve state. When update validation and callbacks are required, read the current state and include it explicitly in the values passed to `update()`.
 
-The `Collection` methods `create()`, `read()`, `update()` and `delete()` call `assertLifecycle()` with their matching operation. `draft()`, `write()` and `instantiate()` do not. Those three methods still enforce their declared structural and access checks. Calling methods directly on `ObjectManager` bypasses the secured façade entirely, and `remove()` is only exposed at that low level.
+The `Collection` methods `create()`, `read()`, `update()`, `write()` and `delete()` still call the deprecated `can...()` compatibility guards. `draft()` and `instantiate()` do not. New rules must be declared through `getOperationPolicies()`. Calling methods directly on `ObjectManager` bypasses the secured façade entirely, and `remove()` is only exposed at that low level.
+
+## What `write()` Actually Does
+
+`write()` is a narrow technical persistence primitive. Use it when the caller has intentionally decided that the normal update callbacks and automatic lifecycle effects must not run. It is not a faster synonym for `update()` and it is not a workflow operation.
+
+Both variants write the same values to every selected object, preserve the current `state`, and update the audit fields `modifier` and `modified`. Their security boundary is different:
+
+| Concern | `Collection::write()` | `ObjectManager::write()` |
+| -------------------------- | --------------------- | ------------------------ |
+| UPDATE capability          | Checked, including allowed-field restrictions | Not checked |
+| ACL                        | Checked for the selected objects and fields | Not checked |
+| UPDATE operation policies  | Checked               | Not checked |
+| Legacy `canupdate()`       | Checked for backward compatibility | Not called |
+| Operation log              | One `write` entry per object | None |
+| Failure contract           | Throws an exception for a rejected or failed write | Returns updated existing IDs, `[]` if none exist, or a negative error code |
+
+### Lifecycle and callbacks
+
+Neither variant performs an implicit lifecycle transition. The `state` field is discarded, so a draft stays a draft, an instance stays an instance, and another technical state is preserved.
+
+No update or instantiation callback sequence is executed:
+
+* no `onbeforeupdate()`, `onupdate()` or `onafterupdate()` entity callback;
+* no `onbeforeinstantiate()`, `oninstantiate()` or `onafterinstantiate()` entity callback;
+* no field `onupdate` or `onrevert` callback;
+* no dependent computed-field invalidation or instant-field recomputation;
+* no automatic workflow-transition lookup or execution.
+
+Creation callbacks are not relevant because `write()` only targets existing identifiers. If a status field is written directly, its raw value is stored without executing the named workflow transition, its domain or policies, or its `onbefore`/`onafter` handlers. Use `Collection::transition()` or a named action for a business transition.
+
+The absence of lifecycle callbacks does not mean that storage is free of all side effects. Field-type storage still runs. For example, writing a `one2many` field changes the inverse links and can invoke its `ondetach` handler; writing a `many2many` field changes the relation table; binary and multilang fields use their normal storage mechanisms.
+
+### Validation, fields, and database effects
+
+`write()` does not validate types, usages, entity constraints, required fields or unique keys. It also does not enforce the model's `readonly` metadata. Values are still adapted to storage types, and database constraints can still reject them.
+
+Unknown fields and the protected fields `id`, `creator`, `created`, and `state` are silently discarded. `ObjectManager::write()` also discards `model`. Supplied `modifier` and `modified` values do not win: the persistence layer replaces them with the authenticated user (or root fallback) and current time. Other fields, including stored computed fields, relation fields and `deleted`, are technically writable when present in the schema.
+
+This makes `write()` unsuitable for ordinary business updates that require the omitted validation or lifecycle effects. It is appropriate for a controlled technical correction, a callback-side write that must preserve a draft, or trusted maintenance code that already established its invariants.
+
+### Result and refresh behavior
+
+`Collection::write()` returns the same collection for chaining. An empty collection, an empty value map, or a map containing no writable known field is a no-op. The collection is not re-read after persistence, so generated audit values, normalized relation values, database-side changes and unrelated computed values should be considered unloaded or potentially stale until an explicit `read()`.
+
+A direct `ObjectManager::write()` filters out non-existing identifiers and returns only the existing IDs it targeted. Unlike the collection façade, a direct call with an empty or fully discarded field map still touches `modifier` and `modified` on those records.
+
+Use the following decision rule:
+
+| Intent | Method |
+| --- | --- |
+| Normal business update with validation, operation policies, callbacks, computed dependencies and automatic transitions | `Collection::update()` |
+| Technical write that must preserve state, while retaining UPDATE capability, ACL and operation-policy checks | `Collection::write()` |
+| Privileged technical write after the caller has performed every required authorization and business check | `ObjectManager::write()` |
+| Explicit draft-to-instance lifecycle | `Collection::instantiate()` or `Collection::update()` with the intended state contract |
+| Named business status change | `Collection::transition()` or a named action |
 
 See [Lifecycle Contract by Operation](entities.md#lifecycle-contract-by-operation) for the operation-by-operation comparison, including automatic and explicit state changes.
 
@@ -34,7 +89,7 @@ For the broader lifecycle model—entity contract, secured façade and privilege
 
 However, direct use of the ORM in controllers (or entity event handlers) is permitted (as is the use of the DBManipulator service), but it should be done with caution as it poses a potential security risk. Additionally, controllers that inject the ORM service generate a warning during package integrity checks.
 
-Furthermore, there are no logs at this level and no user concept (if fields do not contain a creator/modifier, it is assumed to be the super-user).
+Furthermore, no operation log is emitted at this level and the ORM does not authorize operations from the current user. Some persistence methods still read the authenticated user to populate audit fields such as `creator` or `modifier`, with the root user as fallback.
 
 The ORM implements methods allowing to:
 

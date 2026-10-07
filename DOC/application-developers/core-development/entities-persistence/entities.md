@@ -143,7 +143,7 @@ This convention ensures a clear and controlled interface for exposing object dat
 | getRoles()           | Returns the list of [roles](../business-logic/actions.md#groups-vs-roles) explicitly associated with the entity.           |
 | getActions()         | Returns a list of available [actions](../business-logic/actions.md) that can be triggered on the entity.                 |
 | getPolicies()        | Returns the [access control policies](../security-access/access-control-lists.md) applicable to the entity. |
-| getOperationPolicies() | Returns a map of secured generic read, update and delete operations with one or more policies the entity must comply with.                                     |
+| getOperationPolicies() | Returns the operation-policy map used by secured collection operations. CREATE rules currently apply to clone targets; READ, UPDATE and DELETE rules apply to their generic operations. |
 | getFlags()           | Returns structural flags that describe transversal characteristics of the entity.                         |
 | isAbstract()         | Returns whether the entity is declared abstract in PHP.                                                   |
 | getCapabilities()    | Returns structural CRUD capabilities for generic Collection operations.                                   |
@@ -152,13 +152,15 @@ This convention ensures a clear and controlled interface for exposing object dat
 
 ## Overridable Methods
 
+The `can...()` methods are deprecated compatibility guards. New code must declare generic operation rules through `getOperationPolicies()`. They remain listed because existing model overrides are still executed by `Collection`.
+
 | **Method**       | **Description**                                                                   |
 | ---------------- | --------------------------------------------------------------------------------- |
-| canread()        | Check whether the current user can read the object. Returns an array of errors.   |
-| cancreate()      | Check whether the current user can create the object. Returns an array of errors. |
-| canupdate()      | Check whether the current user can update the object. Returns an array of errors. |
-| candelete()      | Check whether the current user can delete the object. Returns an array of errors. |
-| canclone()       | Check whether the current user can clone the object. Returns an array of errors.  |
+| canread()        | Deprecated READ guard; use `getOperationPolicies()[EQ_R_READ]`.                   |
+| cancreate()      | Deprecated CREATE guard; use `getOperationPolicies()[EQ_R_CREATE]`.               |
+| canupdate()      | Deprecated UPDATE guard; use `getOperationPolicies()[EQ_R_UPDATE]`.               |
+| candelete()      | Deprecated DELETE guard; use `getOperationPolicies()[EQ_R_DELETE]`.               |
+| canclone()       | Deprecated clone guard; cloning checks READ on the source and CREATE plus UPDATE on the target class. |
 | oncreate()       | Hook invoked after object creation for performing additional operations.          |
 | onaftercreate()  | Hook invoked after `oncreate()`.                                                    |
 | onbeforeinstantiate() | Hook invoked before an existing draft is promoted to an instance by `update()`. |
@@ -215,7 +217,7 @@ An entity definition is a **logical contract**, not a physical barrier around it
 * its schema, required fields, constraints and unique keys;
 * its structural CRUD capabilities;
 * its ACL and operation policies;
-* its business-validity guards (`canCreate()`, `canRead()`, `canUpdate()`, `canDelete()`);
+* its operation policies and deprecated compatibility guards;
 * its actions, workflow transitions and lifecycle callbacks.
 
 For user-facing `create`, `read`, `update` and `delete` operations, `Collection` interprets and enforces this contract before delegating persistence to `ObjectManager`. Explicit technical lifecycle calls use a shorter path:
@@ -225,7 +227,7 @@ Lifecycle-aware Collection request
     → Collection
         → capabilities, ACLs and policies
         → data validation when applicable
-        → canCreate / canRead / canUpdate / canDelete
+        → deprecated canCreate / canRead / canUpdate / canDelete compatibility guards
         → ObjectManager
             → database
 
@@ -240,7 +242,7 @@ Trusted technical code
         → database
 ```
 
-Consequently, a rule such as `getCapabilities()[EQ_R_UPDATE] = false` or an error returned by `canUpdate()` prevents a generic `Collection::update()`; it does **not** make the stored record technically immutable. Trusted framework code can still use `ObjectManager` for a migration, synchronization, repair, dedicated action or other controlled system operation.
+Consequently, a rule such as `getCapabilities()[EQ_R_UPDATE] = false` or an UPDATE operation policy denial prevents a generic `Collection::update()`; it does **not** make the stored record technically immutable. Trusted framework code can still use `ObjectManager` for a migration, synchronization, repair, dedicated action or other controlled system operation.
 
 This technical path is deliberate. It lets the framework perform changes that do not represent a user-requested business operation. The caller then owns the authorization and business checks that `Collection` would normally provide.
 
@@ -259,7 +261,7 @@ Generic CRUD operations are exposed through the `Collection` layer. Before deleg
 1. **Capabilities** define whether the generic operation is structurally exposed for the entity.
 2. **Access control** checks whether the current user has the required rights.
 3. **Operation policies** check whether the operation is allowed in the current context.
-4. **Operation guards** such as `canCreate()`, `canRead()`, `canUpdate()` and `canDelete()` check whether the requested operation is valid for the target object in its current business state.
+4. Deprecated **operation guards** may still reject the operation for backward compatibility.
 5. **ObjectManager** executes the low-level persistence operation.
 
 These mechanisms are complementary and must not be used as substitutes for one another.
@@ -270,7 +272,7 @@ These mechanisms are complementary and must not be used as substitutes for one a
 | `AccessController`, ACL, groups and roles                | Determine whether the current user has the required rights.                             |
 | `getPolicies()`                                          | Declares the policies available on the entity.                                          |
 | `getOperationPolicies()`                                 | Associates generic `Collection` operations with one or more policies.                   |
-| `canCreate()`, `canRead()`, `canUpdate()`, `canDelete()` | Apply local business guards depending on the current object state and requested values. |
+| Deprecated `canCreate()`, `canRead()`, `canUpdate()`, `canDelete()` | Preserve legacy business guards during migration to operation policies.      |
 | `getActions()` and workflows                             | Define named business operations and state transitions.                                 |
 | `ObjectManager`                                          | Performs low-level persistence and lifecycle operations.                                |
 
@@ -297,7 +299,7 @@ User, group and role permissions remain the responsibility of `AccessController`
 
 Contextual rules remain the responsibility of policies.
 
-Business validity remains the responsibility of operation guards such as `canCreate()`, `canUpdate()` and `canDelete()`.
+Business validity for generic operations belongs in `getOperationPolicies()`. Value-level validity belongs in field constraints, while named business behavior belongs in actions or workflow transitions.
 
 Capabilities must therefore be treated as a structural security boundary, not as a business permission system.
 
@@ -314,7 +316,7 @@ AccessController / ACL / roles
     |
 Operation policies, where applicable
     |
-Operation guards: canCreate(), canRead(), canUpdate(), canDelete()
+Deprecated compatibility guards: canCreate(), canRead(), canUpdate(), canDelete()
     |
 ObjectManager
     |
@@ -326,7 +328,7 @@ A user must satisfy all applicable layers:
 * the structural capability rule;
 * the effective authorization rules;
 * the operation policies, where applicable;
-* the operation guards.
+* any deprecated compatibility guard still defined by the entity.
 
 If any layer denies the operation, the operation is rejected.
 
@@ -450,15 +452,16 @@ public static function getOperationPolicies(): array
 
 The method returns an array indexed by CRUD right constants.
 
-In the current `Collection` implementation, operation policies are evaluated for:
+`assertOperationPolicies()` accepts:
 
 ```php
+EQ_R_CREATE
 EQ_R_READ
 EQ_R_UPDATE
 EQ_R_DELETE
 ```
 
-`EQ_R_CREATE` and `EQ_R_MANAGE` may still appear in capabilities, ACLs or action checks, but they are not evaluated by `Collection::assertOperationPolicies()`.
+`Collection` evaluates READ, UPDATE and DELETE for their corresponding generic operations. Cloning additionally evaluates READ on the source, then CREATE and UPDATE on the target class. `Collection::create()` does not currently invoke the CREATE policy; `EQ_R_MANAGE` remains an ACL or dedicated-operation concern.
 
 If an operation is not present in the map, no additional operation policy is checked for that operation.
 
@@ -476,6 +479,10 @@ For `EQ_R_UPDATE`, scoped rule maps may also use field names:
 ```php
 public static function getOperationPolicies(): array {
     return [
+        EQ_R_CREATE => [
+            'same_organization'
+        ],
+
         EQ_R_READ => [
             'same_organization'
         ],
@@ -507,20 +514,21 @@ public static function getOperationPolicies(): array {
 
 In this example:
 
+* cloning into the target class requires `same_organization` for its CREATE step;
 * the generic read operation is allowed only if the `same_organization` policy is satisfied;
 * generic updates inherit the `*` rule and therefore require `same_organization`;
-* updating `name` does not require an additional operation policy beyond capabilities, ACLs and guards;
+* updating `name` does not require an additional operation policy beyond capabilities, ACLs and deprecated compatibility guards;
 * updating `amount` requires both `same_organization` and `accounting_period_open`;
 * updating `internal_reference` is denied by operation policy;
 * the generic delete operation is allowed only if both `same_organization` and `can_be_deleted` are satisfied.
 
 For `EQ_R_UPDATE`, a field without an explicit rule inherits the `*` rule. If `*` is missing, the default is `true`.
 
-For `EQ_R_READ` and `EQ_R_DELETE`, a scoped rule map only uses the `*` rule. If `*` is missing, no operation policy is checked.
+For `EQ_R_CREATE`, `EQ_R_READ` and `EQ_R_DELETE`, a scoped rule map only uses the `*` rule. If `*` is missing, no operation policy is checked.
 
 Each policy name must refer to a policy declared by `getPolicies()`. `Collection` checks policies through `AccessController::isCompliant()` for the target class, target ids and current user. All listed policies must pass. If a policy returns inconsistencies, the operation is rejected.
 
-Operation policies are evaluated after capabilities and ACLs, and before operation guards such as `canRead()`, `canUpdate()` or `canDelete()`.
+Operation policies are evaluated after capabilities and ACLs. Deprecated `can...()` guards may still run afterwards for backward compatibility.
 
 They answer the following question:
 
@@ -538,68 +546,28 @@ not_guest
 owned_by_current_customer
 ```
 
-They should not be used to replace ACLs, capabilities or local business guards.
+They do not replace ACLs or capabilities. Use field constraints for validation that depends on submitted values, and named actions or workflow transitions for dedicated business operations.
 
 
-### Operation Policies vs Operation Guards
+### Operation Policies and Deprecated Guards
 
-Operation policies and `can...()` methods may look similar, but they have different responsibilities.
+The `cancreate()`, `canread()`, `canupdate()`, `candelete()` and `canclone()` methods are deprecated. They remain executed where applicable so existing models keep their behavior while rules migrate to named policies.
 
-| Mechanism                                                | Responsibility                                                                                           | Typical examples                                                                                             |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `getOperationPolicies()`                                 | Determines whether the current user may attempt the operation in the current context.                    | same organization, same condominium, period open, MFA required, feature enabled                              |
-| `canCreate()`, `canRead()`, `canUpdate()`, `canDelete()` | Determines whether the requested operation is valid for the target object in its current business state. | posted invoice cannot be modified, locked entry cannot change account, cancelled booking cannot be confirmed |
+For new code:
 
-A policy should preferably be:
+* declare reusable rules in `getPolicies()`;
+* attach them to `EQ_R_CREATE`, `EQ_R_READ`, `EQ_R_UPDATE` or `EQ_R_DELETE` through `getOperationPolicies()`;
+* use field-scoped `EQ_R_UPDATE` rules when restrictions depend on the fields being changed;
+* use schema constraints when validity depends on submitted values;
+* use a named action or workflow transition when the operation represents dedicated business behavior.
 
-* named;
-* reusable;
-* contextual;
-* applicable across several operations, actions or entities.
+Cloning has no dedicated policy key. `Collection::clone()` evaluates:
 
-A `can...()` guard should preferably be:
+1. `EQ_R_READ` against the source objects;
+2. `EQ_R_CREATE` against the target class;
+3. `EQ_R_UPDATE` against the target class and cloned fields.
 
-* local to the entity;
-* close to the business invariant;
-* dependent on the current object state;
-* able to inspect the requested values.
-
-For example:
-
-```php
-public static function getOperationPolicies(): array {
-    return [
-        EQ_R_UPDATE => [
-            'same_condo',
-            'accounting_period_open'
-        ]
-    ];
-}
-```
-
-The policies above check whether the user operates within the correct perimeter and whether the accounting context allows modifications.
-
-The entity may still define a local guard:
-
-```php
-public static function canUpdate($self, array $values = []): array {
-    $errors = [];
-
-    if(isset($values['journal_id'])) {
-        foreach($self as $id => $entry) {
-            if($entry['is_posted']) {
-                $errors[] = 'Posted entries cannot change journal.';
-            }
-        }
-    }
-
-    return $errors;
-}
-```
-
-The guard above checks a local business invariant specific to the entity and to the submitted values.
-
-Avoid policies named only after CRUD operations, such as:
+Avoid policy names that merely repeat the CRUD operation:
 
 ```text
 can_update
@@ -607,7 +575,7 @@ can_delete
 can_read
 ```
 
-unless they express a specific reusable rule.
+Names such as `can_update` or `can_delete` should be avoided unless they describe a specific reusable rule.
 
 Prefer more explicit policy names:
 
@@ -931,20 +899,20 @@ For a generic operation:
 5. For `CREATE`, `READ`, `DELETE` and `MANAGE`, one matching context with `true` exposes the operation.
 6. For `UPDATE`, allowed fields are built from every matching context.
 7. ACLs are checked with `AccessController::isAllowed()`.
-8. Operation policies returned by `Model::getOperationPolicies()` are evaluated for the requested operation when supported by the secured `Collection` path (`READ`, `UPDATE`, `DELETE`).
+8. Operation policies returned by `Model::getOperationPolicies()` are evaluated for secured READ, UPDATE and DELETE operations; cloning also evaluates CREATE on the target class.
 9. Field-level policies are evaluated when explicitly required by field descriptors.
 10. For `CREATE` and `UPDATE`, data validation is executed when applicable. `READ` and `DELETE` do not validate field values.
-11. The matching CRUD operation guard (`canCreate()`, `canRead()`, `canUpdate()` or `canDelete()`) is executed.
+11. The matching deprecated `can...()` compatibility guard is executed where applicable.
 12. The operation is delegated to `ObjectManager`.
 
-Capabilities, ACLs, policies and guards are complementary:
+Capabilities, ACLs, policies and deprecated compatibility guards are complementary:
 
 | Mechanism                          | Question answered                                                                     |
 | ---------------------------------- | ------------------------------------------------------------------------------------- |
 | `Capabilities`                     | Is the generic operation structurally exposed?                                        |
 | `AccessController` / ACL           | Does the current user have the required rights?                                       |
 | `Operation policies`               | May the current user attempt this operation in the current context?                   |
-| `canUpdate()`, `canCreate()`, etc. | Is the requested operation valid for the target object in its current business state? |
+| Deprecated `can...()` guards       | Does an existing legacy rule still reject the operation?                              |
 | `ObjectManager`                    | How is the operation technically executed?                                            |
 
 A user must satisfy every applicable layer.
@@ -960,7 +928,7 @@ It is responsible for:
 * checking ACL rights through `AccessController`;
 * applying operation policies;
 * applying field-level policies when required;
-* running operation guards;
+* running deprecated compatibility guards where applicable;
 * validating values;
 * delegating persistence to `ObjectManager`.
 
@@ -985,17 +953,17 @@ It is responsible for:
 
 The actual distinction is defined by two parts of the operation contract:
 
-1. whether the `Collection` method calls `assertLifecycle()` and therefore executes the matching entity guard;
+1. whether the `Collection` method still executes a deprecated compatibility guard;
 2. whether the operation changes the technical `state` implicitly, changes it explicitly, or preserves it.
 
-| Call            | `assertLifecycle()` in `Collection` | Technical-state contract |
+| Call            | Deprecated compatibility guard | Technical-state contract |
 | --------------- | ----------------------------------- | ------------------------ |
-| `create()`      | Yes → `canCreate()`                 | If `state` is omitted, the new object becomes an `instance`; an explicit `state: draft` keeps it as a draft. |
-| `read()`        | Yes → `canRead()`                   | Preserves `state`. |
-| `update()`      | Yes → `canUpdate()`                 | Targets `instance` when `state` is omitted. Updating a draft therefore instantiates it unless `state: draft` is explicit. An instance cannot be returned to draft through `update()`. |
-| `delete()`      | Yes → `canDelete()`                 | Does not change `state`: by default it sets `deleted`; permanent deletion delegates to `remove()`. |
+| `create()`      | Yes → `cancreate()`                 | If `state` is omitted, the new object becomes an `instance`; an explicit `state: draft` keeps it as a draft. |
+| `read()`        | Yes → `canread()`                   | Preserves `state`. |
+| `update()`      | Yes → `canupdate()`                 | Targets `instance` when `state` is omitted. Updating a draft therefore instantiates it unless `state: draft` is explicit. An instance cannot be returned to draft through `update()`. |
+| `delete()`      | Yes → `candelete()`                 | Does not change `state`: by default it sets `deleted`; permanent deletion delegates to `remove()`. |
 | `draft()`       | No                                  | Explicitly creates the object with `state: draft`. |
-| `write()`       | No                                  | Preserves `state`; this method cannot write the `state` field. |
+| `write()`       | Yes → `canupdate()`                 | Preserves `state`; this method cannot write the `state` field. |
 | `instantiate()` | No                                  | Explicitly changes `draft` to `instance` after its required-field and uniqueness checks. |
 | `remove()`      | Not exposed by `Collection`         | Performs no state transition; it permanently removes the record. |
 
@@ -1021,19 +989,19 @@ Creation and instantiation callbacks follow the actual lifecycle event rather th
 | `update()` on a draft, without an explicit `state: draft` | None | `onbeforeinstantiate()`, then `oninstantiate()` and `onafterinstantiate()`. |
 | `instantiate()` on a draft | None | `onafterinstantiate()`. |
 
-An `update()` on an existing instance invokes update callbacks instead. A `write()` preserves the current state and invokes neither creation, update nor instantiate callbacks.
+An `update()` on an existing instance invokes update callbacks instead. A `write()` preserves the current state and invokes neither creation, update nor instantiate callbacks. It still calls the deprecated `canupdate()` guard for compatibility, but skips validation, computed-field maintenance and automatic transitions; see [What `write()` Actually Does](orm.md#what-write-actually-does) for the complete `Collection` and `ObjectManager` contracts.
 
 During creation, field callbacks remain state-sensitive. A draft creation always uses field `oncreate` callbacks and never field `onupdate` callbacks, including when `ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION` is enabled. That option can only force field `onupdate` callbacks when the object is created directly as an instance.
 
-This `assertLifecycle()` check is specifically the call to the entity's `canCreate()`, `canRead()`, `canUpdate()` or `canDelete()` method. It is distinct from field validation based on types, usages, constraints, required fields and unique keys.
+`assertOperationGuards()` is the compatibility path that calls the deprecated `cancreate()`, `canread()`, `canupdate()` or `candelete()` method. It is distinct from field validation based on types, usages, constraints, required fields and unique keys. New rules belong in `getOperationPolicies()`.
 
-The mnemonic is still useful: the four similarly named `Collection` methods currently call `assertLifecycle()`, while the letters D-W-I-R recall the explicit technical operations that do not. The implementation contract above—not the acronym—is authoritative.
+The mnemonic remains useful for remembering method names, but it does not determine which operation guards run. The implementation contract above—not the acronym—is authoritative.
 
-Absence of `assertLifecycle()` does not mean “no checks at all.” The `Collection` methods `draft()`, `write()` and `instantiate()` still apply their declared capabilities and ACL checks; `write()` also applies update operation policies. Their validation and callbacks remain method-specific. A refresh performed after an operation may also execute the normal `read()` contract, but it does not add a creation or update lifecycle guard to that operation.
+Absence of a compatibility guard does not mean “no checks at all.” The `Collection` methods `draft()` and `instantiate()` still apply their declared capabilities and ACL checks. `write()` additionally applies UPDATE operation policies and the deprecated `canupdate()` guard. Their validation and callbacks remain method-specific. A refresh performed after an operation may also execute the normal `read()` contract, but it does not add a CREATE or UPDATE compatibility guard to that operation.
 
-`remove()` is intentionally only a low-level `ObjectManager` primitive. Use it only when permanent removal without `canDelete()` and deletion callbacks is explicitly intended.
+`remove()` is intentionally only a low-level `ObjectManager` primitive. Use it only when permanent removal without secured DELETE policies, the legacy `candelete()` guard or deletion callbacks is explicitly intended.
 
-The decisive boundary is therefore the actual contract of the called method and the layer on which it is called. A direct `ObjectManager` call is a privileged technical operation and never passes through `Collection::assertLifecycle()`.
+The decisive boundary is therefore the actual contract of the called method and the layer on which it is called. A direct `ObjectManager` call is a privileged technical operation and never passes through `Collection::assertOperationGuards()`.
 
 Preferred user-facing pattern:
 
@@ -1507,7 +1475,7 @@ Operation policies should not be used for static group or role assignment either
 
 Permission checks may be expensive.
 
-Capabilities, ACLs, operation policies, field-level policies and operation guards can involve object loading, role resolution, group resolution, context evaluation, policy handlers, computed fields or additional database queries. When several mechanisms are combined unnecessarily, generic CRUD operations may become significantly slower, especially on large collections or batch operations.
+Capabilities, ACLs, operation policies, field-level policies and deprecated compatibility guards can involve object loading, role resolution, group resolution, context evaluation, policy handlers, computed fields or additional database queries. When several mechanisms are combined unnecessarily, generic CRUD operations may become significantly slower, especially on large collections or batch operations.
 
 For this reason, access-control mechanisms should be used deliberately.
 
@@ -1519,7 +1487,7 @@ For example:
 
 * do not use `getCapabilities()` to encode rules that belong to ACLs or policies;
 * do not use operation policies for rules that are already fully covered by capabilities;
-* do not use `canupdate()` to repeat checks already performed by operation policies;
+* do not introduce new `can...()` guards; migrate existing ones to operation policies;
 * do not add field-level operation rules unless field-specific restrictions are actually needed;
 * do not attach policies to generic CRUD operations when the same rule is only relevant to a dedicated action or workflow transition.
 
@@ -1531,15 +1499,12 @@ Prefer the simplest applicable mechanism:
 | Grant rights to users, groups or roles                | ACLs / `AccessController`                                |
 | Condition an operation by reusable contextual rules   | `getOperationPolicies()`                                 |
 | Restrict specific fields for an operation             | field-scoped operation rules                             |
-| Enforce local business invariants                     | `cancreate()`, `canread()`, `canupdate()`, `candelete()` |
+| Enforce generic business rules                        | `getOperationPolicies()` and named policies              |
+| Validate submitted field values                       | Schema and field constraints                              |
 | Execute named business behavior                       | `getActions()` or workflow transitions                   |
 
-Entities should not override access-control methods only for completeness.
+Entities should define only the capabilities and policies required by their actual business logic. Existing `can...()` overrides should be treated as migration candidates, not patterns for new entities.
 
-A method should be overridden only when it expresses a meaningful rule for the entity.
-
-For standard business entities, inheriting the default behavior is often preferable. Additional capabilities, policies or guards should be introduced only when the entity has a clear structural, contextual or business requirement.
-
-In batch operations, the cost of permission checks can grow quickly. Policy handlers and `can...()` guards should therefore avoid unnecessary per-object queries and should prefer bulk reads whenever possible.
+In batch operations, the cost of permission checks can grow quickly. Policy handlers and legacy `can...()` guards should therefore avoid unnecessary per-object queries and should prefer bulk reads whenever possible.
 
 Access-control logic should remain explicit, but not excessive.

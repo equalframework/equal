@@ -13,7 +13,7 @@
 13. Add computed fields only when needed, and ensure they declare `result_type`, `relation`, `store`, and `dependents` consistently.
 14. Avoid side effects inside computed logic, especially `update()` calls.
 15. Add uniqueness rules with `getUnique()` when the entity has a natural or business key.
-16. Add business validations in `cancreate()`, `canupdate()`, `candelete()`, or dedicated methods when the entity has lifecycle constraints.
+16. Declare generic READ, UPDATE, and DELETE business rules through `getOperationPolicies()` and named policies. CREATE policies currently apply when cloning into the target class; `Collection::create()` does not yet evaluate them. Use field constraints for value validation and named actions or workflow transitions for dedicated business operations. Do not introduce new `cancreate()`, `canread()`, `canupdate()`, `candelete()`, or `canclone()` guards because they are deprecated.
 17. When the entity needs synchronization logic, expose it as a named ORM action in `getActions()` and trigger it with `$self->do('action_name')` from hooks instead of calling a private helper directly.
 18. Avoid adding public helper methods unless an existing consumer or stable cross-entity API clearly requires them.
 19. Add entity actions in `getActions()` only when there is an actual business operation to expose.

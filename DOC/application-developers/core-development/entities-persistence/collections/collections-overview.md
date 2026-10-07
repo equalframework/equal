@@ -8,13 +8,16 @@ In eQual, a collection is a series of partial objects (the ORM loads only reques
 
 The formal distinction is behavioral:
 
-* `create()`, `read()`, `update()` and `delete()` call `assertLifecycle()` and therefore invoke their matching `can...()` entity guard;
-* `draft()`, `write()` and `instantiate()` do not call `assertLifecycle()`; `remove()` is only available as a privileged `ObjectManager` operation;
+* `create()`, `read()`, `update()`, `write()` and `delete()` enforce capabilities and ACLs;
+* `read()`, `update()`, `write()` and `delete()` additionally enforce their associated operation policies;
+* these methods invoke the deprecated matching `can...()` entity guard for backward compatibility;
+* `clone()` enforces READ policies on the source and CREATE plus UPDATE policies on the target class;
+* `draft()` and `instantiate()` do not invoke an operation policy or compatibility guard; `remove()` is only available as a privileged `ObjectManager` operation;
 * each method separately defines whether `state` changes implicitly, explicitly or remains unchanged.
 
 `create()` and `draft()` both invoke creation hooks. When `create()` produces an instance directly, it also invokes `onafterinstantiate()` after the creation hooks. Drafts reach the instance lifecycle later through `update()` or `instantiate()`. Remember that `update()` targets `instance` when `state` is omitted: inside a creation hook, prefer `write()` to preserve a draft, or read and pass its current state explicitly to `update()`.
 
-`CRUD` and `DWIR` can help remember the current method names, but they are only informal acronyms—not framework operation categories. See the [complete lifecycle contract](../entities.md#lifecycle-contract-by-operation).
+`CRUD` and `DWIR` can help remember the current method names, but they are only informal acronyms—not framework operation categories. See the [complete lifecycle contract](../entities.md#lifecycle-contract-by-operation) and the detailed [`write()` contract](../orm.md#what-write-actually-does).
 
 ## Immutable Data Flow
 

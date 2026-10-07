@@ -6,22 +6,24 @@ The eQual framework treats both entity classes and Controllers as structured def
 
 ## Validation by Operation
 
-Do not confuse **data validation** with the CRUD **business-validity guards** `canCreate()`, `canRead()`, `canUpdate()` and `canDelete()`.
+Do not confuse **data validation** with operation policies. Validation checks values and schema constraints; policies decide whether the current user may perform a secured operation. The legacy `cancreate()`, `canread()`, `canupdate()` and `candelete()` guards remain executed for backward compatibility but are deprecated.
 
-The informal mnemonics **CRUD** (`create`, `read`, `update`, `delete`) and **DWIR** (`draft`, `write`, `instantiate`, `remove`) can help remember the current mapping, but they are not formal operation categories. Validation, `assertLifecycle()` and automatic `state` changes are separate parts of each method's contract:
+The informal mnemonics **CRUD** (`create`, `read`, `update`, `delete`) and **DWIR** (`draft`, `write`, `instantiate`, `remove`) can help remember the current mapping, but they are not formal operation categories. Validation, operation policies and automatic `state` changes are separate parts of each method's contract:
 
-| Call | Data validation | Business-validity guard through `Collection` |
-| ---- | --------------- | -------------------------------------------- |
-| `create()` | Supplied values and uniqueness are validated; required fields are checked before instantiation. | `canCreate()` |
-| `read()` | None. | `canRead()` |
-| `update()` | Supplied values and uniqueness are validated; required fields are checked when a draft becomes an instance. | `canUpdate()` |
-| `delete()` | None. | `canDelete()` |
-| `draft()` | None; incomplete values are allowed. | None. |
-| `write()` | None. | None. |
-| `instantiate()` | Required fields and uniqueness are checked. | None. |
-| `remove()` | None. | None; this low-level operation is not exposed by `Collection`. |
+| Call | Data validation | Operation policy through `Collection` | Deprecated compatibility guard |
+| ---- | --------------- | ------------------------------------- | ------------------------------ |
+| `create()` | Supplied values and uniqueness are validated; required fields are checked before instantiation. | None in the current implementation. | `cancreate()` |
+| `read()` | None. | `EQ_R_READ` | `canread()` |
+| `update()` | Supplied values and uniqueness are validated; required fields are checked when a draft becomes an instance. | `EQ_R_UPDATE` | `canupdate()` |
+| `delete()` | None. | `EQ_R_DELETE` | `candelete()` |
+| `draft()` | None; incomplete values are allowed. | None. | None. |
+| `write()` | None. | `EQ_R_UPDATE` | `canupdate()` |
+| `instantiate()` | Required fields and uniqueness are checked. | None. | None. |
+| `remove()` | None. | None; this low-level operation is not exposed by `Collection`. | None. |
 
-For the `assertLifecycle()` mapping and state-transition contract, see [Lifecycle Contract by Operation](../entities-persistence/entities.md#lifecycle-contract-by-operation).
+`EQ_R_CREATE` policies are currently evaluated by `Collection::clone()` for the target class, together with READ on the source and UPDATE on the target. `Collection::create()` does not yet invoke `assertOperationPolicies(EQ_R_CREATE)`.
+
+For the complete state-transition contract, see [Lifecycle Contract by Operation](../entities-persistence/entities.md#lifecycle-contract-by-operation).
 
 ---
 
