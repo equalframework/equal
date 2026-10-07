@@ -23,13 +23,13 @@ use equal\services\Container;
  * List of static methods with variable parameters:
  * (These are magic methods to allow dynamic signature and prevent PHP strict errors & aot warnings.)
  *
- * 1) `can...()` methods - consistency checkers:
- * These methods return an associative array mapping fields with their error messages. An empty array means that use can perform the action.
- * @method static array canread(mixed ...$params)   Check wether an object can be read by current user.
- * @method static array cancreate(mixed ...$params) Check wether an object can be created.
- * @method static array canupdate(mixed ...$params) Check wether an object can be updated.
- * @method static array candelete(mixed ...$params) Check wether an object can be deleted.
- * @method static array canclone(mixed ...$params)  Check wether an object can be cloned.
+ * 1) Deprecated `can...()` compatibility guards:
+ * New code must declare the corresponding rules in getOperationPolicies().
+ * @method static array canread(mixed ...$params)   Legacy READ guard. Deprecated: declare EQ_R_READ in getOperationPolicies().
+ * @method static array cancreate(mixed ...$params) Legacy CREATE guard. Deprecated: declare EQ_R_CREATE in getOperationPolicies().
+ * @method static array canupdate(mixed ...$params) Legacy UPDATE guard. Deprecated: declare EQ_R_UPDATE in getOperationPolicies().
+ * @method static array candelete(mixed ...$params) Legacy DELETE guard. Deprecated: declare EQ_R_DELETE in getOperationPolicies().
+ * @method static array canclone(mixed ...$params)  Legacy clone guard. Deprecated: declare EQ_R_READ for the source, and EQ_R_CREATE plus EQ_R_UPDATE for the target class, in getOperationPolicies().
  *
  * 2) `on...()` methods - event handlers:
  * @method static array onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
@@ -573,15 +573,16 @@ class Model implements \ArrayAccess, \Iterator {
      * Global capability rules do not grant permissions to users or groups: this remains the responsibility of ACLs, roles and
      * AccessController. Contextual capability rules may define explicit structural exceptions that are allowed before ACLs.
      *
-     * Operation policies are evaluated after capabilities and ACLs, and before operation guards such as canCreate(), canRead(),
-     * canUpdate() and canDelete().
+     * Operation policies are evaluated after capabilities and ACLs. Generic Collection operations currently use them
+     * for READ, UPDATE, and DELETE; cloning additionally uses CREATE and UPDATE for the target class.
+     * Deprecated `can...()` guards may still run afterwards for backward compatibility.
      *
-     * Each operation must be indexed by a CRUD right constant.
+     * Each operation must be indexed by EQ_R_CREATE, EQ_R_READ, EQ_R_UPDATE, or EQ_R_DELETE.
      * Each operation maps to a set of scopes.
      *
      * The "*" scope defines the default rule for the whole operation.
      *
-     * For update operations, field names may be used as scopes.
+     * For UPDATE operations, field names may be used as scopes.
      * Field-scoped rules apply only when the related field is involved in the operation.
      *
      * A scope rule can be:
@@ -595,6 +596,7 @@ class Model implements \ArrayAccess, \Iterator {
      *
      * If a field has no explicit rule, it inherits the "*" rule.
      * If "*" is false, fields are denied by default unless they define their own explicit rule.
+     * Cloning evaluates EQ_R_READ on the source objects, then EQ_R_CREATE and EQ_R_UPDATE on the target class.
      *
      * Operation policy map example:
      *
