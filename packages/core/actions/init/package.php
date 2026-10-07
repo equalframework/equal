@@ -582,7 +582,9 @@ else {
     }
 }
 
-$result = [$params['package'] => 'initialized'];
+$result = [
+    $params['package'] => $is_package_initialized && $params['force'] ? 'updated' : 'initialized'
+];
 
 $context
     ->httpResponse()
