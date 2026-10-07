@@ -580,7 +580,7 @@ class Collection implements \Iterator, \Countable {
      * declared by the target Model class.
      */
     private function assertOperationPolicies(int $operation, array $fields=[], array $ids=[]): self {
-        if(!in_array($operation, [EQ_R_READ, EQ_R_UPDATE, EQ_R_DELETE], true)) {
+        if(!in_array($operation, [EQ_R_CREATE, EQ_R_READ, EQ_R_UPDATE, EQ_R_DELETE], true)) {
             return $this;
         }
 
@@ -843,6 +843,9 @@ class Collection implements \Iterator, \Countable {
     /**
      * Create new instances by cloning the ones present in current Collection.
      *
+     * Cloning requires READ on the source objects, and CREATE and UPDATE on the
+     * target class.
+     *
      * @return  Collection  Returns the current Collection.
      * @example $newObject = MyClass::id(5)->clone()->first();
      */
@@ -855,17 +858,19 @@ class Collection implements \Iterator, \Countable {
         $schema = $this->model->getSchema();
         $fields = array_keys($schema);
 
-        $this
-            ->assertCapabilities(EQ_R_CREATE)
-            ->assertAccessControl(EQ_R_CREATE, $fields);
-
-        $canclone = $this->call('canclone');
-        if(!empty($canclone)) {
-            throw new \Exception(serialize($canclone), EQ_ERROR_NOT_ALLOWED);
-        }
-
         // retrieve targeted identifiers
         $ids = $this->ids();
+
+        $this
+            ->assertCapabilities(EQ_R_READ, $fields, $ids)
+            ->assertAccessControl(EQ_R_READ, $fields, $ids)
+            ->assertOperationPolicies(EQ_R_READ, $fields, $ids)
+            ->assertCapabilities(EQ_R_CREATE)
+            ->assertAccessControl(EQ_R_CREATE, $fields)
+            ->assertOperationPolicies(EQ_R_CREATE, $fields)
+            ->assertCapabilities(EQ_R_UPDATE, $fields)
+            ->assertAccessControl(EQ_R_UPDATE, $fields)
+            ->assertOperationPolicies(EQ_R_UPDATE, $fields);
 
         $res = $this->orm->read($this->class, $ids, $fields, ($lang)?$lang:$this->lang);
 
@@ -1332,21 +1337,33 @@ class Collection implements \Iterator, \Countable {
 
 
     /**
-     * Writes specified fields of selected objects without lifecycle callbacks or
-     * implicit state transition.
+     * Persists the same field values on every selected object through the secured technical-write path.
      *
-     * @param   array       $values   Associative array mapping fields and values.
-     * @param   string      $lang     Language for multilang fields.
+     * This method checks UPDATE capabilities, ACLs, operation policies, and the legacy `canupdate()` guard.
+     * It performs no:
+     *   - data validation
+     *   - entity and field lifecycle callbacks
+     *   - dependent-field invalidation/recomputation
+     *   - automatic workflow transitions
+     *   - lifecycle changes on `state` field
      *
-     * @return  Collection  returns the current instance (allowing calls chaining)
+     * @param   array|null  $values   Associative array mapping fields and values.
+     * @param   string|null $lang     Language for multilang fields.
+     *
+     * @return  Collection  Returns the current instance (allowing call chaining).
      */
     public function write(array $values=null, $lang=null) {
         if(count($this->objects) <= 0) {
             return $this;
         }
 
+        if(count($values) <= 0)  {
+            return $this;
+        }
+
         $user_id = $this->am->userId();
 
+        // 1) sanitize and retrieve necessary values
         if($values === null) {
             $values = [];
         }
@@ -1359,7 +1376,7 @@ class Collection implements \Iterator, \Countable {
 
         // retrieve targeted identifiers
         $ids = $this->ids();
-
+        // drop invalid fields
         $values = $this->sanitizeFields($values, 'write');
 
         // retrieve targeted fields names
@@ -1369,21 +1386,24 @@ class Collection implements \Iterator, \Countable {
             return $this;
         }
 
-        // 2) assert Capabilities & ACL
+        // 2) assert update permissions and operation rules
         $this
             ->assertCapabilities(EQ_R_UPDATE, $fields, $ids)
             ->assertAccessControl(EQ_R_UPDATE, $fields, $ids)
-            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids);
+            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids)
+            ->assertOperationGuards(EQ_R_UPDATE, array_diff_key($values, Model::getSpecialColumns()));
 
         // by convention, update operation sets modifier as current user
         $values['modifier'] = $user_id;
 
-        // update objects
+        // 3) update objects
         $res = $this->orm->write($this->class, $ids, $values, ($lang) ? $lang : $this->lang);
 
         if(is_int($res) && $res < 0) {
-            trigger_error("ORM::unexpected error when writing {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
-            throw new \Exception('write_failed', $res);
+            $last_error = $this->orm->getLastError();
+            trigger_error("ORM::unexpected error when writing {$this->class} objects:".$last_error, EQ_REPORT_INFO);
+            $error_data = @unserialize($last_error);
+            throw new \Exception(is_array($error_data) ? $last_error : 'write_failed', $res);
         }
 
         foreach($ids as $id) {
@@ -1473,7 +1493,6 @@ class Collection implements \Iterator, \Countable {
         if($res <= 0) {
             $last_error = $this->orm->getLastError();
             trigger_error("ORM::unexpected error when updating {$this->class} objects:".$last_error, EQ_REPORT_INFO);
-
             $error_data = @unserialize($last_error);
             throw new \Exception(is_array($error_data) ? $last_error : 'update_failed', $res);
         }
@@ -1723,23 +1742,20 @@ class Collection implements \Iterator, \Countable {
     */
 
     /**
-     * Check wether an object can be read by current user.
-     * This method can be overridden to define a custom set of tests (based on roles and/or policies).
+     * Legacy READ operation guard.
      *
-     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
-     * @return array            Returns an associative array mapping ids and fields with their error messages. An empty array means that object has been successfully processed and can be read.
+     * @deprecated Declare the EQ_R_READ rule in Model::getOperationPolicies() instead.
+     * @return array Associative array of errors; an empty array allows the operation.
      */
     public static function canread(...$params) {
         return [];
     }
 
     /**
-     * Check wether an object can be created.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a custom set of tests.
+     * Legacy CREATE operation guard.
      *
-     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
+     * @deprecated Declare the EQ_R_CREATE rule in Model::getOperationPolicies() instead.
+     * @return array Associative array of errors; an empty array allows the operation.
      */
     public static function cancreate(...$params) {
         return [];
@@ -1749,35 +1765,30 @@ class Collection implements \Iterator, \Countable {
     // make distinction with an additionnal caninstantiate()
 
     /**
-     * Check wether an object can be updated.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a custom set of tests.
+     * Legacy UPDATE operation guard.
      *
-     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
+     * @deprecated Declare the EQ_R_UPDATE rule in Model::getOperationPolicies() instead.
+     * @return array Associative array of errors; an empty array allows the operation.
      */
     public static function canupdate(...$params) {
         return [];
     }
 
     /**
-     * Check wether an object can be cloned.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a custom set of tests.
+     * Legacy clone operation guard.
      *
-     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
-     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be updated.
+     * @deprecated Declare EQ_R_READ for the source objects, and EQ_R_CREATE plus EQ_R_UPDATE for the target class, in Model::getOperationPolicies().
+     * @return array Associative array of errors; an empty array allows the operation.
      */
     public static function canclone(...$params) {
         return [];
     }
 
     /**
-     * Check wether an object can be deleted.
-     * This method can be overridden to define a custom set of tests.
+     * Legacy DELETE operation guard.
      *
-     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
-     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be deleted.
+     * @deprecated Declare the EQ_R_DELETE rule in Model::getOperationPolicies() instead.
+     * @return array Associative array of errors; an empty array allows the operation.
      */
     public static function candelete(...$params) {
         return [];
