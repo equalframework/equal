@@ -1352,9 +1352,13 @@ class Collection implements \Iterator, \Countable {
      *
      * @return  Collection  Returns the current instance (allowing call chaining).
      */
-    public function write(array $values=null, $lang=null) {
+    public function write(array $values, $lang=null) {
         if(count($this->objects) <= 0) {
             return $this;
+        }
+
+        if($values === null) {
+            $values = [];
         }
 
         if(count($values) <= 0)  {
@@ -1364,9 +1368,6 @@ class Collection implements \Iterator, \Countable {
         $user_id = $this->am->userId();
 
         // 1) sanitize and retrieve necessary values
-        if($values === null) {
-            $values = [];
-        }
 
         array_walk($values, function ($_, $key) {
             if(!is_string($key) || $key === '') {
@@ -1438,6 +1439,10 @@ class Collection implements \Iterator, \Countable {
             return $this;
         }
 
+        if($values === null) {
+            $values = [];
+        }
+
         if(count($values) <= 0)  {
             return $this;
         }
@@ -1445,9 +1450,6 @@ class Collection implements \Iterator, \Countable {
         $user_id = $this->am->userId();
 
         // 1) sanitize and retrieve necessary values
-        if($values === null) {
-            $values = [];
-        }
 
         array_walk($values, function ($_, $key) {
             if(!is_string($key) || $key === '') {
