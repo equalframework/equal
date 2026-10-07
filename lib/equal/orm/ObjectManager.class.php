@@ -3051,6 +3051,7 @@ class ObjectManager extends Service {
 
     /**
      * Create a recursive copy of an object.
+     * Creation and modification timestamps are always reset to the clone creation time.
      * This method does not check unique constraints. If creation fails, it returns an error code.
      *
      * @param   string    $class            Class name of the object to clone.
@@ -3082,10 +3083,11 @@ class ObjectManager extends Service {
             $original = $res_r[$id];
             $new_values = [];
 
-            // unset relations + id and parent_field (needs to be updated + could be part of unique constraint)
+            // unset relations, identifiers, and audit timestamps that must reflect the clone creation
             foreach($original as $field => $value) {
                 $def = $schema[$field];
-                if(!in_array($def['type'], ['one2many', 'many2many']) && !in_array($field, ['id', $parent_field])) {
+                if(!in_array($def['type'], ['one2many', 'many2many'])
+                    && !in_array($field, ['id', $parent_field, 'created', 'modified'])) {
                     if(isset($values[$field])) {
                         $new_values[$field] = $values[$field];
                     }

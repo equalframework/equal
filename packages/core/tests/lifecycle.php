@@ -631,5 +631,78 @@ namespace {
                         }
                     }
             ],
+
+        '5021' => [
+                'description' => 'Lifecycle: ORM and Collection clones refresh audit timestamps (`created` and `modified`).',
+                'arrange'     => function () {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleProbe::getType();
+                        $old_timestamp = time() - 3600;
+                        $source_id = $om->create($class, [
+                                'string_short' => 'source',
+                                'created'      => $old_timestamp
+                            ], null, false);
+
+                        $om->update($class, [$source_id], ['modified' => $old_timestamp], null, false, false);
+
+                        return [
+                            'source_id'     => $source_id,
+                            'old_timestamp' => $old_timestamp
+                        ];
+                    },
+                'act'         => function ($fixtures) {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleProbe::getType();
+                        $before_clone = time();
+                        $orm_clone_id = $om->clone($class, $fixtures['source_id']);
+
+                        $collection = LifecycleProbe::id($fixtures['source_id'])->clone();
+                        $collection_clone_ids = array_values(array_diff($collection->ids(), [$fixtures['source_id']]));
+                        $collection_clone_id = $collection_clone_ids[0] ?? 0;
+                        $after_clone = time();
+
+                        $clones = LifecycleProbe::ids([$orm_clone_id, $collection_clone_id])
+                            ->read(['created', 'modified'])
+                            ->toArray();
+
+                        return array_merge($fixtures, [
+                            'clone_ids'    => [$orm_clone_id, $collection_clone_id],
+                            'before_clone' => $before_clone,
+                            'after_clone'  => $after_clone,
+                            'clones'       => $clones
+                        ]);
+                    },
+                'assert'      => function($result) {
+                        if(count($result['clones'] ?? []) !== 2) {
+                            return false;
+                        }
+
+                        foreach($result['clones'] as $clone) {
+                            $created = (int) ($clone['created'] ?? 0);
+                            $modified = (int) ($clone['modified'] ?? 0);
+
+                            if($created <= $result['old_timestamp']
+                                || $created < $result['before_clone']
+                                || $created > $result['after_clone']
+                                || $modified <= $result['old_timestamp']
+                                || $modified < $result['before_clone']
+                                || $modified > $result['after_clone']) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    },
+                'rollback'    => function($result) {
+                        $ids = array_filter(array_merge(
+                            [$result['source_id'] ?? 0],
+                            $result['clone_ids'] ?? []
+                        ));
+
+                        if(count($ids)) {
+                            LifecycleProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
     ];
 }
