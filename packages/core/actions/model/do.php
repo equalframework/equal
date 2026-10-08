@@ -26,7 +26,8 @@ list($params, $providers) = eQual::announce([
         'domain' => [
             'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
-            'default'       => []
+            'default'       => [],
+            'visible'       => false
         ],
         'action' =>  [
             'description'   => 'Name of the action to attempt to perform on the objects.',
