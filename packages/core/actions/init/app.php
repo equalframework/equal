@@ -68,9 +68,10 @@ if(file_exists("$app_path/manifest.json")) {
     }
 }
 
-// checks wether the folder exists or not
-if(file_exists("public/$app")) {
+$is_app_initialized = file_exists("public/$app");
 
+// checks whether the folder exists or not
+if($is_app_initialized) {
     if(!$params['force']) {
         // ignore existing apps unless forced
         throw new Exception('existing_target_directory', EQ_ERROR_INVALID_PARAM);
@@ -111,6 +112,11 @@ if(file_exists("public/$app")) {
     file_put_contents("public/$app/version", $version_md5);
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$result = [
+    $params['package'] => [$params['app'] => $is_app_initialized && $params['force'] ? 'updated' : 'initialized']
+];
+
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();
