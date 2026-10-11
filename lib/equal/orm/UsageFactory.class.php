@@ -82,7 +82,7 @@ class UsageFactory {
                 $usageInstance = new UsageArray($str_usage);
                 break;
             case 'binary':
-            // #deprecated - `file` shouldn't be used, use 'binary' instead (for files, consider using `documents\Document` entity)
+            // #deprecated - `file` shouldn't be used, use 'binary' instead
             case 'file':
             // #memo - image is an usage of its own, but is handled as binary
             case 'image':
