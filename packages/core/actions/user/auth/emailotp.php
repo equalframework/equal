@@ -48,6 +48,7 @@ use core\User;
  */
 
 $authenticated_user_id = $auth->userId();
+
 $user_id = $authenticated_user_id;
 $mfa_challenge = null;
 
@@ -77,87 +78,78 @@ if(!$user['allow_auth']) {
     throw new Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
 }
 
-$run_as_root = function(callable $callback) use ($auth, $authenticated_user_id) {
-    try {
-        $auth->su();
+try {
+    $auth->su();
 
-        return $callback();
+    $email_otp_challenge = EmailOtpChallenge::search([
+            ['user_id', '=', $user['id']],
+            ['status', '=', 'pending']
+        ])
+        ->read(['code_hash', 'expires_at'])
+        ->first();
+
+    $now = time();
+    if(!$email_otp_challenge) {
+        throw new Exception('email_otp_key_expired', EQ_ERROR_NOT_ALLOWED);
     }
-    finally {
-        $auth->su($authenticated_user_id);
-    }
-};
 
-$email_otp_challenge = EmailOtpChallenge::search([
-        ['user_id', '=', $user['id']],
-        ['status', '=', 'pending']
-    ])
-    ->read(['code_hash', 'expires_at'])
-    ->first();
-
-$now = time();
-if(!$email_otp_challenge) {
-    throw new Exception('email_otp_key_expired', EQ_ERROR_NOT_ALLOWED);
-}
-
-if($email_otp_challenge['expires_at'] < $now) {
-    $run_as_root(function() use ($email_otp_challenge) {
+    if($email_otp_challenge['expires_at'] < $now) {
         EmailOtpChallenge::id($email_otp_challenge['id'])
             ->update(['invalidated_reason' => 'expired'])
             ->transition('invalidate');
-    });
 
-    throw new Exception('email_otp_key_expired', EQ_ERROR_NOT_ALLOWED);
-}
-
-if(!password_verify($params['auth_code'], $email_otp_challenge['code_hash'])) {
-    $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.email_otp.allowed_failed_attempts', 5);
-
-    $previous_failed_attempts = $orm->fetchAndAdd(
-        EmailOtpChallenge::class,
-        [$email_otp_challenge['id']],
-        'failed_attempts',
-        1
-    );
-
-    if(!is_array($previous_failed_attempts) || !isset($previous_failed_attempts[$email_otp_challenge['id']])) {
-        throw new Exception('unexpected_error', EQ_ERROR_UNKNOWN);
+        throw new Exception('email_otp_key_expired', EQ_ERROR_NOT_ALLOWED);
     }
 
-    $failed_attempts = $previous_failed_attempts[$email_otp_challenge['id']] + 1;
+    if(!password_verify($params['auth_code'], $email_otp_challenge['code_hash'])) {
+        $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.email_otp.allowed_failed_attempts', 5);
 
-    if($failed_attempts >= $allowed_failed_attempts) {
-        $run_as_root(function() use ($email_otp_challenge) {
+        $previous_failed_attempts = $orm->fetchAndAdd(
+            EmailOtpChallenge::class,
+            [$email_otp_challenge['id']],
+            'failed_attempts',
+            1
+        );
+
+        if(!is_array($previous_failed_attempts) || !isset($previous_failed_attempts[$email_otp_challenge['id']])) {
+            throw new Exception('unexpected_error', EQ_ERROR_UNKNOWN);
+        }
+
+        $failed_attempts = $previous_failed_attempts[$email_otp_challenge['id']] + 1;
+
+        if($failed_attempts >= $allowed_failed_attempts) {
             EmailOtpChallenge::id($email_otp_challenge['id'])
                 ->update(['invalidated_reason' => 'failed_attempts'])
                 ->transition('invalidate');
-        });
 
-        throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
+            throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
+        }
+
+        throw new Exception('auth_code_mismatch', EQ_ERROR_NOT_ALLOWED);
     }
 
-    throw new Exception('auth_code_mismatch', EQ_ERROR_NOT_ALLOWED);
-}
+    $previous_auth_methods = [];
+    if(!$is_authenticated) {
+        $previous_auth_methods = $mfa_challenge['auth'] ?? [[
+            'method'    => 'pwd',
+            'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+        ]];
+    }
 
-$previous_auth_methods = [];
-if(!$is_authenticated) {
-    $previous_auth_methods = $mfa_challenge['auth'] ?? [[
-        'method'    => 'pwd',
+    $auth_method = [
+        'method'    => 'email_otp',
         'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
-    ]];
-}
+    ];
 
-$auth_method = [
-    'method'    => 'email_otp',
-    'exp'       => $now + constant('AUTH_ACCESS_TOKEN_VALIDITY')
-];
+    $access_token = $auth->issueAccessToken($user['id'], $auth_method, $previous_auth_methods);
 
-$access_token = $auth->issueAccessToken($user['id'], $auth_method, $previous_auth_methods);
-
-$run_as_root(function() use ($email_otp_challenge) {
     EmailOtpChallenge::id($email_otp_challenge['id'])
         ->transition('consume');
-});
+
+}
+finally {
+    $auth->su($authenticated_user_id);
+}
 
 $context
     ->httpResponse()
