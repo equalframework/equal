@@ -7,7 +7,7 @@
 */
 namespace equal\mailer;
 
-use equal\email\Email;
+use equal\email\EmailMessage;
 use equal\http\HttpRequest;
 
 /*
@@ -169,7 +169,7 @@ class MailerApi extends Mailer {
     }
 
     /**
-     * @param Email $email
+     * @param EmailMessage $email
      * @param array{
      *     api_key?: string,
      *     from?: string,
@@ -178,7 +178,7 @@ class MailerApi extends Mailer {
      * @return int
      * @throws \Exception
      */
-    public function send(Email $email, $options = []): int {
+    public function send(EmailMessage $email, $options = []): int {
         $this->validateConfig();
 
         $method = $this->config['method'];
@@ -255,7 +255,7 @@ class MailerApi extends Mailer {
         }
     }
 
-    private function buildContext(Email $email, array $options): array {
+    private function buildContext(EmailMessage $email, array $options): array {
         $from = $options['from'] ?? $this->config['from'] ?? null;
 
         if(empty($from)) {

@@ -7,7 +7,7 @@
 */
 
 use core\Mail;
-use equal\email\Email;
+use equal\email\EmailMessage;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Send a test email using current SMTP configuration',
@@ -114,7 +114,7 @@ $body .= '<p style="color:#666">This message was sent by an eQual diagnostic con
     . '</div>';
 
 // Create email
-$email = new Email();
+$email = new EmailMessage();
 $email->setTo($to);
 $email->setSubject($subject);
 $email->setBody($body);

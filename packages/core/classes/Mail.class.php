@@ -7,8 +7,9 @@
 */
 namespace core;
 
+use equal\email\EmailAttachment;
+use equal\email\EmailMessage;
 use equal\mailer\Mailer;
-use equal\email\Email;
 
 
 class Mail extends \core\email\Email {
@@ -18,15 +19,15 @@ class Mail extends \core\email\Email {
     /**
      * Queue a message in the email outbox (/spool).
      *
-     * @param   Email   $email           Email message to be sent.
-     * @param   string  $object_class    Class of the object associated with the sending (optional).
-     * @param   string  $object_id       Identifier of the object associated with the sending (optional).
+     * @param   EmailMessage    $email          Email message to be sent.
+     * @param   string          $object_class   Class of the object associated with the sending (optional).
+     * @param   int             $object_id      Identifier of the object associated with the sending (optional).
      *
-     * @return  int     Upon success, this method returns the id of the queued `core\Mail` object.
+     * @return  int                             Upon success, this method returns the id of the queued `core\Mail` object.
      *
-     * @throws  \Exception                This method raises an Exception in case of error.
+     * @throws  \Exception                      This method raises an Exception in case of error.
      */
-    public static function queue(Email $email, string $object_class = '', int $object_id = 0): int {
+    public static function queue(EmailMessage $email, string $object_class = '', int $object_id = 0): int {
         $mail = self::createMail($email, $object_class, $object_id);
 
         // convert to JSON
@@ -46,15 +47,15 @@ class Mail extends \core\email\Email {
     /**
      * Instantly send a message (skip outbox).
      *
-     * @param   Email   $email           Email message to be sent.
-     * @param   string  $object_class    Class of the object associated with the sending (optional).
-     * @param   string  $object_id       Identifier of the object associated with the sending (optional).
+     * @param   EmailMessage    $email          Email message to be sent.
+     * @param   string          $object_class   Class of the object associated with the sending (optional).
+     * @param   int             $object_id      Identifier of the object associated with the sending (optional).
      *
-     * @return  int     Upon success, this method returns the id of the created `core\Mail` object created.
+     * @return  int                             Upon success, this method returns the id of the created `core\Mail` object created.
      *
-     * @throws  \Exception                This method raises an Exception in case of error.
+     * @throws  \Exception                      This method raises an Exception in case of error.
      */
-    public static function send(Email $email, string $object_class = '', int $object_id = 0): int {
+    public static function send(EmailMessage $email, string $object_class = '', int $object_id = 0): int {
         $mail = self::createMail($email, $object_class, $object_id);
 
         try {
@@ -83,7 +84,7 @@ class Mail extends \core\email\Email {
     /**
      * Send an Email directly through SMTP without creating any ORM/DB object.
      */
-    public static function sendRaw(Email $email, $options=[]): int {
+    public static function sendRaw(EmailMessage $email, $options=[]): int {
         try {
             $mailer = Mailer::create(constant('EMAIL_TRANSPORT') ?? 'smtp', $options);
             if(!$mailer) {
@@ -232,9 +233,8 @@ class Mail extends \core\email\Email {
     /**
      * Create a Mail object and return an associative array representation of it.
      * The Mail object is attached to an object, if provided ($object_class::$object_id).
-     *
      */
-    protected static function createMail(Email $email, string $object_class = '', int $object_id = 0): array {
+    protected static function createMail(EmailMessage $email, string $object_class = '', int $object_id = 0): array {
         $values = [
             'to'            => $email->to,
             'cc'            => implode(',', (array) $email->cc),
@@ -267,8 +267,8 @@ class Mail extends \core\email\Email {
         return $email->setId($mail['id'])->toArray(true);
     }
 
-    private static function emailFromArray(array $message): Email {
-        $email = new Email();
+    private static function emailFromArray(array $message): EmailMessage {
+        $email = new EmailMessage();
 
         if(isset($message['id'])) {
             $email->setId($message['id']);
@@ -308,7 +308,7 @@ class Mail extends \core\email\Email {
 
         if(isset($message['attachments']) && is_array($message['attachments'])) {
             foreach($message['attachments'] as $attachment) {
-                $email->addAttachment(new \equal\email\EmailAttachment(
+                $email->addAttachment(new EmailAttachment(
                     $attachment['name'],
                     $attachment['data'],
                     $attachment['type']

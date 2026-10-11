@@ -47,7 +47,7 @@ foreach($packages as $package) {
         continue;
     }
 
-    $updates_folder = EQ_BASEDIR . "/packages/{$package}/init/updates";
+    $updates_folder = EQ_BASEDIR . "/packages/{$package}/updates";
     $updates_log_file = EQ_BASEDIR . '/log/updates.json';
     $packages_log_file = EQ_BASEDIR . '/log/packages.json';
     $map_updates = [];
