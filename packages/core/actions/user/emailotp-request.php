@@ -50,6 +50,33 @@ if(!$user['allow_auth']) {
     throw new Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
 }
 
+// Preserve consecutive failures when a new code supersedes the previous one.
+$failed_attempts = 0;
+$last_email_otp_challenge = EmailOtpChallenge::search(
+        [['user_id', '=', $user['id']]],
+        [
+            'sort'  => ['id' => 'desc'],
+            'limit' => 1
+        ]
+    )
+    ->read(['status', 'failed_attempts', 'invalidated_reason', 'invalidated_at'])
+    ->first();
+
+if($last_email_otp_challenge && $last_email_otp_challenge['status'] !== 'consumed') {
+    $failed_attempts = (int) $last_email_otp_challenge['failed_attempts'];
+
+    if($last_email_otp_challenge['invalidated_reason'] === 'failed_attempts') {
+        $lockout_duration = (int) Setting::get_value('core', 'security', 'auth.email_otp.lockout_duration', 900);
+        $blocked_until = (int) $last_email_otp_challenge['invalidated_at'] + $lockout_duration;
+
+        if($blocked_until > time()) {
+            throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
+        }
+
+        $failed_attempts = 0;
+    }
+}
+
 $email_otp_challenges_count = EmailOtpChallenge::search([
         ['user_id', '=', $user['id']],
         ['created', '>=', time() - 600]
@@ -107,9 +134,10 @@ if($pending_email_otp_challenges->count() > 0) {
 }
 
 $email_otp_challenge = EmailOtpChallenge::create([
-        'user_id'       => $user['id'],
-        'code_hash'     => password_hash($otp_code, PASSWORD_BCRYPT),
-        'expires_at'    => $expires_at
+        'user_id'         => $user['id'],
+        'code_hash'       => password_hash($otp_code, PASSWORD_BCRYPT),
+        'expires_at'      => $expires_at,
+        'failed_attempts' => $failed_attempts
     ])
     ->first();
 

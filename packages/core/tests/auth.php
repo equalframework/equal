@@ -935,5 +935,262 @@ $tests = [
                     core\setting\SettingValue::search(['user_id', '=', $fixture['user_id']])->delete(true);
                     core\User::id($fixture['user_id'])->delete(true);
                 }
+        ],
+
+    '0127' => [
+            'description'       =>  'Keep email OTP failed attempts across challenge requests.',
+            'return'            =>  ['array'],
+            'arrange'           =>  function () {
+                    $login = 'auth_email_otp_lockout_test@example.com';
+                    core\User::search(['login', '=', $login])->delete(true);
+
+                    $user = core\User::create([
+                            'login'         => $login,
+                            'password'      => 'auth-email-otp-lockout-test',
+                            'validated'     => true,
+                            'allow_auth'    => true
+                        ])
+                        ->first();
+
+                    $challenge = core\security\challenge\EmailOtpChallenge::create([
+                            'user_id'         => $user['id'],
+                            'code_hash'       => password_hash('123456', PASSWORD_BCRYPT),
+                            'expires_at'      => time() + 60,
+                            'failed_attempts' => 5
+                        ])
+                        ->first();
+
+                    core\security\challenge\EmailOtpChallenge::id($challenge['id'])
+                        ->update(['invalidated_reason' => 'failed_attempts'])
+                        ->transition('invalidate');
+
+                    return ['user_id' => $user['id']];
+                },
+            'act'               =>  function ($fixture) {
+                    ['auth' => $auth] = eQual::inject(['auth']);
+
+                    $fixture['error'] = null;
+
+                    try {
+                        $auth->su($fixture['user_id']);
+                        eQual::run('do', 'core_user_emailotp-request');
+                    }
+                    catch(Exception $exception) {
+                        $fixture['error'] = $exception->getMessage();
+                    }
+                    finally {
+                        $auth->su();
+                    }
+
+                    return $fixture;
+                },
+            'assert'            =>  function ($fixture) {
+                    return $fixture['error'] === 'allowed_failed_attempts_reached';
+                },
+            'rollback'          =>  function ($fixture) {
+                    if(!is_array($fixture)) {
+                        return;
+                    }
+
+                    core\security\challenge\EmailOtpChallenge::search([
+                        'user_id', '=', $fixture['user_id']
+                    ])->delete(true);
+                    core\User::id($fixture['user_id'])->delete(true);
+                }
+        ],
+
+    '0128' => [
+            'description'       =>  'Atomically invalidate an email OTP challenge at the failed-attempt limit.',
+            'return'            =>  ['array'],
+            'arrange'           =>  function () {
+                    $login = 'auth_email_otp_attempt_test@example.com';
+                    core\User::search(['login', '=', $login])->delete(true);
+
+                    $user = core\User::create([
+                            'login'         => $login,
+                            'password'      => 'auth-email-otp-attempt-test',
+                            'validated'     => true,
+                            'allow_auth'    => true
+                        ])
+                        ->first();
+
+                    $allowed_failed_attempts = core\setting\Setting::get_value(
+                        'core',
+                        'security',
+                        'auth.email_otp.allowed_failed_attempts',
+                        5
+                    );
+                    $initial_failed_attempts = max(0, $allowed_failed_attempts - 1);
+
+                    $challenge = core\security\challenge\EmailOtpChallenge::create([
+                            'user_id'         => $user['id'],
+                            'code_hash'       => password_hash('123456', PASSWORD_BCRYPT),
+                            'expires_at'      => time() + 60,
+                            'failed_attempts' => $initial_failed_attempts
+                        ])
+                        ->first();
+
+                    return [
+                        'user_id'                  => $user['id'],
+                        'challenge_id'             => $challenge['id'],
+                        'expected_failed_attempts' => $initial_failed_attempts + 1
+                    ];
+                },
+            'act'               =>  function ($fixture) {
+                    ['auth' => $auth] = eQual::inject(['auth']);
+
+                    $fixture['error'] = null;
+
+                    try {
+                        $auth->su($fixture['user_id']);
+                        eQual::run('do', 'core_user_auth_emailotp', [
+                            'auth_code' => '654321'
+                        ]);
+                    }
+                    catch(Exception $exception) {
+                        $fixture['error'] = $exception->getMessage();
+                    }
+                    finally {
+                        $auth->su();
+                    }
+
+                    $fixture['challenge'] = core\security\challenge\EmailOtpChallenge::id($fixture['challenge_id'])
+                        ->read(['failed_attempts', 'status', 'invalidated_reason'])
+                        ->first(true);
+
+                    return $fixture;
+                },
+            'assert'            =>  function ($fixture) {
+                    return $fixture['error'] === 'allowed_failed_attempts_reached'
+                        && $fixture['challenge']['failed_attempts'] === $fixture['expected_failed_attempts']
+                        && $fixture['challenge']['status'] === 'invalidated'
+                        && $fixture['challenge']['invalidated_reason'] === 'failed_attempts';
+                },
+            'rollback'          =>  function ($fixture) {
+                    if(!is_array($fixture)) {
+                        return;
+                    }
+
+                    core\security\challenge\EmailOtpChallenge::search([
+                        'user_id', '=', $fixture['user_id']
+                    ])->delete(true);
+                    core\User::id($fixture['user_id'])->delete(true);
+                }
+        ],
+
+    '0129' => [
+            'description'       =>  'Prune only email OTP challenges beyond retention for a selected user.',
+            'return'            =>  ['array'],
+            'arrange'           =>  function () {
+                    $login = 'auth_email_otp_prune_test@example.com';
+                    core\User::search(['login', '=', $login])->delete(true);
+
+                    $user = core\User::create([
+                            'login'         => $login,
+                            'password'      => 'auth-email-otp-prune-test',
+                            'validated'     => true,
+                            'allow_auth'    => true
+                        ])
+                        ->first();
+
+                    $retention_duration = core\setting\Setting::get_value(
+                        'core',
+                        'security',
+                        'auth.email_otp.retention_duration',
+                        604800
+                    );
+                    $old_timestamp = time() - $retention_duration - 60;
+
+                    $old_consumed = core\security\challenge\EmailOtpChallenge::create([
+                            'user_id'     => $user['id'],
+                            'code_hash'   => password_hash('111111', PASSWORD_BCRYPT),
+                            'expires_at'  => time() + 60
+                        ])
+                        ->first();
+                    core\security\challenge\EmailOtpChallenge::id($old_consumed['id'])
+                        ->transition('consume')
+                        ->update(['consumed_at' => $old_timestamp]);
+
+                    $old_invalidated = core\security\challenge\EmailOtpChallenge::create([
+                            'user_id'     => $user['id'],
+                            'code_hash'   => password_hash('222222', PASSWORD_BCRYPT),
+                            'expires_at'  => time() + 60
+                        ])
+                        ->first();
+                    core\security\challenge\EmailOtpChallenge::id($old_invalidated['id'])
+                        ->update(['invalidated_reason' => 'expired'])
+                        ->transition('invalidate')
+                        ->update(['invalidated_at' => $old_timestamp]);
+
+                    $old_pending = core\security\challenge\EmailOtpChallenge::create([
+                            'user_id'     => $user['id'],
+                            'code_hash'   => password_hash('333333', PASSWORD_BCRYPT),
+                            'expires_at'  => $old_timestamp
+                        ])
+                        ->first();
+
+                    $recent_consumed = core\security\challenge\EmailOtpChallenge::create([
+                            'user_id'     => $user['id'],
+                            'code_hash'   => password_hash('444444', PASSWORD_BCRYPT),
+                            'expires_at'  => time() + 60
+                        ])
+                        ->first();
+                    core\security\challenge\EmailOtpChallenge::id($recent_consumed['id'])
+                        ->transition('consume');
+
+                    $recent_pending = core\security\challenge\EmailOtpChallenge::create([
+                            'user_id'     => $user['id'],
+                            'code_hash'   => password_hash('555555', PASSWORD_BCRYPT),
+                            'expires_at'  => time() + 60
+                        ])
+                        ->first();
+
+                    return [
+                        'user_id'    => $user['id'],
+                        'purged_ids' => [
+                            $old_consumed['id'],
+                            $old_invalidated['id'],
+                            $old_pending['id']
+                        ],
+                        'retained_ids' => [
+                            $recent_consumed['id'],
+                            $recent_pending['id']
+                        ]
+                    ];
+                },
+            'act'               =>  function ($fixture) {
+                    ['auth' => $auth] = eQual::inject(['auth']);
+
+                    try {
+                        $auth->su(EQ_ROOT_USER_ID);
+                        eQual::run('do', 'core_security_challenge_emailotp-prune', [
+                            'user_id' => $fixture['user_id']
+                        ]);
+                    }
+                    finally {
+                        $auth->su();
+                    }
+
+                    $all_ids = array_merge($fixture['purged_ids'], $fixture['retained_ids']);
+                    $fixture['remaining_ids'] = core\security\challenge\EmailOtpChallenge::search([
+                        'id', 'in', $all_ids
+                    ])->ids();
+
+                    return $fixture;
+                },
+            'assert'            =>  function ($fixture) {
+                    return count(array_intersect($fixture['purged_ids'], $fixture['remaining_ids'])) === 0
+                        && count(array_diff($fixture['retained_ids'], $fixture['remaining_ids'])) === 0;
+                },
+            'rollback'          =>  function ($fixture) {
+                    if(!is_array($fixture)) {
+                        return;
+                    }
+
+                    core\security\challenge\EmailOtpChallenge::search([
+                        'user_id', '=', $fixture['user_id']
+                    ])->delete(true);
+                    core\User::id($fixture['user_id'])->delete(true);
+                }
         ]
 ];

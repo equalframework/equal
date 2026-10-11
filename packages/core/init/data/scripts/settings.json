@@ -2019,6 +2019,42 @@
     },
     {
         "package": "core",
+        "section": "security",
+        "code": "auth.email_otp.lockout_duration",
+        "title": "Email OTP lockout duration",
+        "form_control": "input",
+        "description": "Duration of the lockout after too many failed OTP attempts, in seconds.",
+        "help": "The default lockout duration is 15 minutes. Requesting a new code does not bypass it.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Durée de verrouillage de l'email OTP",
+                "description": "Durée du verrouillage après un trop grand nombre d'échecs de validation OTP, en secondes.",
+                "help": "La durée de verrouillage par défaut est de 15 minutes. Demander un nouveau code ne permet pas de la contourner."
+            }
+        },
+        "value": "900"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.email_otp.retention_duration",
+        "title": "Email OTP challenge retention duration",
+        "form_control": "input",
+        "description": "Retention period for completed and expired email OTP challenges, in seconds.",
+        "help": "The default retention period is 7 days. Older challenges can be removed by the email OTP purge controller.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Durée de conservation des challenges email OTP",
+                "description": "Durée de conservation des challenges email OTP terminés et expirés, en secondes.",
+                "help": "La durée de conservation par défaut est de 7 jours. Les challenges plus anciens peuvent être supprimés par le contrôleur de purge des email OTP."
+            }
+        },
+        "value": "604800"
+    },
+    {
+        "package": "core",
         "section": "locale",
         "code": "number.thousands_separator",
         "title": "Thousands separator",

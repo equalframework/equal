@@ -33,14 +33,15 @@ use core\User;
         'accept-origin' => '*'
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
-    'providers'     => ['context', 'auth']
+    'providers'     => ['context', 'auth', 'orm']
 ]);
 
 /**
  * @var equal\php\Context                   $context
  * @var equal\auth\AuthenticationManager    $auth
+ * @var equal\orm\ObjectManager              $orm
  */
-['context' => $context, 'auth' => $auth] = $providers;
+['context' => $context, 'auth' => $auth, 'orm' => $orm] = $providers;
 
 /**
  * Action
@@ -79,7 +80,7 @@ $email_otp_challenge = EmailOtpChallenge::search([
         ['user_id', '=', $user['id']],
         ['status', '=', 'pending']
     ])
-    ->read(['code_hash', 'expires_at', 'failed_attempts'])
+    ->read(['code_hash', 'expires_at'])
     ->first();
 
 $now = time();
@@ -98,17 +99,25 @@ if($email_otp_challenge['expires_at'] < $now) {
 if(!password_verify($params['auth_code'], $email_otp_challenge['code_hash'])) {
     $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.email_otp.allowed_failed_attempts', 5);
 
-    $failed_attempts = $email_otp_challenge['failed_attempts'] + 1;
+    $previous_failed_attempts = $orm->fetchAndAdd(
+        EmailOtpChallenge::class,
+        [$email_otp_challenge['id']],
+        'failed_attempts',
+        1
+    );
+
+    if(!is_array($previous_failed_attempts) || !isset($previous_failed_attempts[$email_otp_challenge['id']])) {
+        throw new Exception('unexpected_error', EQ_ERROR_UNKNOWN);
+    }
+
+    $failed_attempts = $previous_failed_attempts[$email_otp_challenge['id']] + 1;
+
     if($failed_attempts >= $allowed_failed_attempts) {
         EmailOtpChallenge::id($email_otp_challenge['id'])
             ->update(['invalidated_reason' => 'failed_attempts'])
             ->transition('invalidate');
 
         throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
-    }
-    else {
-        EmailOtpChallenge::id($email_otp_challenge['id'])
-            ->update(['failed_attempts' => $failed_attempts]);
     }
 
     throw new Exception('auth_code_mismatch', EQ_ERROR_NOT_ALLOWED);
