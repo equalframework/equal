@@ -51,7 +51,7 @@ The language context is passed as a parameter to the ORM methods. If no language
 
 ### Reading Data (GET)
 
-To retrieve a specific translation, pass the language code as the second argument to the `read` method.
+To read multilingual fields in a language context, pass the language code as the second argument to the `read` method.
 
 ```php
 <?php
@@ -60,6 +60,19 @@ MyClass::search()
         ->read(['name', 'description'], $lang)
         ->get(true);
 ```
+
+#### Fallback to `DEFAULT_LANG`
+
+For each multilingual field, `read()` returns the translation for the requested language when its value is not `null`. If that translation is missing or has a `null` value, the ORM returns the value from `DEFAULT_LANG` instead.
+
+An empty string (`''`), zero (`0`), or `false` is an explicit translated value and therefore does not trigger the fallback.
+
+The fallback only resolves the value returned by `read()`:
+
+* It does not create or update a `core\Translation` record.
+* It also applies to aliased fields and fields read through relational paths.
+* A stored multilingual computed field is calculated in the requested language before the fallback is considered.
+* Searches and sorting remain strict: in a non-default language, they only use translations actually stored for that language and do not use the `DEFAULT_LANG` value as a fallback.
 
 ### Writing Data (UPDATE/CREATE)
 

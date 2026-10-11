@@ -222,6 +222,88 @@ $tests = [
                                             },
                     ),
 
+    '2160' => [
+                    'description'       =>  "Read multilang fields with a non-persistent DEFAULT_LANG fallback.",
+                    'arrange'           =>  function () {
+                                                $om = ObjectManager::getInstance();
+                                                $lang = constant('DEFAULT_LANG') === 'fr' ? 'en' : 'fr';
+                                                $group_id = $om->create('core\Group', [
+                                                    'name'          => 'test_multilang_fallback_'.uniqid(),
+                                                    'display_name'  => 'Fallback default'
+                                                ]);
+                                                return [
+                                                    'group_id'  => $group_id,
+                                                    'lang'      => $lang
+                                                ];
+                                            },
+                    'act'               =>  function ($fixtures) {
+                                                $om = ObjectManager::getInstance();
+                                                $group_id = $fixtures['group_id'];
+                                                $lang = $fixtures['lang'];
+
+                                                $objects = $om->read('core\Group', [$group_id], ['display_name'], $lang);
+                                                $initial_fallback = $objects[$group_id]['display_name'];
+
+                                                $translations_after_read = $om->search('core\Translation', [
+                                                    ['language', '=', $lang],
+                                                    ['object_class', '=', 'core\Group'],
+                                                    ['object_field', '=', 'display_name'],
+                                                    ['object_id', '=', $group_id]
+                                                ]);
+
+                                                $strict_search_ids = $om->search(
+                                                    'core\Group',
+                                                    [
+                                                        ['id', '=', $group_id],
+                                                        ['display_name', '=', 'Fallback default']
+                                                    ],
+                                                    ['id' => 'asc'],
+                                                    0,
+                                                    0,
+                                                    $lang
+                                                );
+
+                                                $om->update('core\Group', $group_id, ['display_name' => 'Localized value'], $lang);
+                                                $objects = $om->read('core\Group', [$group_id], ['display_name'], $lang);
+                                                $localized_value = $objects[$group_id]['display_name'];
+
+                                                $om->update('core\Group', $group_id, ['display_name' => null], $lang);
+                                                $objects = $om->read('core\Group', [$group_id], ['display_name'], $lang);
+                                                $null_fallback = $objects[$group_id]['display_name'];
+
+                                                $om->update('core\Group', $group_id, ['display_name' => ''], $lang);
+                                                $objects = $om->read('core\Group', [$group_id], ['display_name'], $lang);
+                                                $empty_value = $objects[$group_id]['display_name'];
+
+                                                $om->update('core\Group', $group_id, ['display_name' => null], $lang);
+                                                $om->update('core\Group', $group_id, ['display_name' => 'Updated default'], constant('DEFAULT_LANG'));
+                                                $objects = $om->read('core\Group', [$group_id], ['display_name'], $lang);
+                                                $updated_fallback = $objects[$group_id]['display_name'];
+
+                                                return $fixtures + [
+                                                    'initial_fallback'        => $initial_fallback,
+                                                    'translations_after_read' => $translations_after_read,
+                                                    'strict_search_ids'       => $strict_search_ids,
+                                                    'localized_value'         => $localized_value,
+                                                    'null_fallback'           => $null_fallback,
+                                                    'empty_value'             => $empty_value,
+                                                    'updated_fallback'         => $updated_fallback
+                                                ];
+                                            },
+                    'assert'            =>  function ($result) {
+                                                return $result['initial_fallback'] === 'Fallback default'
+                                                    && $result['translations_after_read'] === []
+                                                    && $result['strict_search_ids'] === []
+                                                    && $result['localized_value'] === 'Localized value'
+                                                    && $result['null_fallback'] === 'Fallback default'
+                                                    && $result['empty_value'] === ''
+                                                    && $result['updated_fallback'] === 'Updated default';
+                                            },
+                    'rollback'          =>  function ($result) {
+                                                ObjectManager::getInstance()->remove('core\Group', [$result['group_id']]);
+                                            }
+                    ],
+
 
     //22xx : calls related to the create method
     '2210' => array(

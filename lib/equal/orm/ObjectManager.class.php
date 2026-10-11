@@ -647,6 +647,49 @@ class ObjectManager extends Service {
     }
 
     /**
+     * Returns the language partition in which a field is stored in the ORM cache.
+     *
+     * Multilang fields use the language requested by the caller. All other
+     * fields are language-independent and are always stored under DEFAULT_LANG,
+     * even when the surrounding ORM operation uses another language.
+     *
+     * This method only selects a cache partition. It deliberately does not
+     * resolve a fallback value; callers that need the effective readable value
+     * must use getCachedValue().
+     */
+    private function getCacheLang($lang, $multilang=false) {
+        return $multilang ? $lang : constant('DEFAULT_LANG');
+    }
+
+    /**
+     * Returns the effective readable value of a field from the ORM cache.
+     *
+     * The primary cache partition is selected with getCacheLang(): the requested
+     * language for multilang fields, and DEFAULT_LANG for all other fields.
+     *
+     * For a multilang field requested in a non-default language, a missing or
+     * null localized value falls back to the value cached under DEFAULT_LANG.
+     * Other false-like values, including an empty string, zero, and false, are
+     * explicit values and are returned without fallback.
+     *
+     * The fallback is read-only: this method neither loads data nor copies the
+     * default value into the requested language partition.
+     *
+     * This prevents a fallback from being mistaken for, or later persisted as, a translation.
+     */
+    private function getCachedValue($table_name, $oid, $field, $lang, $multilang=false) {
+        $default_lang = constant('DEFAULT_LANG');
+        $target_lang = $this->getCacheLang($lang, $multilang);
+        $value = $this->cache[$table_name][$oid][$target_lang][$field] ?? null;
+
+        if($multilang && $lang !== $default_lang && is_null($value)) {
+            $value = $this->cache[$table_name][$oid][$default_lang][$field] ?? null;
+        }
+
+        return $value;
+    }
+
+    /**
      * Load given fields from specified class into the cache
      *
      * @return void
@@ -999,10 +1042,7 @@ class ObjectManager extends Service {
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
                 // for each computed field, build an array holding ids of incomplete objects
-                $target_lang = constant('DEFAULT_LANG');
-                if( ($schema[$field]['multilang'] ?? false) ) {
-                    $target_lang = $lang;
-                }
+                $target_lang = $this->getCacheLang($lang, $schema[$field]['multilang'] ?? false);
 
                 // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
                 $missing_ids = array_filter($ids, fn($id) => !isset($this->cache[$table_name][$id][$target_lang][$field]) || is_null($this->cache[$table_name][$id][$target_lang][$field]));
@@ -1019,6 +1059,27 @@ class ObjectManager extends Service {
                     }
                     catch(Exception $e) {
                         trigger_error('ORM::unable to store computed field: '.$e->getMessage(), EQ_REPORT_ERROR);
+                    }
+                }
+            }
+
+            // 4) load DEFAULT_LANG values required as fallbacks, without copying
+            // them into the cache of the requested language
+            $default_lang = constant('DEFAULT_LANG');
+            if($lang !== $default_lang) {
+                foreach($fields as $field) {
+                    if(!($schema[$field]['multilang'] ?? false)) {
+                        continue;
+                    }
+
+                    $fallback_ids = array_filter($ids, function($id) use ($table_name, $field, $lang, $default_lang) {
+                        $value = $this->cache[$table_name][$id][$lang][$field] ?? null;
+                        $default_values = $this->cache[$table_name][$id][$default_lang] ?? [];
+                        return is_null($value) && !array_key_exists($field, $default_values);
+                    });
+
+                    if(count($fallback_ids)) {
+                        $this->load($class, $fallback_ids, [$field], $default_lang);
                     }
                 }
             }
@@ -2193,11 +2254,7 @@ class ObjectManager extends Service {
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
                     // assign cache to object values
-                    $target_lang = $lang;
-                    if($lang != constant('DEFAULT_LANG') && (!isset($schema[$field]['multilang']) || !$schema[$field]['multilang'])) {
-                        // field is not multilang: make sure to assign the default lang
-                        $target_lang = constant('DEFAULT_LANG');
-                    }
+                    $target_lang = $this->getCacheLang($lang, $schema[$field]['multilang'] ?? false);
                     $this->cache[$table_name][$oid][$target_lang][$field] = $value;
                 }
             }
@@ -2378,11 +2435,7 @@ class ObjectManager extends Service {
                         }
                     }
                     // assign cache to object values
-                    $target_lang = $lang;
-                    if($lang != constant('DEFAULT_LANG') && (!isset($schema[$field]['multilang']) || !$schema[$field]['multilang'])) {
-                        // field is not multilang: make sure to assign the default lang
-                        $target_lang = constant('DEFAULT_LANG');
-                    }
+                    $target_lang = $this->getCacheLang($lang, $schema[$field]['multilang'] ?? false);
                     $this->cache[$table_name][$oid][$target_lang][$field] = $value;
                 }
             }
@@ -2434,10 +2487,7 @@ class ObjectManager extends Service {
                 $this->load($class, $ids, array_keys($dependents['related']), $lang);
 
                 foreach($dependents['related'] as $field => $subfields) {
-                    $target_lang = constant('DEFAULT_LANG');
-                    if(($schema[$field]['multilang'] ?? false)) {
-                        $target_lang = $lang;
-                    }
+                    $target_lang = $this->getCacheLang($lang, $schema[$field]['multilang'] ?? false);
                     $values = [];
                     foreach($subfields as $subfield) {
                         $values[$subfield] = null;
@@ -2659,10 +2709,7 @@ class ObjectManager extends Service {
                     // build the 'broadest' missing fields array (to load fields in bulk)
                     $fields_missing = [];
                     foreach($requested_fields as $key => $field) {
-                        $target_lang = constant('DEFAULT_LANG');
-                        if( ($schema[$field]['multilang'] ?? false) ) {
-                            $target_lang = $lang;
-                        }
+                        $target_lang = $this->getCacheLang($lang, $schema[$field]['multilang'] ?? false);
 
                         foreach($ids as $oid) {
                             if($schema[$field]['type'] === 'computed'
@@ -2701,13 +2748,14 @@ class ObjectManager extends Service {
                             $target_field = $schema[$target_field]['alias'];
                         }
 
-                        $target_lang = constant('DEFAULT_LANG');
-                        if( ($schema[$target_field]['multilang'] ?? false) ) {
-                            $target_lang = $lang;
-                        }
-
                         // use final notation
-                        $res[$oid][$field] = $this->cache[$table_name][$oid][$target_lang][$target_field] ?? null;
+                        $res[$oid][$field] = $this->getCachedValue(
+                            $table_name,
+                            $oid,
+                            $target_field,
+                            $lang,
+                            $schema[$target_field]['multilang'] ?? false
+                        );
                     }
                 }
             }
@@ -2745,16 +2793,17 @@ class ObjectManager extends Service {
                         // ignore non-relational fields
                         continue;
                     }
-                    $target_lang = constant('DEFAULT_LANG');
-                    if( ($schema[$field]['multilang'] ?? false) ) {
-                        $target_lang = $lang;
-                    }
-
                     // recursively read sub objects for each object
                     // #todo - this could be improved by loading all targeted objects for current collection at once
                     foreach($ids as $oid) {
                         // #memo - for unreachable values, m2o are always set to null, and m2m or o2m to an empty array
-                        $sub_ids = (array) ($this->cache[$table_name][$oid][$target_lang][$field] ?? []);
+                        $sub_ids = (array) $this->getCachedValue(
+                            $table_name,
+                            $oid,
+                            $field,
+                            $lang,
+                            $schema[$field]['multilang'] ?? false
+                        );
                         if(count($sub_ids)) {
                             $sub_values = $this->read($descriptor['foreign_object'], $sub_ids, (array) $sub_path, $lang);
                             if(!is_array($sub_values) || !count($sub_values)) {
@@ -3562,6 +3611,7 @@ class ObjectManager extends Service {
                                     $conditions[$j][] = [$table_alias.'.id', '=', '`'.$translation_table_alias.'.object_id`'];
                                     $conditions[$j][] = [$translation_table_alias.'.object_class', '=', self::getObjectRootClass($class)];
                                     $conditions[$j][] = [$translation_table_alias.'.object_field', '=', $field];
+                                    $conditions[$j][] = [$translation_table_alias.'.language', '=', $lang];
                                     $field = $translation_table_alias.'.value';
                                 }
                                 // simple fields always match table fields
@@ -3649,8 +3699,14 @@ class ObjectManager extends Service {
                 }
                 // we might need to request more than the id field (for example, for sorting purpose)
                 if($lang != constant('DEFAULT_LANG') && isset($schema[$sort_field]['multilang']) && $schema[$sort_field]['multilang']) {
-                    // #todo : validate this code (we should probably add join conditions in some cases)
-                    $translation_table_alias = $add_table('core_translation');
+                    $translation_table_alias = $add_table('core_translation', true);
+                    foreach($conditions as &$condition_clause) {
+                        $condition_clause[] = [$table_alias.'.id', '=', '`'.$translation_table_alias.'.object_id`'];
+                        $condition_clause[] = [$translation_table_alias.'.object_class', '=', self::getObjectRootClass($class)];
+                        $condition_clause[] = [$translation_table_alias.'.object_field', '=', $sort_field];
+                        $condition_clause[] = [$translation_table_alias.'.language', '=', $lang];
+                    }
+                    unset($condition_clause);
                     $select_fields[] = $translation_table_alias.'.value';
                     $order_table_alias = $translation_table_alias;
                     $sort_field = 'value';

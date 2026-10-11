@@ -49,6 +49,71 @@ $tests = [
                     core\test\Test1::id($result['test1_id'])->delete(true);
                     core\test\Test::id($result['test_id'])->delete(true);
                 }
+        ],
+
+    '1003' => [
+            'description'   =>  "Checking that stored multilang computed fields are localized before fallback.",
+            'arrange'       =>  function () {
+                    $om = equal\orm\ObjectManager::getInstance();
+                    $lang = constant('DEFAULT_LANG') === 'fr' ? 'en' : 'fr';
+                    $message_model_id = $om->create('core\alert\MessageModel', [
+                        'name'          => 'test_multilang_computed_'.uniqid(),
+                        'label'         => 'Default computed label',
+                        'description'   => 'Default computed description'
+                    ]);
+                    $om->update(
+                        'core\alert\MessageModel',
+                        $message_model_id,
+                        ['label' => 'Localized computed label'],
+                        $lang
+                    );
+                    $message_id = $om->create('core\alert\Message', [
+                        'object_class'      => 'core\Group',
+                        'object_id'         => 1,
+                        'message_model_id'  => $message_model_id
+                    ]);
+                    $objects = $om->read(
+                        'core\alert\Message',
+                        [$message_id],
+                        ['label'],
+                        constant('DEFAULT_LANG')
+                    );
+                    return [
+                        'message_model_id'  => $message_model_id,
+                        'message_id'        => $message_id,
+                        'lang'              => $lang,
+                        'default_value'     => $objects[$message_id]['label']
+                    ];
+                },
+            'act'           =>  function ($fixtures) {
+                    $om = equal\orm\ObjectManager::getInstance();
+                    $objects = $om->read(
+                        'core\alert\Message',
+                        [$fixtures['message_id']],
+                        ['label'],
+                        $fixtures['lang']
+                    );
+                    $translation_ids = $om->search('core\Translation', [
+                        ['language', '=', $fixtures['lang']],
+                        ['object_class', '=', 'core\alert\Message'],
+                        ['object_field', '=', 'label'],
+                        ['object_id', '=', $fixtures['message_id']]
+                    ]);
+                    return $fixtures + [
+                        'localized_value'   => $objects[$fixtures['message_id']]['label'],
+                        'translation_ids'   => $translation_ids
+                    ];
+                },
+            'assert'        =>  function ($result) {
+                    return $result['default_value'] === 'Default computed label'
+                        && $result['localized_value'] === 'Localized computed label'
+                        && count($result['translation_ids']) === 1;
+                },
+            'rollback'      =>  function ($result) {
+                    $om = equal\orm\ObjectManager::getInstance();
+                    $om->remove('core\alert\Message', [$result['message_id']]);
+                    $om->remove('core\alert\MessageModel', [$result['message_model_id']]);
+                }
         ]
 
 ];
