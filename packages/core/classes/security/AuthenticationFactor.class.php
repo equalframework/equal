@@ -29,6 +29,7 @@ class AuthenticationFactor extends Model {
             'type' => [
                 'type'              => 'string',
                 'selection'         => [
+                    'password',
                     'passkey',
                     'totp',
                     'recovery_code'

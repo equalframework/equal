@@ -13,6 +13,7 @@
             "description": "Type of authentication factor.",
             "help": "Identifies the technical mechanism used by the factor.",
             "selection": {
+                "password": "Password",
                 "passkey": "Passkey",
                 "totp": "TOTP",
                 "recovery_code": "Recovery code"

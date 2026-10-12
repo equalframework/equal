@@ -13,6 +13,7 @@
             "description": "Type de facteur d'authentification.",
             "help": "Identifie le mécanisme technique utilisé par le facteur.",
             "selection": {
+                "password": "Mot de passe",
                 "passkey": "Clé d'accès",
                 "totp": "TOTP",
                 "recovery_code": "Code de récupération"
