@@ -484,6 +484,7 @@ else {
                     $opt_bin_dir = '/opt/bin';
                     if(is_dir($opt_bin_dir)) {
                         $paths = [];
+                        // #todo - force 'PATH=' . escapeshellarg($opt_bin_dir)
                         exec('command -v ' . escapeshellarg($bin) . ' 2>/dev/null', $paths, $result_code);
                         if($result_code !== 0 || empty($paths[0])) {
                             throw new Exception('binary_not_found', EQ_ERROR_UNKNOWN);
@@ -491,6 +492,7 @@ else {
 
                         $binary = trim($paths[0]);
                         $libraries = [];
+                        // #memo - LD_LIBRARY_PATH is expected amongst ENV vars
                         exec('ldd ' . escapeshellarg($binary) . ' 2>/dev/null', $libraries, $result_code);
                         foreach($libraries as $library) {
                             if(preg_match('/=>\s+(\/\S+)/', $library, $matches)) {
