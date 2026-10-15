@@ -192,6 +192,17 @@
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Valider",
     "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de vouloir supprimer le document ?",
 
+    "I18N_TRANSLATE_FIELD_TITLE": "Traductions",
+    "I18N_TRANSLATE_FIELD_PRIMARY": "langue principale",
+    "I18N_TRANSLATE_FIELD_LOADING": "Chargement des traductions...",
+    "I18N_TRANSLATE_FIELD_NO_OTHER_LANGUAGE": "Aucune autre langue n'est disponible.",
+    "I18N_TRANSLATE_FIELD_CANCEL": "Annuler",
+    "I18N_TRANSLATE_FIELD_SAVE": "Enregistrer",
+    "I18N_TRANSLATE_FIELD_SAVING": "Enregistrement...",
+    "I18N_TRANSLATE_FIELD_ERROR_MISSING_DATA": "Les données nécessaires à la traduction sont manquantes.",
+    "I18N_TRANSLATE_FIELD_ERROR_LOAD": "Impossible de charger les traductions.",
+    "I18N_TRANSLATE_FIELD_ERROR_SAVE": "Impossible d'enregistrer les traductions.",
+
     "#memo - next lines are a temp fix for Discope": "to remove",
 
     "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",

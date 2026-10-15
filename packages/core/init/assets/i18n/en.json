@@ -190,5 +190,16 @@
     "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Rename",
     "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Cancel",
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Delete",
-    "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?"
+    "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?",
+
+    "I18N_TRANSLATE_FIELD_TITLE": "Translations",
+    "I18N_TRANSLATE_FIELD_PRIMARY": "primary language",
+    "I18N_TRANSLATE_FIELD_LOADING": "Loading translations...",
+    "I18N_TRANSLATE_FIELD_NO_OTHER_LANGUAGE": "No other language is available.",
+    "I18N_TRANSLATE_FIELD_CANCEL": "Cancel",
+    "I18N_TRANSLATE_FIELD_SAVE": "Save",
+    "I18N_TRANSLATE_FIELD_SAVING": "Saving...",
+    "I18N_TRANSLATE_FIELD_ERROR_MISSING_DATA": "The data required to translate this field is missing.",
+    "I18N_TRANSLATE_FIELD_ERROR_LOAD": "Unable to load translations.",
+    "I18N_TRANSLATE_FIELD_ERROR_SAVE": "Unable to save translations."
 }
