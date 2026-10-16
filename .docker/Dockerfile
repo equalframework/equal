@@ -40,7 +40,7 @@ RUN ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
 	msodbcsql17 \
 	unixodbc \
 	unixodbc-dev
-RUN pecl install sqlsrv pdo_sqlsrv
+RUN pecl install sqlsrv
 
 # install required PHP extensions
 RUN set -ex; \
@@ -57,6 +57,7 @@ RUN set -ex; \
 				libwebp-dev \
 				libzip-dev \
 				libicu-dev \
+				libpq-dev \
 				zip \
 				unzip \
 		; \
@@ -68,8 +69,9 @@ RUN set -ex; \
 			zip \
 			intl \
 			ftp \
-			mysqli; \
-		docker-php-ext-enable sqlsrv pdo_sqlsrv; \
+			mysqli \
+			pgsql; \
+		docker-php-ext-enable sqlsrv; \
 		\
 		apt-mark auto '.*' > /dev/null; \
 		apt-mark manual $savedAptMark; \

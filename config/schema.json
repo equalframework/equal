@@ -80,7 +80,8 @@
         "default": "MYSQL",
         "examples": [
             "MARIADB",
-            "SQLSRV"
+            "SQLSRV",
+            "POSTGRESQL"
         ]
     },
     "DB_CHARSET": {
@@ -88,19 +89,22 @@
         "description": "Charset encoding to use when manipulating strings with DBMS. The possible values depends on the DBMS.",
         "help": [
             "MySQL: MySQL/MariaDB handles UTF8 as utf8mb3 by default ('utf8' = 'utf8mb3'). For 4-byte unicode encoding, use 'utf8mb4'.",
-            "SQLSRV: SQLSRV cluster < 2019 does not support UTF-8, so this setting is ignored."
+            "SQLSRV: SQLSRV cluster < 2019 does not support UTF-8, so this setting is ignored.",
+            "PostgreSQL: use 'UTF8'."
         ],
         "instant": true,
         "default": "utf8mb4",
         "examples": [
-            "utf8"
+            "utf8",
+            "UTF8"
         ]
     },
     "DB_COLLATION": {
         "type": "string",
         "description": "Collation to apply on SQL connection (and subsequent queries). The possible values depends on the DBMS.",
         "help": [
-            "MySQL: Possible values are 'utf8_unicode_ci' (3 bytes) or 'utf8mb4_unicode_ci' (4 bytes) in most cases."
+            "MySQL: Possible values are 'utf8_unicode_ci' (3 bytes) or 'utf8mb4_unicode_ci' (4 bytes) in most cases.",
+            "PostgreSQL: database collation is determined when the database is created; leave this setting empty to use the server default."
         ],
         "instant": true,
         "default": "utf8mb4_unicode_ci",
@@ -121,7 +125,8 @@
         "description": "TCP/IP port for connecting to DB host.",
         "help": [
             "MySQL: default port for MySQL/MariaDB is 3306",
-            "SQLSRV: default port for MS SQL Server si 1433"
+            "SQLSRV: default port for MS SQL Server is 1433",
+            "PostgreSQL: default port is 5432"
         ],
         "instant": true,
         "environment": "EQ_DB_PORT",

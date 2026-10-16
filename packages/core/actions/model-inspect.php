@@ -52,6 +52,9 @@ $quoteIdentifier = static function(string $identifier): string {
         if(constant('DB_DBMS') === 'SQLSRV') {
             $part = '['.str_replace(']', ']]', $part).']';
         }
+        elseif(constant('DB_DBMS') === 'POSTGRESQL') {
+            $part = '"'.str_replace('"', '""', $part).'"';
+        }
         else {
             $part = '`'.str_replace('`', '``', $part).'`';
         }

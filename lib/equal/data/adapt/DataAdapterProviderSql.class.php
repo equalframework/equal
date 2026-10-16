@@ -12,7 +12,8 @@ class DataAdapterProviderSql implements AdapterProvider {
         'MYSQL'     => 'equal\data\adapt\DataAdapterProviderSqlMySql',
         'MARIADB'   => 'equal\data\adapt\DataAdapterProviderSqlMySql',
         'SQLSRV'    => 'equal\data\adapt\DataAdapterProviderSqlSqlSrv',
-        'SQLITE'    => 'equal\data\adapt\DataAdapterProviderSqlSqlite'
+        'SQLITE'    => 'equal\data\adapt\DataAdapterProviderSqlSqlite',
+        'POSTGRESQL' => 'equal\data\adapt\DataAdapterProviderSqlPostgreSql'
     ];
 
     /**

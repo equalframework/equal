@@ -74,6 +74,14 @@
  */
 ['context' => $context] = $providers;
 
+$dbms_options = [
+    'MYSQL'      => ['charset' => 'utf8mb4', 'collation' => 'utf8mb4_unicode_ci'],
+    'MARIADB'    => ['charset' => 'utf8mb4', 'collation' => 'utf8mb4_unicode_ci'],
+    'SQLSRV'     => ['charset' => '',        'collation' => 'LATIN1_GENERAL_100_CS_AS_SC'],
+    'SQLITE'     => ['charset' => '',        'collation' => ''],
+    'POSTGRESQL' => ['charset' => 'UTF8',    'collation' => '']
+];
+
 $config = [
     'DB_DBMS'                       => $params['dbms'],
     'DB_HOST'                       => $params['db_host'],
@@ -81,6 +89,8 @@ $config = [
     'DB_USER'                       => $params['db_username'],
     'DB_PASSWORD'                   => $params['db_password'],
     'DB_NAME'                       => $params['db_name'],
+    'DB_CHARSET'                    => $dbms_options[$params['dbms']]['charset'],
+    'DB_COLLATION'                  => $dbms_options[$params['dbms']]['collation'],
     'AUTH_SECRET_KEY'               => bin2hex(random_bytes(32)),
     'AUTH_ACCESS_TOKEN_VALIDITY'    => "1d",
     'USER_ACCOUNT_DISPLAYNAME'      => "nickname",

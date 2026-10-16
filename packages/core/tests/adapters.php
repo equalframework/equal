@@ -20,6 +20,7 @@ use equal\data\adapt\{
     DataAdapterProviderJson,
     DataAdapterProviderSql,
     DataAdapterProviderSqlMySql,
+    DataAdapterProviderSqlPostgreSql,
     DataAdapterProviderSqlSqlite,
     DataAdapterProviderSqlSqlSrv,
     DataAdapterProviderTxt
@@ -32,6 +33,7 @@ use equal\data\adapt\adapters\json\{
 };
 use equal\data\adapt\adapters\sql\DataAdapterSqlText;
 use equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTextMySql;
+use equal\data\adapt\adapters\sql\postgresql\DataAdapterSqlTextPostgreSql;
 use equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv;
 use equal\data\adapt\adapters\txt\DataAdapterTxtText;
 use equal\data\DataFormatter;
@@ -194,6 +196,7 @@ $tests = [
                         [new DataAdapterProviderJson(), DataAdapterJsonText::class],
                         [new DataAdapterProviderTxt(), DataAdapterTxtText::class],
                         [new DataAdapterProviderSqlMySql(), DataAdapterSqlTextMySql::class],
+                        [new DataAdapterProviderSqlPostgreSql(), DataAdapterSqlTextPostgreSql::class],
                         [new DataAdapterProviderSqlSqlite(), DataAdapterSqlText::class],
                         [new DataAdapterProviderSqlSqlSrv(), DataAdapterSqlTextSqlSrv::class]
                     ];
@@ -215,6 +218,7 @@ $tests = [
                         [new DataAdapterProviderJson(), DataAdapterJsonText::class],
                         [new DataAdapterProviderTxt(), DataAdapterTxtText::class],
                         [new DataAdapterProviderSqlMySql(), DataAdapterSqlTextMySql::class],
+                        [new DataAdapterProviderSqlPostgreSql(), DataAdapterSqlTextPostgreSql::class],
                         [new DataAdapterProviderSqlSqlite(), DataAdapterSqlText::class],
                         [new DataAdapterProviderSqlSqlSrv(), DataAdapterSqlTextSqlSrv::class]
                     ];
@@ -227,6 +231,39 @@ $tests = [
                 },
             'assert'        =>  function($result) {
                     return ($result === true);
+                }
+        ],
+    '3107' => [
+            'description'   =>  "DataAdapterProvider: PostgreSQL-specific SQL adapters",
+            'act'           =>  function () {
+                    $provider = new DataAdapterProviderSqlPostgreSql();
+                    $boolean = $provider->get('number/boolean');
+                    $binary = $provider->get('binary');
+                    $datetime = $provider->get('datetime');
+                    $real = $provider->get('number/real:10.2');
+                    $text = $provider->get('text/plain:128');
+                    return [
+                        $boolean->castOutType(),
+                        $boolean->adaptIn('t', 'number/boolean'),
+                        $boolean->adaptIn('f', 'number/boolean'),
+                        $binary->castOutType(),
+                        $binary->adaptIn('\\x4142', 'binary'),
+                        $datetime->castOutType(),
+                        $real->castOutType('number/real:10.2'),
+                        $text->castOutType('text/plain:128')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [
+                        'BOOLEAN',
+                        true,
+                        false,
+                        'BYTEA',
+                        'AB',
+                        'TIMESTAMP WITHOUT TIME ZONE',
+                        'NUMERIC(12,2)',
+                        'VARCHAR(128)'
+                    ]);
                 }
         ],
 

@@ -1,0 +1,30 @@
+<?php
+/*
+    This file is part of the eQual framework <https://github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2026
+    Original author(s): Cédric FRANCOYS
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
+namespace equal\data\adapt\adapters\sql\postgresql;
+
+use equal\data\adapt\adapters\sql\DataAdapterSqlReal;
+use equal\orm\UsageFactory;
+use equal\orm\usages\Usage;
+
+class DataAdapterSqlRealPostgreSql extends DataAdapterSqlReal {
+
+    public function castOutType($usage=null): string {
+        $precision = 10;
+        $scale = 2;
+
+        if(!is_null($usage)) {
+            if(!($usage instanceof Usage)) {
+                $usage = UsageFactory::create($usage);
+            }
+            $scale = $usage->getScale();
+            $precision = $usage->getPrecision() + $scale;
+        }
+
+        return 'NUMERIC('.$precision.','.$scale.')';
+    }
+}

@@ -232,8 +232,15 @@ $createNewItemFromOld = function(array $config, DBManipulator $old_db_connection
                     }
 
                     $query = $imp_conf['query'];
-                    $resRel = $old_db_connection->sendQuery(
-                        'SELECT `' . $query['field'] . '` from `' . $query['table'] . '` WHERE `' . ($query['where_field'] ?? 'id') . '` = ' . $previous_value . ' LIMIT 1;'
+                    $resRel = $old_db_connection->getRecords(
+                        $query['table'],
+                        [$query['field']],
+                        null,
+                        [[[$query['where_field'] ?? 'id', '=', $previous_value]]],
+                        'id',
+                        [],
+                        0,
+                        1
                     );
 
                     if($relRow = $old_db_connection->fetchArray($resRel)) {

@@ -28,7 +28,7 @@ $extensions = get_loaded_extensions();
 $ext_mandatory = ['gd', 'intl', 'iconv','json', 'libxml', 'mbstring', 'SimpleXML', 'zip'];
 
 // supported DBMS extensions
-$ext_dbms = ['sqlite3', 'mysqli', 'sqlsrv'];
+$ext_dbms = ['sqlite3', 'mysqli', 'sqlsrv', 'pgsql'];
 
 
 $diff_mandatory = array_diff($ext_mandatory, $extensions);

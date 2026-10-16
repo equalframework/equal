@@ -29,7 +29,7 @@ class DBConnection {
                 $dbConnection = new DBManipulatorSQLite($host, $port, $name, $user, $password, $charset, $collation);
                 break;
             case 'POSTGRESQL' :
-                // #todo
+                $dbConnection = new DBManipulatorPostgreSql($host, $port, $name, $user, $password, $charset, $collation);
                 break;
             case 'ORACLE' :
                 // #todo
