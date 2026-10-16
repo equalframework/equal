@@ -14,7 +14,6 @@
 /public/*
 !/public/index.php
 !/public/console.php
-!/public/assets
 composer.json
 composer.phar
 composer.lock

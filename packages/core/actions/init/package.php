@@ -315,7 +315,22 @@ else {
     $assets_folder = EQ_BASEDIR."/packages/{$params['package']}/init/assets";
     if(file_exists($assets_folder) && is_dir($assets_folder)) {
         $target_folder = EQ_BASEDIR . "/public/assets/";
-        exec("cp -r $assets_folder/* $target_folder");
+        if(!is_dir($target_folder) && !mkdir($target_folder, 0777, true) && !is_dir($target_folder)) {
+            throw new Exception('failed_init_package_files_copy', EQ_ERROR_UNKNOWN);
+        }
+
+        $output = [];
+        $result_code = 0;
+        exec(
+            'cp -r ' . escapeshellarg($assets_folder) . '/* ' . escapeshellarg($target_folder) . ' 2>&1',
+            $output,
+            $result_code
+        );
+
+        if($result_code !== 0) {
+            trigger_error("PHP::Unable to copy assets from {$assets_folder} to {$target_folder}: " . implode("\n", $output), EQ_REPORT_WARNING);
+            throw new Exception('failed_init_package_files_copy', EQ_ERROR_UNKNOWN);
+        }
     }
 
     // 3 quat) If a `lib` folder exists, copy its content to /lib/
