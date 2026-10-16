@@ -8,6 +8,8 @@
 namespace equal\data\adapt\adapters\json;
 
 use equal\data\adapt\DataAdapter;
+use equal\orm\UsageFactory;
+use equal\orm\usages\Usage;
 
 class DataAdapterJsonText implements DataAdapter {
 
@@ -36,6 +38,17 @@ class DataAdapterJsonText implements DataAdapter {
         $result = null;
         if(!is_null($value)) {
             $result = (string) $value;
+            if(!($usage instanceof Usage)) {
+                $usage = UsageFactory::create($usage);
+            }
+            switch($usage->getType()) {
+                case 'phone':
+                    $result = str_replace([' ', "\t", '(', ')', '.', '-', '/'], '', $result);
+                    break;
+                case 'email':
+                    $result = trim($result);
+                    break;
+            }
         }
         return $result;
     }

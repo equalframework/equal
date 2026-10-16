@@ -25,6 +25,12 @@ class DataAdapterProviderSqlSqlite implements AdapterProvider {
         'text'      => [
             'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlText'
         ],
+        'phone' => [
+            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlText'
+        ],
+        'email' => [
+            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlText'
+        ],
         'password' => [
             'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlText'
         ],

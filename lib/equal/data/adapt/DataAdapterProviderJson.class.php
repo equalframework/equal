@@ -25,6 +25,12 @@ class DataAdapterProviderJson implements AdapterProvider {
         'text'      => [
             'default'       => 'equal\data\adapt\adapters\json\DataAdapterJsonText'
         ],
+        'phone' => [
+            'default'       => 'equal\data\adapt\adapters\json\DataAdapterJsonText'
+        ],
+        'email' => [
+            'default'       => 'equal\data\adapt\adapters\json\DataAdapterJsonText'
+        ],
         'time' => [
             'default'       => 'equal\data\adapt\adapters\json\DataAdapterJsonTime'
         ],

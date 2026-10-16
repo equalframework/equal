@@ -8,6 +8,7 @@
 namespace equal\data\adapt\adapters\txt;
 
 use equal\data\adapt\DataAdapter;
+use equal\data\DataFormatter;
 use equal\orm\UsageFactory;
 use equal\orm\usages\Usage;
 use equal\html\HTMLToText;
@@ -39,6 +40,17 @@ class DataAdapterTxtText implements DataAdapter {
         $result = null;
         if(!is_null($value)) {
             $result = (string) $value;
+            if(!($usage instanceof Usage)) {
+                $usage = UsageFactory::create($usage);
+            }
+            switch($usage->getType()) {
+                case 'phone':
+                    $result = str_replace([' ', "\t", '(', ')', '.', '-', '/'], '', $result);
+                    break;
+                case 'email':
+                    $result = trim($result);
+                    break;
+            }
         }
         return $result;
     }
@@ -57,6 +69,9 @@ class DataAdapterTxtText implements DataAdapter {
         if(!is_null($value)) {
             if(!($usage instanceof Usage)) {
                 $usage = UsageFactory::create($usage);
+            }
+            if($usage->getType() === 'phone') {
+                return DataFormatter::format((string) $value, 'phone');
             }
             $subtype = $usage->getSubtype();
             switch($subtype) {

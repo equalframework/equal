@@ -19,14 +19,22 @@ use equal\data\adapt\{
     DataAdapterTxt,
     DataAdapterProviderJson,
     DataAdapterProviderSql,
+    DataAdapterProviderSqlMySql,
+    DataAdapterProviderSqlSqlite,
+    DataAdapterProviderSqlSqlSrv,
     DataAdapterProviderTxt
 };
 use equal\data\adapt\adapters\json\{
     DataAdapterJsonBoolean,
     DataAdapterJsonInteger,
-    DataAdapterJsonReal
+    DataAdapterJsonReal,
+    DataAdapterJsonText
 };
 use equal\data\adapt\adapters\sql\DataAdapterSqlText;
+use equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTextMySql;
+use equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv;
+use equal\data\adapt\adapters\txt\DataAdapterTxtText;
+use equal\data\DataFormatter;
 use equal\orm\UsageFactory;
 
 global $test;
@@ -177,6 +185,48 @@ $tests = [
                 },
             'assert'        =>  function($adapter) {
                     return ($adapter instanceof DataAdapterSqlText);
+                }
+        ],
+    '3105' => [
+            'description'   =>  "DataAdapterProvider: text adapters retrieval - phone",
+            'act'           =>  function () {
+                    $providers = [
+                        [new DataAdapterProviderJson(), DataAdapterJsonText::class],
+                        [new DataAdapterProviderTxt(), DataAdapterTxtText::class],
+                        [new DataAdapterProviderSqlMySql(), DataAdapterSqlTextMySql::class],
+                        [new DataAdapterProviderSqlSqlite(), DataAdapterSqlText::class],
+                        [new DataAdapterProviderSqlSqlSrv(), DataAdapterSqlTextSqlSrv::class]
+                    ];
+                    foreach($providers as [$provider, $expectedClass]) {
+                        if(!($provider->get('phone') instanceof $expectedClass)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '3106' => [
+            'description'   =>  "DataAdapterProvider: text adapters retrieval - email",
+            'act'           =>  function () {
+                    $providers = [
+                        [new DataAdapterProviderJson(), DataAdapterJsonText::class],
+                        [new DataAdapterProviderTxt(), DataAdapterTxtText::class],
+                        [new DataAdapterProviderSqlMySql(), DataAdapterSqlTextMySql::class],
+                        [new DataAdapterProviderSqlSqlite(), DataAdapterSqlText::class],
+                        [new DataAdapterProviderSqlSqlSrv(), DataAdapterSqlTextSqlSrv::class]
+                    ];
+                    foreach($providers as [$provider, $expectedClass]) {
+                        if(!($provider->get('email') instanceof $expectedClass)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
                 }
         ],
 
@@ -366,6 +416,67 @@ $tests = [
                 },
             'assert'        =>  function($result) {
                     return ($result === ['a' => 'test 1', 'b' => 'test 2', 'c' => 'foo']);
+                }
+        ],
+    '4012' => [
+            'description'   =>  "JSON adapter IN - phone normalization",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterJson();
+                    return [
+                        $adapter->adaptIn('+32 (478) 45.67.89', 'phone'),
+                        $adapter->adaptIn('0032 478 45 67 89', 'phone'),
+                        $adapter->adaptIn('0478/45.67.89', UsageFactory::create('phone')),
+                        $adapter->adaptIn('+32 PHONE', 'phone'),
+                        $adapter->adaptIn(null, 'phone')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [
+                        '+32478456789',
+                        '0032478456789',
+                        '0478456789',
+                        '+32PHONE',
+                        null
+                    ]);
+                }
+        ],
+    '4013' => [
+            'description'   =>  "JSON adapter IN - email normalization",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterJson();
+                    return [
+                        $adapter->adaptIn(' User.Name+tag@Example.com ', 'email'),
+                        $adapter->adaptIn(null, UsageFactory::create('email'))
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === ['User.Name+tag@Example.com', null]);
+                }
+        ],
+    '4014' => [
+            'description'   =>  "TXT adapter IN - phone normalization",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterTxt();
+                    return [
+                        $adapter->adaptIn("+32\t(478) 45-67/89", 'phone'),
+                        $adapter->adaptIn(null, 'phone')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === ['+32478456789', null]);
+                }
+        ],
+    '4015' => [
+            'description'   =>  "TXT adapter IN - email normalization",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterTxt();
+                    return [
+                        $adapter->adaptIn(' User.Name+tag@Example.com ', UsageFactory::create('email')),
+                        $adapter->adaptIn(null, 'email')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === ['User.Name+tag@Example.com', null]);
                 }
         ],
     '4101' => [
@@ -568,6 +679,135 @@ $tests = [
                 },
             'assert'        =>  function($result) {
                     return ($result[1] === $result[0]);
+                }
+        ],
+    '4113' => [
+            'description'   =>  "TXT adapter OUT - phone",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterTxt();
+                    return [
+                        $adapter->adaptOut('+32489532419', 'phone'),
+                        $adapter->adaptOut(null, 'phone')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [
+                        DataFormatter::format('+32489532419', 'phone'),
+                        null
+                    ]);
+                }
+        ],
+    '4114' => [
+            'description'   =>  "TXT adapter OUT - email",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterTxt();
+                    return [
+                        $adapter->adaptOut('User.Name+tag@Example.com', UsageFactory::create('email')),
+                        $adapter->adaptOut(null, 'email')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === ['User.Name+tag@Example.com', null]);
+                }
+        ],
+    '4115' => [
+            'description'   =>  "JSON adapter OUT - canonical phone",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterJson();
+                    return [
+                        $adapter->adaptOut('+32478456789', 'phone'),
+                        $adapter->adaptOut(null, 'phone')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [
+                        '+32478456789',
+                        null
+                    ]);
+                }
+        ],
+    '4116' => [
+            'description'   =>  "JSON adapter OUT - canonical email",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterJson();
+                    return [
+                        $adapter->adaptOut('User.Name+tag@Example.com', UsageFactory::create('email')),
+                        $adapter->adaptOut(null, 'email')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === ['User.Name+tag@Example.com', null]);
+                }
+        ],
+    '4117' => [
+            'description'   =>  "Usage validation after phone adaptation",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterJson();
+                    $phoneUsage = UsageFactory::create('phone');
+                    $phone = $adapter->adaptIn('+32 (478) 45.67.89', $phoneUsage);
+                    $phoneConstraint = $phoneUsage->getConstraints()['invalid_phone']['function'];
+                    return $phoneConstraint($phone);
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4118' => [
+            'description'   =>  "Usage validation after email adaptation",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterJson();
+                    $emailUsage = UsageFactory::create('email');
+                    $email = $adapter->adaptIn(' User.Name+tag@Example.com ', $emailUsage);
+                    $emailConstraint = $emailUsage->getConstraints()['invalid_email']['function'];
+                    return $emailConstraint($email);
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4119' => [
+            'description'   =>  "DataFormatter: direct phone formatting compatibility",
+            'act'           =>  function () {
+                    return DataFormatter::format('+32489532419', 'phone');
+                },
+            'assert'        =>  function($result) {
+                    return ($result === '+32 489 53 24 19');
+                }
+        ],
+    '4120' => [
+            'description'   =>  "SQL text adapter - canonical phone",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterSqlText();
+                    return [
+                        $adapter->adaptIn('+32478456789', 'phone'),
+                        $adapter->adaptOut('+32478456789', 'phone'),
+                        $adapter->adaptOut(null, 'phone')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [
+                        '+32478456789',
+                        '+32478456789',
+                        null
+                    ]);
+                }
+        ],
+    '4121' => [
+            'description'   =>  "SQL text adapter - canonical email",
+            'act'           =>  function () {
+                    $adapter = new DataAdapterSqlText();
+                    return [
+                        $adapter->adaptIn('User.Name+tag@Example.com', 'email'),
+                        $adapter->adaptOut('User.Name+tag@Example.com', 'email'),
+                        $adapter->adaptOut(null, 'email')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [
+                        'User.Name+tag@Example.com',
+                        'User.Name+tag@Example.com',
+                        null
+                    ]);
                 }
         ]
 ];

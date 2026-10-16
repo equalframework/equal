@@ -25,6 +25,12 @@ class DataAdapterProviderSqlMySql implements AdapterProvider {
         'text'      => [
             'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTextMySql'
         ],
+        'phone' => [
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTextMySql'
+        ],
+        'email' => [
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTextMySql'
+        ],
         'password' => [
             'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTextMySql'
         ],

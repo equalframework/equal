@@ -25,6 +25,12 @@ class DataAdapterProviderTxt implements AdapterProvider {
         'text'      => [
             'default'       => 'equal\data\adapt\adapters\txt\DataAdapterTxtText'
         ],
+        'phone' => [
+            'default'       => 'equal\data\adapt\adapters\txt\DataAdapterTxtText'
+        ],
+        'email' => [
+            'default'       => 'equal\data\adapt\adapters\txt\DataAdapterTxtText'
+        ],
         'time' => [
             'default'       => 'equal\data\adapt\adapters\txt\DataAdapterTxtTime'
         ],

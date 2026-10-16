@@ -25,6 +25,12 @@ class DataAdapterProviderSqlSqlSrv implements AdapterProvider {
         'text'      => [
             'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
         ],
+        'phone' => [
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
+        ],
+        'email' => [
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
+        ],
         'password' => [
             'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
         ],
