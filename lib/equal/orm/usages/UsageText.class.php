@@ -70,32 +70,27 @@ class UsageText extends Usage {
                         case 'plain':
                             break;
                         case 'html':
-                            $doc = new \DOMDocument();
-                            libxml_use_internal_errors(true);
-                            $doc->loadHTML($value);
-                            // discard warnings
-                            $filtered_errors = array_filter(libxml_get_errors(), function($error) {
-                                // #todo - add constant for strict HTML validation [LIBXML_ERR_WARNING, LIBXML_ERR_ERROR, LIBXML_ERR_FATAL]
-                                return in_array($error->level, [LIBXML_ERR_FATAL]);
-                            });
-                            return empty($filtered_errors);
-                            break;
+                            return $this->isValidHtml($value);
                         case 'json':
-                            @json_decode($value);
-                            return (json_last_error() === JSON_ERROR_NONE);
+                            return $this->isValidJson($value);
                         case 'xml':
-                            $xml = new \XMLReader();
-                            $xml->xml($value);
-                            $xml->setParserProperty(\XMLReader::VALIDATE, true);
-                            return $xml->isValid();
+                            return $this->isValidXml($value);
                         case 'markdown':
-                            // #todo - check markdown validity
-                            break;
+                            return $this->isValidMarkdown($value);
                         case 'wiki':
                             // #todo - check wikitext validity
                             break;
                     }
                     return true;
+                }
+            ],
+            'unsafe_html' => [
+                'message'  => 'HTML contains forbidden elements or attributes.',
+                'function' => function($value) {
+                    if(empty($value) || $this->getSubtype(0) !== 'html') {
+                        return true;
+                    }
+                    return $this->isSafeHtml($value);
                 }
             ]
         ];
@@ -110,4 +105,98 @@ class UsageText extends Usage {
         return DataGenerator::plainText($this->getMin(), $max);
     }
 
+    private function isValidHtml(string $html): bool {
+        $doc = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTML($html);
+
+        // discard warnings
+        $filtered_errors = array_filter(libxml_get_errors(), function($error) {
+            // #todo - add constant for strict HTML validation [LIBXML_ERR_WARNING, LIBXML_ERR_ERROR, LIBXML_ERR_FATAL]
+            return in_array($error->level, [LIBXML_ERR_FATAL]);
+        });
+        libxml_clear_errors();
+
+        return empty($filtered_errors);
+    }
+
+    private function isValidJson(string $json): bool {
+        @json_decode($json);
+        return (json_last_error() === JSON_ERROR_NONE);
+    }
+
+    private function isValidMarkdown(string $markdown): bool {
+        // #todo - check markdown validity
+        return true;
+    }
+
+    private function isValidXml(string $xml): bool {
+        $reader = new \XMLReader();
+        $reader->xml($xml);
+        $reader->setParserProperty(\XMLReader::VALIDATE, true);
+        return $reader->isValid();
+    }
+
+    private function isSafeHtml(string $html): bool {
+        $tags = array_flip(explode(
+            ' ',
+            'html body p br strong b em i u s ul ol li blockquote pre code h1 h2 h3 h4 h5 h6 a'
+        ));
+
+        $attributes = [
+            'a' => array_flip(['href', 'title'])
+        ];
+
+        libxml_use_internal_errors(true);
+
+        $doc = new \DOMDocument();
+        $loaded = $doc->loadHTML(
+            '<!DOCTYPE html><html><body>' . $html . '</body></html>',
+            LIBXML_NONET
+        );
+
+        $invalid = !$loaded
+            || count(libxml_get_errors())
+            || $doc->getElementsByTagName('script')->length
+            || (new \DOMXPath($doc))->query('//comment()')->length;
+
+        libxml_clear_errors();
+
+        if($invalid) {
+            return false;
+        }
+
+        foreach($doc->getElementsByTagName('*') as $element) {
+            $tag = strtolower($element->nodeName);
+
+            if(!isset($tags[$tag])) {
+                return false;
+            }
+
+            foreach($element->attributes as $attribute) {
+                $name = strtolower($attribute->nodeName);
+
+                if(!isset($attributes[$tag][$name])) {
+                    return false;
+                }
+
+                if($name === 'href') {
+                    $uri = preg_replace('/[\x00-\x20\x7f]+/', '', $attribute->nodeValue);
+
+                    if(
+                        preg_match('/^([a-z][a-z0-9+.-]*):/i', $uri, $match)
+                        && !in_array(
+                            strtolower($match[1]),
+                            ['http', 'https', 'mailto', 'tel'],
+                            true
+                        )
+                    ) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
 }
