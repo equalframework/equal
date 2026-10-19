@@ -140,11 +140,13 @@ class UsageText extends Usage {
     private function isSafeHtml(string $html): bool {
         $tags = array_flip(explode(
             ' ',
-            'html body p br strong b em i u s ul ol li blockquote pre code h1 h2 h3 h4 h5 h6 a'
+            'html body p br strong b em i u s ul ol li blockquote pre code h1 h2 h3 h4 h5 h6 a span'
         ));
 
+        $global_attributes = array_flip(['class', 'style']);
+
         $attributes = [
-            'a' => array_flip(['href', 'title'])
+            'a' => array_flip(['href', 'title', 'rel', 'target'])
         ];
 
         libxml_use_internal_errors(true);
@@ -176,7 +178,7 @@ class UsageText extends Usage {
             foreach($element->attributes as $attribute) {
                 $name = strtolower($attribute->nodeName);
 
-                if(!isset($attributes[$tag][$name])) {
+                if(!isset($global_attributes[$name]) && !isset($attributes[$tag][$name])) {
                     return false;
                 }
 
@@ -193,6 +195,28 @@ class UsageText extends Usage {
                     ) {
                         return false;
                     }
+                }
+
+                if($name === 'rel') {
+                    $values = preg_split('/\s+/', strtolower(trim($attribute->nodeValue)), -1, PREG_SPLIT_NO_EMPTY);
+
+                    if(
+                        empty($values)
+                        || count(array_diff($values, ['noopener', 'noreferrer', 'nofollow']))
+                    ) {
+                        return false;
+                    }
+                }
+
+                if(
+                    $name === 'target'
+                    && !in_array(
+                        strtolower(trim($attribute->nodeValue)),
+                        ['_blank', '_self', '_parent', '_top'],
+                        true
+                    )
+                ) {
+                    return false;
                 }
             }
         }
