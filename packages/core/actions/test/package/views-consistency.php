@@ -84,7 +84,7 @@ $get_model_schema = function(string $class_name) use($orm): ?array {
         return null;
     }
 
-    if($class_name::isAbstract() || substr($class_name, -8) === 'Abstract') {
+    if($class_name::isAbstract()) {
         return null;
     }
 
