@@ -68,6 +68,10 @@ Guidelines:
 - First character to uppercase, if it does not change the meaning.
 - Keep same meaning, if for example `eIDAS signature level (ses = drawn)` then modify to `The eIDAS signature level (ses = drawn)` to not modify the `eIDAS` name writing.
 
+#### ORM - Value for attribute 'description' should not exceed 65 chars for field 'origin_object_id' referenced in file packages/finance/classes/accounting/AccountingEntry.class.php
+
+Reduce the description length, make it concise. Use the help field for more information.
+
 ### Errors
 
 #### ERROR - GUI - Class {entity}: missing default form view (/views/xxx\\xxx.{view_id}.json)
