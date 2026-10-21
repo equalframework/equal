@@ -14,8 +14,7 @@ class TestOne2manyForeignKey extends Test
             'tests1_by_test_id_ids' => [
                 'type'           => 'one2many',
                 'foreign_object' => 'core\test\Test1',
-                'foreign_field'  => 'test_id',
-                'foreign_key'    => 'test_id'
+                'foreign_field'  => 'test_id'
             ]
         ];
     }

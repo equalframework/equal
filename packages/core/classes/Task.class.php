@@ -33,7 +33,7 @@ class Task extends Model {
                     'running'
                 ],
                 'default'           => 'idle',
-                'description'       => 'Current status of the processing (to avoid concurrent executions).'
+                'description'       => 'Current task processing status.'
             ],
 
             'pid' => [
@@ -108,7 +108,7 @@ class Task extends Model {
 
             'controller' => [
                 'type'              => 'string',
-                'description'       => "Full notation of the action controller to invoke (ex. core_example_action)."
+                'description'       => 'Action controller invoked by the task.'
             ],
 
             'params' => [

@@ -44,13 +44,13 @@ class Permission extends Model {
             'domain' => [
                 'deprecated'        => "use `getRole()` for each specific Model",
                 'type'              => 'string',
-                'description'       => "JSON value of the constraints domain (ex. ['creator', '=', '1'])",
+                'description'       => 'JSON constraint domain applied by this permission.',
                 'default'           => NULL
             ],
 
             'object_id' => [
                 'type'              => 'integer',
-                'description'       => "Identifier of the specific object on which the permission applies."
+                'description'       => 'Identifier of the object this permission applies to.'
             ],
 
             'group_id' => [
@@ -70,7 +70,7 @@ class Permission extends Model {
 
             'rights' => [
                 'type' 	            => 'integer',
-                'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8: DELETE, 16: MANAGE)",
+                'description'       => 'Binary mask of the granted access rights.',
                 'dependents'        => ['rights_txt']
             ],
 

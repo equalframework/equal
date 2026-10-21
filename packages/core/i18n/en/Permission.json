@@ -3,10 +3,10 @@
 	"plural": "Permissions",
 	"description": "Permissions.",
 	"model": {
-        "class_name":{"label":"Class", "description": "", "help": ""},
-		"rights":{"label":"Rights", "description": "", "help":"Permissions are set by using a binary mask, bits meaning:\nbit 0 (2^0 = 1): create\nbit 1 (2^1 = 2): read\nbit 2 (2^2 = 4): write\nbit 3 (2^3 = 8): delete\nbit 4 (2^4 = 16): manage\n\nEx.: To grant read and write permissions, we need to set bits 1 and 2,\n so field value would be 6 (2^1+2^2)."},
-        "group_id":{"label":"Group", "description": "Group to which the permission belongs.", "help": ""},
-        "rights_txt":{"label":"Rights", "description": "Translation in text of the rights of the permission.", "help": ""}
+        "class_name":{"label":"Class", "description": "Entity class to which the permission applies.", "help": "Enter the fully qualified class name that the permission targets."},
+		"rights":{"label":"Rights", "description": "Binary mask of the granted access rights.", "help":"Permissions are set by using a binary mask, bits meaning:\nbit 0 (2^0 = 1): create\nbit 1 (2^1 = 2): read\nbit 2 (2^2 = 4): write\nbit 3 (2^3 = 8): delete\nbit 4 (2^4 = 16): manage\n\nEx.: To grant read and write permissions, we need to set bits 1 and 2,\n so field value would be 6 (2^1+2^2)."},
+        "group_id":{"label":"Group", "description": "Group to which the permission belongs.", "help": "Select the group that receives the permission."},
+        "rights_txt":{"label":"Rights", "description": "Text representation of the granted rights.", "help": "This value is calculated automatically from the rights mask."}
 	},
 	"view": {
 

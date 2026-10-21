@@ -3,60 +3,30 @@
     "plural": "Grupos",
     "description": "Grupos",
     "model": {
-        "id": {
-            "label": "Identificador",
-            "description": "",
-            "help": ""
-        },
-        "creator": {
-            "label": "Creador",
-            "description": "El usuario que ha realizado la creación del grupo.",
-            "help": ""
-        },
-        "created": {
-            "label": "Creado",
-            "description": "La fecha de creación.",
-            "help": ""
-        },
-        "modifier": {
-            "label": "Modificador",
-            "description": "El usuario que ha realizado la modificación  del grupo.",
-            "help": ""
-        },
-        "modified": {
-            "label": "Modificado",
-            "description": "",
-            "help": "La fecha de modificación."
-        },
-        "deleted": {
-            "label": "Eliminado",
-            "description": "",
-            "help": "¿El grupos está eliminado?"
-        },
         "name": {
             "label": "Nombre",
-            "description": "",
-            "help": ""
+            "description": "Nombre técnico que identifica el grupo.",
+            "help": "Indique un nombre único para identificar el grupo."
         },
         "display_name": {
             "label": "Nombre",
-            "description": "",
-            "help": ""
+            "description": "Nombre del grupo que se muestra a los usuarios.",
+            "help": "Indique el nombre traducible que se mostrará en la interfaz."
         },
         "description": {
             "label": "Descripción",
             "description": "Breve presentación del papel asignado a los miembros del grupo.",
-            "help": ""
+            "help": "Describa brevemente la función de los miembros del grupo."
         },
         "users_ids": {
             "label": "Usuarios",
             "description": "Lista de usuarios miembros del grupo.",
-            "help": ""
+            "help": "Seleccione los usuarios que pertenecen al grupo."
         },
         "permissions_ids": {
             "label": "Permisos",
-            "description": "Lista de permisos del del grupo.",
-            "help": ""
+            "description": "Lista de permisos del grupo.",
+            "help": "Añada los permisos que se conceden a los miembros del grupo."
         }
     },
     "view": {

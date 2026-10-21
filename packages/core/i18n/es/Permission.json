@@ -5,33 +5,33 @@
     "model": {
         "class_name": {
             "label": "Clase",
-            "description": "",
-            "help": ""
+            "description": "Clase de entidad a la que se aplica el permiso.",
+            "help": "Indique el nombre completo de la clase a la que se aplica el permiso."
         },
         "domain": {
             "label": "Dominio",
             "description": "Valor JSON del dominio de restricciones.",
-            "help": ""
+            "help": "Indique el dominio JSON que limita los objetos accesibles."
         },
         "group_id": {
             "label": "Grupo",
             "description": "Grupo al que pertenece el permiso.",
-            "help": ""
+            "help": "Seleccione el grupo que recibe el permiso."
         },
         "user_id": {
             "label": "Usuario",
-            "description": "",
-            "help": ""
+            "description": "Usuario al que se aplica el permiso.",
+            "help": "Seleccione el usuario que recibe el permiso."
         },
         "rights": {
             "label": "Permiso",
-            "description": "Los permisos se establecen mediante una máscara binaria",
-            "help": ""
+            "description": "Máscara binaria de los derechos concedidos.",
+            "help": "Indique la suma de los derechos: crear 1, leer 2, escribir 4, eliminar 8 y administrar 16."
         },
         "rights_txt": {
             "label": "Permiso texto",
             "description": "Traducción en texto de los derechos del permiso.",
-            "help": ""
+            "help": "Este valor se calcula automáticamente a partir de la máscara de derechos."
         }
     },
     "view": {

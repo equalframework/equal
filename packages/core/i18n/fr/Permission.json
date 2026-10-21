@@ -5,38 +5,38 @@
     "model": {
         "class_name":{
             "label": "Classe",
-            "description": "",
-            "help":""
+            "description": "Classe d'entité à laquelle la permission s'applique.",
+            "help":"Indiquez le nom complet de la classe ciblée par la permission."
         },
         "domain":{
             "label":"Domaine",
-            "description": "",
-            "help": ""
+            "description": "Domaine JSON qui limite les objets accessibles.",
+            "help": "Indiquez le domaine JSON à appliquer à la permission."
         },
         "object_id":{
             "label":"Objet",
-            "description": "",
-            "help": ""
+            "description": "Identifiant de l'objet auquel la permission s'applique.",
+            "help": "Indiquez l'identifiant de l'objet ciblé lorsque la permission est spécifique."
         },
         "group_id":{
             "label":"Groupe",
-            "description": "",
-            "help": ""
+            "description": "Groupe auquel la permission s'applique.",
+            "help": "Sélectionnez le groupe qui reçoit la permission."
         },
         "user_id":{
             "label":"Utilisateur",
-            "description": "",
-            "help": ""
+            "description": "Utilisateur auquel la permission s'applique.",
+            "help": "Sélectionnez l'utilisateur qui reçoit la permission."
         },
         "rights":{
             "label":"Droits",
-            "description": "",
-            "help": ""
+            "description": "Masque binaire des droits accordés.",
+            "help": "Indiquez la somme des droits : créer 1, lire 2, écrire 4, supprimer 8 et gérer 16."
         },
         "rights_txt":{
             "label":"Droits",
-            "description": "",
-            "help": ""
+            "description": "Représentation textuelle des droits accordés.",
+            "help": "Cette valeur est calculée automatiquement à partir du masque des droits."
         }
     },
     "view": {

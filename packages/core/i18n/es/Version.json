@@ -5,23 +5,23 @@
     "model": {
         "object_class": {
             "label": "Clase",
-            "description": "Clase del objeto de destino",
-            "help": ""
+            "description": "Clase del objeto de destino.",
+            "help": "Indique el nombre completo de la clase del objeto versionado."
         },
         "object_id": {
             "label": "Identificador",
             "description": "Identificador del objeto.",
-            "help": ""
+            "help": "Indique el identificador del objeto versionado."
         },
         "serialized_value": {
-            "label": "valor serializado",
-            "description": "",
-            "help": ""
+            "label": "Valor serializado",
+            "description": "Contenido serializado de la versión del objeto.",
+            "help": "Este valor almacena la representación serializada del objeto."
         },
         "lang": {
             "label": "Idioma",
             "description": "Idioma del  objeto.",
-            "help": ""
+            "help": "Indique el idioma asociado al contenido versionado."
         }
     },
     "view": [],

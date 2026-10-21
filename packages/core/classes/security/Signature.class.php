@@ -137,7 +137,7 @@ class Signature extends Model {
                 'type'              => 'string',
                 'selection'         => ['ses', 'aes', 'qes'],
                 'required'          => true,
-                'description'       => 'eIDAS signature level (ses = drawn).'
+                'description'       => 'The eIDAS signature level (ses = drawn).'
             ],
 
             'has_certificate' => [
@@ -161,7 +161,7 @@ class Signature extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'usage'             => 'text/json.small',
-                'description'       => 'JSON CMS (Cryptographic Message Syntax) representation of the signature.',
+                'description'       => 'JSON CMS representation of the signature.',
                 'function'          => 'calcJsonCms',
                 'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
@@ -185,7 +185,7 @@ class Signature extends Model {
 
             'sig_algo_oid' => [
                 'type'              => 'string',
-                'description'       => 'Signature algorithm, e.g., RSA, ECC',
+                'description'       => 'Signature algorithm, e.g., RSA or ECC.',
                 'dependents'        => ['sig_algo', 'sig_padding', 'sig_hash_func'],
                 'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
@@ -195,7 +195,7 @@ class Signature extends Model {
                 'result_type'       => 'string',
                 'function'          => 'calcSigAlgo',
                 'store'             => true,
-                'description'       => 'Signature algorithm, e.g., RSA, ECC',
+                'description'       => 'Signature algorithm derived from its OID.',
                 'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
@@ -204,7 +204,7 @@ class Signature extends Model {
                 'result_type'       => 'string',
                 'function'          => 'calcSigHashFunc',
                 'store'             => true,
-                'description'       => 'Signature algorithm, e.g., RSA, ECC',
+                'description'       => 'Hash function derived from the signature algorithm.',
                 'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
@@ -228,7 +228,7 @@ class Signature extends Model {
             'is_valid' => [
                 'type'              => 'computed',
                 'result_type'       => 'boolean',
-                'description'       => 'Result of the check of signature digest using Certificate public key.',
+                'description'       => 'Whether the certificate validates the signature digest.',
                 'function'          => 'calcIsValid',
                 'store'             => false
             ],

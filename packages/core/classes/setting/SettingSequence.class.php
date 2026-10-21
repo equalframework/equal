@@ -51,8 +51,7 @@ class SettingSequence extends Model {
             'value' => [
                 'type'              => 'integer',
                 'description'       => 'Value of the sequence.',
-                'help'              => 'A sequence is always a positive integer. Sequences can benefit from the fetch_and_add method.',
-                'multilang'         => false
+                'help'              => 'A sequence is always a positive integer. Sequences can benefit from the fetch_and_add method.'
             ]
 
         ];

@@ -23,7 +23,7 @@ class Log extends Model {
             'action' => [
                 'type'              => 'string',
                 'required'          => true,
-                'description'       => 'The name of the action performed on targeted object (\'create\', \'update\', \'delete\', or any custom value).'
+                'description'       => 'Action performed on the targeted object.'
             ],
 
             'user_id' => [
@@ -48,14 +48,14 @@ class Log extends Model {
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\Change',
                 'foreign_field'     => 'log_id',
-                'description'       => "List of old and new values that represent the changes applied on the object."
+                'description'       => 'Old and new values applied to the targeted object.'
             ],
 
             'history' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'usage'             => 'text/html',
-                'description'       => "Textual history of changes made to the object at the time of the Log.",
+                'description'       => 'Textual history of changes made to the object.',
                 'function'          => 'calcHistory',
                 'store'             => false
             ]

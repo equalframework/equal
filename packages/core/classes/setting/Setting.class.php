@@ -102,7 +102,7 @@ class Setting extends Model {
 
             'is_deprecated' => [
                 'type'              => 'boolean',
-                'description'       => 'Marks the setting as deprecated and retained for backward compatibility.',
+                'description'       => 'Marks the setting as retained for compatibility.',
                 'help'              => 'Use the canonical replacement for new integrations.',
                 'default'           => false,
                 'dependents'        => ['setting_values_ids' => ['is_deprecated']]

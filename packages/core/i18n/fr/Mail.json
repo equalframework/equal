@@ -3,11 +3,6 @@
     "plural": "Mails",
     "description": "Messages courriels envoyés.",
     "model": {
-        "modified":{
-            "label":"Envoyé",
-            "description": "Date d'envoi du courriel.",
-            "help":""
-        },
         "to":{
             "label":"À",
             "description": "Destinataire principal du courriel.",
@@ -23,35 +18,36 @@
             "selection": {
                 "pending": "en attente",
                 "failing": "en échec",
+                "processed": "traité",
                 "sent": "envoyé"
             },
-            "description": "",
-            "help": ""
+            "description": "Statut d'envoi du courriel.",
+            "help": "Cette valeur indique si le courriel est en attente, traité, envoyé ou en échec."
         },
         "subject":{
             "label":"Sujet",
             "description": "Titre du message.",
-            "help": ""
+            "help": "Indiquez le sujet qui sera affiché au destinataire."
         },
         "body":{
             "label":"Corps",
             "description": "Corps du message.",
-            "help": ""
+            "help": "Saisissez le contenu HTML du message."
         },
         "attachments":{
             "label":"Pièces jointes",
             "description": "Liste des noms des documents joints au message.",
-            "help": ""
+            "help": "Indiquez les noms des documents joints, séparés par des virgules."
         },
         "response_status":{
             "label":"Réponse",
             "description": "Code de statut de la réponse SMTP.",
-            "help": ""
+            "help": "Ce code est renseigné à partir de la réponse du serveur SMTP."
         },
         "response": {
             "label":"Réponse",
             "description": "Message de réponse du serveur SMTP.",
-            "help": ""
+            "help": "Ce message est renseigné à partir de la réponse du serveur SMTP."
         }
     },
     "view": {

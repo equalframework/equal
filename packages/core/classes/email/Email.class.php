@@ -80,7 +80,7 @@ class Email extends Model {
             'attachments' => [
                 'type'              => 'string',
                 'usage'             => 'text/plain',
-                'description'       => 'List of documents names attached to the email, comma separated (no content).',
+                'description'       => 'Names of documents attached to the email, separated by commas.',
                 'generation'        => 'generateAttachments'
             ],
 
