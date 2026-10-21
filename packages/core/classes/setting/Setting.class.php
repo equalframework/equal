@@ -508,7 +508,7 @@ class Setting extends Model {
      * If the targeted Setting does not exist, the call fails.
      * If an error occur and the value cannot be set, false is returned. Upon success the newly assigned value is returned.
      *
-     * @return  void
+     * @return  int|false
      */
     public static function set_sequence(string $package, string $section, string $code, int $value, array $selector=[]) {
         if(!static::setting_exists($package, $section, $code)) {
