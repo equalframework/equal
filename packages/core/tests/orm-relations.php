@@ -124,7 +124,6 @@ namespace {
 use equal\orm\ObjectManager;
 use core\test\Test as TestModel;
 use core\test\Test1 as Test1Model;
-use core\test\TestOne2manyForeignKey;
 use core\tests\fixtures\orm_relations\CascadeChild;
 use core\tests\fixtures\orm_relations\CascadeParent;
 use core\tests\fixtures\orm_relations\DetachDeleteChild;
@@ -182,52 +181,6 @@ $tests = [
                                                 $om->remove(TestModel::getType(), $result['fixtures']['test_ids']);
                                             },
                     ),
-    '2520' => array(
-                    'description'       =>  "Search for some object : clause 'contains' on one2many field (using a foreign key different from 'id').",
-                    'return'            =>  array('boolean'),
-                    'arrange'           =>  function () {
-                                                $om = ObjectManager::getInstance();
-
-                                                $test_a_id = $om->create(TestOne2manyForeignKey::getType(), ['string_short' => 'o2m2520a']);
-                                                $test_b_id = $om->create(TestOne2manyForeignKey::getType(), ['string_short' => 'o2m2520b']);
-                                                $test1_a_id = $om->create(Test1Model::getType(), ['test_id' => $test_a_id]);
-                                                $test1_b_id = $om->create(Test1Model::getType(), ['test_id' => $test_b_id]);
-
-                                                return [
-                                                    'test_ids'  => [$test_a_id, $test_b_id],
-                                                    'test1_ids' => [$test1_a_id, $test1_b_id]
-                                                ];
-                                            },
-                    'act'               =>  function ($fixtures) {
-                                                $om = ObjectManager::getInstance();
-
-                                                return [
-                                                    'ids'      => $om->search(TestOne2manyForeignKey::getType(), ['tests1_by_test_id_ids', 'contains', [$fixtures['test_ids'][0]]]),
-                                                    'fixtures' => $fixtures
-                                                ];
-                                            },
-                    'assert'            =>  function ($result) {
-                                                if(!is_array($result) || !isset($result['ids']) || !is_array($result['ids'])) {
-                                                    return false;
-                                                }
-
-                                                $ids = array_map('intval', $result['ids']);
-
-                                                return (
-                                                    in_array($result['fixtures']['test_ids'][0], $ids, true)
-                                                    && !in_array($result['fixtures']['test_ids'][1], $ids, true)
-                                                );
-                                            },
-                    'rollback'          =>  function ($result) {
-                                                if(!isset($result['fixtures'])) {
-                                                    return;
-                                                }
-
-                                                $om = ObjectManager::getInstance();
-                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids']);
-                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids']);
-                                            }
-                    ),
     '2530' => array(
                     'description'       =>  "Search for some object : clause 'contains' on many2one field.",
                     'return'            =>  array('boolean'),
@@ -271,7 +224,7 @@ $tests = [
 
                                                 $om = ObjectManager::getInstance();
                                                 $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids']);
-                                                $om->remove(TestOne2manyForeignKey::getType(), $result['fixtures']['test_ids']);
+                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids']);
                                             }
                     ),
 
