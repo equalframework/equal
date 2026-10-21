@@ -60,6 +60,32 @@ For setting structure, naming conventions, sections, and examples, see [Settings
 
 Alerts in eQual are managed through dedicated message-model entities, ensuring consistency and traceability.
 
+### Alerts and Operational Responsibility
+
+An **alert** is intended for users. It should describe a situation they can understand and for which they have an operational responsibility.
+
+The origin of an event does not determine its audience. A failure caused by an automated process may still require a user-facing alert when resolving its consequences is part of the user's responsibilities. For example, if a signature reminder email cannot be sent, the user should be informed because ensuring that the reminder reaches its recipient remains part of the business workflow.
+
+User-facing alerts should:
+
+* use clear business language;
+* explain the impact of the problem;
+* indicate what the user can do;
+* avoid unnecessary technical or sensitive details.
+
+Sensitive incidents and problems that users cannot resolve should instead generate a **support notification** sent to the designated support address. Technical details should remain in support notifications and logs.
+
+When a sensitive incident also affects the user, two separate messages may be appropriate:
+
+* a concise user alert explaining the business impact;
+* a detailed support notification for investigation.
+
+Notifications should therefore be classified according to their audience and responsibility:
+
+* **Alert**: understandable and actionable by the user.
+* **Support notification**: technical or sensitive information requiring support intervention.
+* **Log entry**: diagnostic information used for troubleshooting and auditing.
+
 ### Message Model (`core\alert\MessageModel`)
 
 The `MessageModel` entity defines the semantics of an alert type:

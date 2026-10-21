@@ -37,9 +37,10 @@
 31. Do not call `update()` from computed field logic.
 32. Do not duplicate controller or model logic that can be reached through `eQual::run()` or `$self->do()`.
 33. Do not silently change error keys, response shapes, HTTP statuses, or public method signatures.
-34. Do not broaden a task into unrelated cleanup or refactoring.
+34. Never expose raw exception contents in user-facing output, API responses, client-visible logs, or notifications. In particular, do not return or append `$e->getMessage()`, for example `$result['logs'][] = "ERR - {$e->getMessage()}"`, because exception details can disclose security-sensitive information. Diagnostic details may be sent to server-side logs with `trigger_error()` or an equivalent server-only logger; return a generic, stable error key or safe message to the user instead.
+35. Do not broaden a task into unrelated cleanup or refactoring.
 
 ## Final response format
 
-35. Final responses must distinguish what changed, what validation ran, and what validation was skipped.
-36. When reporting commands, use the command actually executed. In PowerShell this usually means `php run.php ...`, not the documentation form `./equal.run ...`.
+36. Final responses must distinguish what changed, what validation ran, and what validation was skipped.
+37. When reporting commands, use the command actually executed. In PowerShell this usually means `php run.php ...`, not the documentation form `./equal.run ...`.
