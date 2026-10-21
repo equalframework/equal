@@ -11,6 +11,11 @@ use equal\data\DataGenerator;
 
 class UsageText extends Usage {
 
+    private const LIBXML_LITERAL_AMPERSAND_ERROR_CODES = [
+        23, // XML_ERR_ENTITYREF_SEMICOL_MISSING
+        68  // XML_ERR_NAME_REQUIRED
+    ];
+
     /**
      * Create an instance and set length according to 'text' specific notations.
      *
@@ -157,8 +162,17 @@ class UsageText extends Usage {
             LIBXML_NONET
         );
 
+        $errors = array_filter(libxml_get_errors(), function($error) {
+            // libxml reports literal ampersands as recoverable entity-reference errors.
+            $is_literal_ampersand_error = $error->level !== LIBXML_ERR_FATAL
+                && in_array($error->code, self::LIBXML_LITERAL_AMPERSAND_ERROR_CODES, true)
+                && strpos(trim($error->message), 'htmlParseEntityRef:') === 0;
+
+            return !$is_literal_ampersand_error;
+        });
+
         $invalid = !$loaded
-            || count(libxml_get_errors())
+            || count($errors)
             || $doc->getElementsByTagName('script')->length
             || (new \DOMXPath($doc))->query('//comment()')->length;
 
