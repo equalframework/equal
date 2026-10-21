@@ -145,7 +145,7 @@ class UsageText extends Usage {
     private function isSafeHtml(string $html): bool {
         $tags = array_flip(explode(
             ' ',
-            'html body p br strong b em i u s ul ol li blockquote pre code h1 h2 h3 h4 h5 h6 a span'
+            'html body p br strong b em i u s ul ol li blockquote pre code small big h1 h2 h3 h4 h5 h6 a span'
         ));
 
         $global_attributes = array_flip(['class', 'style']);
