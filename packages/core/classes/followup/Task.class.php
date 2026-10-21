@@ -25,6 +25,11 @@ class Task extends Model {
                 'required'          => true
             ],
 
+            'code' => [
+                'type'              => 'string',
+                'description'       => "Code identifying the task model used to generate the task."
+            ],
+
             'description' => [
                 'type'              => 'string',
                 'description'       => "Short description of the booking task."
@@ -112,6 +117,16 @@ class Task extends Model {
         ];
     }
 
+    public static function getActions(): array {
+        return [
+            'sync_task_model' => [
+                'description'   => "Synchronize the task with its task model.",
+                'policies'      => [],
+                'function'      => 'doSyncTaskModel'
+            ]
+        ];
+    }
+
     public static function onchange($event, $values): array {
         $result = [];
         if(isset($event['is_done'])) {
@@ -143,7 +158,7 @@ class Task extends Model {
         return $result;
     }
 
-    public static function onupdateIsDone($self) {
+    protected static function onupdateIsDone($self) {
         /** @var \equal\auth\AuthenticationManager $auth */
         ['auth' => $auth] = \eQual::inject(['auth']);
         $user_id = $auth->userId();
@@ -174,12 +189,21 @@ class Task extends Model {
         }
     }
 
+    protected static function onafterinstantiate($self) {
+        $self->do('sync_task_model');
+    }
+
     protected static function onupdateTaskModel($self) {
-        $self->read(['task_model_id' => ['trigger_event_id', 'deadline_event_id']]);
+        $self->do('sync_task_model');
+    }
+
+    protected static function doSyncTaskModel($self) {
+        $self->read(['task_model_id' => ['code', 'trigger_event_id', 'deadline_event_id']]);
         foreach($self as $id => $task) {
             $values = [];
             if(isset($task['task_model_id'])) {
                 $values['has_task_model'] = true;
+                $values['code'] = $task['task_model_id']['code'] ?? null;
                 if(isset($task['task_model_id']['trigger_event_id'])) {
                     $values['trigger_event_id'] = $task['task_model_id']['trigger_event_id'];
                 }

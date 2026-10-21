@@ -24,6 +24,11 @@ class TaskModel extends Model {
                 'required'          => true
             ],
 
+            'code' => [
+                'type'              => 'string',
+                'description'       => "Code used to identify tasks generated from this model."
+            ],
+
             'description' => [
                 'type'              => 'string',
                 'usage'             => 'text/plain',
@@ -65,4 +70,14 @@ class TaskModel extends Model {
 
         ];
     }
+
+    /*
+    // #todo - implies that `code` is mandatory
+    public function getUniques(): array {
+        return [
+            ['object_class', 'code']
+        ];
+    }
+    */
+
 }

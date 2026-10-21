@@ -3,6 +3,11 @@
     "plural": "Modèles de Tâche",
     "description": "Une tâche est générée à partir d'un modèle de tâche lorsqu'une entité est créée ou change de statut.",
     "model": {
+        "code": {
+            "label": "Code",
+            "description": "Code utilisé pour identifier les tâches générées par ce modèle.",
+            "help": "Utilisez un code stable pour identifier les tâches générées par ce modèle."
+        },
         "description": {
             "label": "Description",
             "description": "Description du modèle de tâche.",

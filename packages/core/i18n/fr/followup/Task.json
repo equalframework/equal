@@ -3,6 +3,11 @@
     "plural": "Tâches",
     "description": "Une tâche qui doit être réalisée pour une entité spécifique.",
     "model": {
+        "code": {
+            "label": "Code",
+            "description": "Code du modèle ayant généré la tâche.",
+            "help": "Ce code est repris automatiquement depuis le modèle de tâche associé."
+        },
         "description": {
             "label": "Description",
             "description": "Description courte de la tâche à réaliser.",
