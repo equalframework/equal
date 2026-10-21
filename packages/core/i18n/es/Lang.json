@@ -6,12 +6,12 @@
         "name": {
             "label": "Nombre",
             "description": "Nombre del idioma.",
-            "help": ""
+            "help": "Indique el nombre legible del idioma."
         },
         "code": {
             "label": "Código",
             "description": "Código de idioma (ISO 639): 2 letras minúsculas.",
-            "help": ""
+            "help": "Indique el código ISO 639 de dos letras en minúsculas."
         }
     },
     "view": {

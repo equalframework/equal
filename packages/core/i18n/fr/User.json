@@ -5,32 +5,32 @@
     "model": {
         "login":{
             "label":"Identifiant",
-            "description": "",
+            "description": "Adresse e-mail utilisée pour authentifier l'utilisateur.",
             "help":"Les identifiants sont des adresses e-mail."
         },
         "password":{
             "label":"Mot de passe",
-            "description": "",
-            "help": ""
+            "description": "Mot de passe utilisé pour authentifier le compte.",
+            "help": "Saisissez une nouvelle valeur uniquement lorsque le mot de passe doit être modifié."
         },
         "firstname":{
             "label":"Prénom",
-            "description": "",
-            "help": ""
+            "description": "Prénom de l'utilisateur.",
+            "help": "Indiquez le prénom de l'utilisateur."
         },
         "lastname":{
             "label":"Nom",
-            "description": "",
-            "help": ""
+            "description": "Nom de famille de l'utilisateur.",
+            "help": "Indiquez le nom de famille de l'utilisateur."
         },
         "validated":{
             "label":"Validé",
-            "description": "",
+            "description": "Indique si le compte utilisateur est validé.",
             "help": "Compte validé ?"
         },
         "language":{
             "label":"Langue",
-            "description": "",
+            "description": "Langue préférée pour l'interface utilisateur.",
             "help": "La langue de préférence de l'utilisateur."
         }
     },

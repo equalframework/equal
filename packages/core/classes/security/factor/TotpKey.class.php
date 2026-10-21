@@ -44,7 +44,7 @@ class TotpKey extends AuthenticationFactor {
             'secret' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
-                'description'       => 'The totp key secret that will also be store on the user\'s authenticator application.',
+                'description'       => 'Secret shared with the user\'s authenticator application.',
                 'readonly'          => true,
                 'store'             => true,
                 'function'          => 'calcSecret'
@@ -63,22 +63,21 @@ class TotpKey extends AuthenticationFactor {
 
             'digits' => [
                 'type'              => 'integer',
-                'description'       => 'The number of digits that will compose generated one time passwords.',
+                'description'       => 'Number of digits in generated one-time passwords.',
                 'help'              => 'Only six and eight are available.',
                 'default'           => 6,
-                'min'               => 6,
-                'max'               => 8
+                'selection'         => [6, 8]
             ],
 
             'period' => [
                 'type'              => 'integer',
-                'description'       => 'The period of time, in seconds, that will be used to generate one time passwords.',
+                'description'       => 'Validity period of a one-time password, in seconds.',
                 'default'           => 30
             ],
 
             'failed_attempts' => [
                 'type'              => 'integer',
-                'description'       => 'The quantity of failed authentication attempts since last time valid credentials were given by user.',
+                'description'       => 'Failed authentication attempts since the last valid login.',
                 'default'           => 0
             ],
 
@@ -86,7 +85,7 @@ class TotpKey extends AuthenticationFactor {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'usage'             => 'url',
-                'description'       => 'The uri that define the creation of the totp for the user\'s authenticator application.',
+                'description'       => 'URI used to configure the user\'s authenticator application.',
                 'store'             => false,
                 'function'          => 'calcTotpUri'
             ],
@@ -94,7 +93,7 @@ class TotpKey extends AuthenticationFactor {
             'totp_qr_code_uri' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
-                'description'       => 'The qr code image uri for the user to scan and add the totp to its authenticator application.',
+                'description'       => 'QR code URI used to configure the authenticator application.',
                 'store'             => false,
                 'function'          => 'calcTotpQrCodeUri'
             ]

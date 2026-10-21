@@ -3,15 +3,16 @@
     "plural": "Correos",
     "description": "Correos electrónicos enviados.",
     "model": {
-        "modified":{
-            "label":"Mandato",
-            "description": "La fetcha de envio del correo electrónico.",
-            "help":""
-        },
         "status": {
             "label": "Estado",
-            "description": "",
-            "help": ""
+            "description": "Estado de envío del correo electrónico.",
+            "help": "Este valor indica si el correo está pendiente, procesado, enviado o en error.",
+            "selection": {
+                "pending": "Pendiente",
+                "failing": "En error",
+                "processed": "Procesado",
+                "sent": "Enviado"
+            }
         },
         "to": {
             "label": "Para",
@@ -26,27 +27,27 @@
         "subject": {
             "label": "Asunto",
             "description": "Asunto del mensaje.",
-            "help": ""
+            "help": "Indique el asunto que verá el destinatario."
         },
         "body": {
             "label": "Contenido",
             "description": "Contenido del mensaje.",
-            "help": ""
+            "help": "Introduzca el contenido HTML del mensaje."
         },
         "attachments": {
             "label": "Archivos adjuntos",
             "description": "Lista de nombres de los documentos adjuntos al mensaje.",
-            "help": ""
+            "help": "Indique los nombres de los documentos adjuntos, separados por comas."
         },
         "response_status": {
             "label": "Repuesta",
             "description": "Código de estado de la respuesta SMTP.",
-            "help": ""
+            "help": "Este código se completa con la respuesta del servidor SMTP."
         },
         "response": {
             "label": "Repuesta",
             "description": "Mensaje de respuesta del servidor SMTP.",
-            "help": ""
+            "help": "Este mensaje se completa con la respuesta del servidor SMTP."
         }
     },
     "view": {

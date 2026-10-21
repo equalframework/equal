@@ -45,7 +45,7 @@ class EntityMapping extends Model {
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\import\ColumnMapping',
                 'foreign_field'     => 'entity_mapping_id',
-                'description'       => 'Mapping configurations defining how to import data to eQual entity.'
+                'description'       => 'Column mappings applied when importing the target entity.'
             ]
 
         ];

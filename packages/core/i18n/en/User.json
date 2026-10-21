@@ -5,12 +5,12 @@
 	"model": {
 		"login":{
 			"label":"Email",
-			"description": "",
+			"description": "Email address used to authenticate the user.",
 			"help":"The email address is used as login."
 		},
-		"password":{"label":"Password", "description": "", "help": ""},
-		"firstname":{"label":"Given name", "description": "", "help": ""},
-		"lastname":{"label":"Family name", "description": "", "help": ""}
+		"password":{"label":"Password", "description": "Password used for account authentication.", "help": "Enter a new value only when the password must be changed."},
+		"firstname":{"label":"Given name", "description": "User's given name.", "help": "Enter the user's given name."},
+		"lastname":{"label":"Family name", "description": "User's family name.", "help": "Enter the user's family name."}
 	},
 	"view": {
 		"identification":{"label":"Identification"},

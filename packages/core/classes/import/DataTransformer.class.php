@@ -39,7 +39,7 @@ class DataTransformer extends Model {
                     'trim'                      => 'Trim',
                     'phone'                     => 'Phone'
                 ],
-                'description'       => 'The type of transform operation to be applied on a column data to import.',
+                'description'       => 'Transformation applied to an imported column value.',
                 'default'           => 'value'
             ],
 
@@ -51,7 +51,7 @@ class DataTransformer extends Model {
 
             'value' => [
                 'type'              => 'string',
-                'description'       => 'A static value to set',
+                'description'       => 'A static value to set.',
                 'visible'           => ['transformer_type', '=', 'value']
             ],
 

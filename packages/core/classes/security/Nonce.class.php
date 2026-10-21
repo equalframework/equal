@@ -26,7 +26,7 @@ class Nonce extends Model {
 
             'scope' => [
                 'type'              => 'string',
-                'description'       => 'Scope of the nonce, indicating where it can be used. This could be a specific action, endpoint, or context in which the nonce is valid.'
+                'description'       => 'Context in which the nonce is valid.'
             ],
 
             'hash' => [
@@ -36,20 +36,19 @@ class Nonce extends Model {
             ],
 
             'expiry' => [
-                'type'              => 'datetime',
-                'foreign_field'     => 'group_id'
+                'type'              => 'datetime'
             ],
 
             'use_count' => [
                 'type'              => 'integer',
                 'default'           => 0,
-                'description'       => 'Number of times this nonce has been used. It is incremented each time the nonce is successfully used.'
+                'description'       => 'Number of successful uses of this nonce.'
             ],
 
             'use_max' => [
                 'type'              => 'integer',
                 'default'           => 1,
-                'description'       => 'Maximum number of times this nonce can be used before it is considered invalid.'
+                'description'       => 'Maximum allowed uses before the nonce expires.'
             ]
 
         ];

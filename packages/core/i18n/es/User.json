@@ -3,105 +3,81 @@
     "plural": "Usuarios",
     "description": " Los usuarios pueden iniciar sesión, unirse a grupos y recibir permisos específicos.",
     "model": {
-       "id": {
-          "label": "Identificador",
-          "description": "",
-          "help": ""
-       },
-       "creator": {
-          "label": "Creador",
-          "description": "El usuario que ha realizado la creación.",
-          "help": ""
-       },
-       "created": {
-          "label": "Creado",
-          "description": "La fecha de creación.",
-          "help": ""
-       },
-       "modifier": {
-          "label": "Modificador",
-          "description": "El usuario que ha realizado la modificación.",
-          "help": ""
-       },
-       "modified": {
-          "label": "Modificado",
-          "description": "La fecha de modificación.",
-          "help": ""
-       },
-       "deleted": {
-          "label": "Eliminado",
-          "description": "",
-          "help": "¿El usuario está eliminado?"
-       },
        "name": {
           "label": "Nombre",
-          "description": "",
-          "help": ""
+          "description": "Nombre mostrado para identificar al usuario.",
+          "help": "Este valor se calcula según la configuración del nombre de cuenta."
        },
        "login": {
           "label": "Identificador",
           "description": "Los identificadores son direcciones de correo electrónico.",
-          "help": ""
+          "help": "Introduzca la dirección de correo electrónico utilizada para iniciar sesión."
        },
        "username": {
           "label": "Nombre de usuario",
-          "description": "",
-          "help": ""
+          "description": "Nombre de usuario único de la cuenta.",
+          "help": "Indique un nombre de usuario único."
        },
        "password": {
           "label": "Contraseña",
-          "description": "",
-          "help": ""
+          "description": "Contraseña utilizada para autenticar la cuenta.",
+          "help": "Introduzca un valor nuevo solo cuando deba cambiarse la contraseña."
        },
        "nickname": {
           "label": "Apodo",
-          "description": "",
-          "help": ""
+          "description": "Alias del nombre de usuario.",
+          "help": "Este valor refleja automáticamente el nombre de usuario."
        },
        "firstname": {
           "label": "Primer Nombre",
           "description": "El primer nombre del usuario.",
-          "help": ""
+          "help": "Indique el nombre del usuario."
        },
        "lastname": {
           "label": "Apellido ",
-          "description": "",
-          "help": ""
+          "description": "Apellido del usuario.",
+          "help": "Indique el apellido del usuario."
        },
        "fullname": {
           "label": "Nombre completo",
           "description": "Nombre completo.",
-          "help": ""
+          "help": "Este valor se calcula automáticamente a partir del nombre y el apellido."
        },
        "language": {
           "label": "Idioma",
-          "description": "",
-          "help": " El idioma preferido del usuario."
+          "description": "Idioma preferido para la interfaz del usuario.",
+          "help": "Seleccione el idioma preferido del usuario."
        },
        "validated": {
           "label": "Validado",
-          "description": "",
-          "help": "¿Cuenta validada?"
+          "description": "Indica si la cuenta del usuario está validada.",
+          "help": "Este valor controla si el usuario puede iniciar sesión."
        },
        "groups_ids": {
           "label": "Grupos del usuario",
           "description": "Los grupos a los que pertenece el usuario.",
-          "help": ""
+          "help": "Seleccione los grupos a los que pertenece el usuario."
        },
        "permissions_ids": {
           "label": "Permisos del usuario",
           "description": "Los permisos que tiene acceso el usuario.",
-          "help": ""
+          "help": "Esta lista contiene los permisos concedidos directamente al usuario."
        },
        "setting_values_ids": {
           "label": "Valores de configuración",
-          "description": "",
-          "help": ""
+          "description": "Valores de configuración específicos del usuario.",
+          "help": "Esta lista contiene las preferencias y configuraciones asignadas al usuario."
        },
        "status": {
           "label": "Estado",
           "description": "El estado del usuario.",
-          "help": ""
+          "help": "Este valor refleja el progreso y la disponibilidad de la cuenta.",
+          "selection": {
+             "created": "Creada",
+             "validated": "Validada",
+             "confirmed": "Confirmada",
+             "suspended": "Suspendida"
+          }
        }
     },
     "view": {

@@ -405,7 +405,7 @@ class Model implements \ArrayAccess, \Iterator {
      * This method is meant to be overridden by children classes to define their own name.
      *
      * @access public
-     * @return array
+     * @return string
      */
     public static function getName() {
         return 'Model';
@@ -425,7 +425,7 @@ class Model implements \ArrayAccess, \Iterator {
      * This method is meant to be overridden by children classes.
      *
      * @access public
-     * @return array
+     * @return string
      */
     public static function getDescription() {
         return 'Interface for model definition classes.';

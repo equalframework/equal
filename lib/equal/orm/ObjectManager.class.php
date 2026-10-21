@@ -75,20 +75,20 @@ class ObjectManager extends Service {
      */
     public static $valid_attributes = [
         'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required', 'deprecated'),
-        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
-        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'selection', 'unique'),
-        'float'         => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'selection', 'precision'),
-        'string'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang', 'selection', 'unique'),
-        'text'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang'),
-        'date'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
-        'time'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
-        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
+        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'generation', 'pattern'),
+        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'selection', 'unique', 'generation', 'pattern'),
+        'float'         => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'selection', 'precision', 'generation', 'pattern'),
+        'string'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang', 'selection', 'unique', 'generation', 'pattern', 'sensitive'),
+        'text'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang', 'generation', 'pattern'),
+        'date'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'generation', 'pattern'),
+        'time'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'generation', 'pattern'),
+        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'generation', 'pattern'),
         'file'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang'),
         'binary'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang'),
         'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'required', 'deprecated', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
         'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
         'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'result_type', 'usage', 'function', 'relation', 'onupdate', 'onrevert', 'store', 'instant', 'multilang', 'domain', 'selection', 'foreign_object')
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'result_type', 'usage', 'function', 'relation', 'onupdate', 'onrevert', 'store', 'instant', 'multilang', 'domain', 'selection', 'foreign_object', 'generation', 'pattern', 'sensitive')
     ];
 
     public static $mandatory_attributes = [

@@ -78,7 +78,7 @@ class Message extends Model {
 
             'controller' => [
                 'type'              => 'string',
-                'description'       => "Full notation of the action controller to invoke (ex. core_example_action)."
+                'description'       => 'Action controller invoked by the message.'
             ],
 
             'params' => [
@@ -89,7 +89,7 @@ class Message extends Model {
 
             'links' => [
                 'type'              => 'string',
-                'description'       => "JSON list holding links (md format) to objects that relate to the message.",
+                'description'       => 'JSON list of Markdown links related to the message.',
                 'default'           => ''
             ],
 
@@ -99,7 +99,7 @@ class Message extends Model {
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'description'       => 'User recipient of the message, if any'
+                'description'       => 'User recipient of the message, if any.'
             ],
 
             'group_id' => [

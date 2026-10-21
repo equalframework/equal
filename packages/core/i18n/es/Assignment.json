@@ -3,25 +3,20 @@
     "plural": "Asignaciones",
     "description": "",
     "model": {
-        "id": {
-            "label": "Identificador",
-            "description": "",
-            "help": ""
-        },
         "object_class": {
             "label": "Clase",
-            "description": "Nombre completo de la entidad sobre la que se aplica la asignación de roles.",
-            "help": ""
+            "description": "Clase de entidad a la que se aplica la asignación.",
+            "help": "Indique el nombre completo de la clase que define el rol."
         },
         "object_id": {
             "label": "Objeto",
             "description": "Identificador del objeto específico al que se asigna el rol.",
-            "help": ""
+            "help": "Indique el identificador del objeto al que se aplica el rol."
         },
         "user_id": {
             "label": "Usuario",
             "description": "Usuario al que se asigna el rol.",
-            "help": ""
+            "help": "Seleccione el usuario que recibirá el rol."
         },
         "role": {
             "label": "Rol",

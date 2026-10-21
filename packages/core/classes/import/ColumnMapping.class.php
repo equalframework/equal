@@ -65,7 +65,7 @@ class ColumnMapping extends Model {
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\import\DataTransformer',
                 'foreign_field'     => 'column_mapping_id',
-                'description'       => 'Mapping configurations defining how to import data to eQual entity.'
+                'description'       => 'Transformations applied when importing the target field.'
             ]
 
         ];

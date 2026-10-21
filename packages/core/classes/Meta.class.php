@@ -27,13 +27,13 @@ class Meta extends Model {
 
             'code' => [
                 'type'              => 'string',
-                'description'       => 'Identifier of the meta (arbitrary: \'workflow\', \'uml\', \'pipeline\', ...).',
+                'description'       => 'Arbitrary identifier of the metadata entry.',
                 'dependents'        => ['name']
             ],
 
             'reference' => [
                 'type'              => 'string',
-                'description'       => 'Custom reference (arbitrary: object_class, object_class.object_id, UML name, ...).',
+                'description'       => 'Arbitrary reference associated with the metadata entry.',
                 'dependents'        => ['name']
             ],
 

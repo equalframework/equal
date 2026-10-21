@@ -3,25 +3,24 @@
     "plural": "Registros de tareas",
     "description": "",
     "model": {
-        "created": {
-            "label": "Creado",
-            "description": "Fecha de creación.",
-            "help": ""
-        },
         "task_id": {
             "label": "Tarea",
             "description": "Tarea a la que se refiere el registro.",
-            "help": ""
+            "help": "Este valor identifica la tarea que produjo el registro."
         },
         "status": {
             "label": "Estado",
             "description": "Estado en función del resultado de la ejecución de la Tarea.",
-            "help": ""
+            "help": "Este valor indica si la ejecución terminó correctamente o con un error.",
+            "selection": {
+                "success": "Correcta",
+                "error": "Error"
+            }
         },
         "log": {
             "label": "Log",
-            "description": "El valor devuelto en la ejecución del controlador al que se dirige la Tarea.",
-            "help": ""
+            "description": "Valor devuelto por el controlador de la tarea.",
+            "help": "Este contenido se guarda automáticamente al finalizar la ejecución."
         }
     },
     "view": {

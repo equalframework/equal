@@ -33,12 +33,6 @@
                                                 "type": "field",
                                                 "value": "object_id",
                                                 "width": "25%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "password",
-                                                "width": "50%",
-                                                "help": "Enter a new value to update."
                                             }
                                         ]
                                     },
