@@ -173,6 +173,68 @@ $validate_domain = function($domain, array $schema) use($orm): ?string {
     return null;
 };
 
+$validate_relation = function($relation, array $schema, string $path='') use(&$validate_relation, $orm): ?string {
+    if(!is_array($relation) || count($relation) !== 1) {
+        return 'must be a non-empty single-item array';
+    }
+
+    $key = array_key_first($relation);
+    $target = $relation[$key];
+
+    if(is_int($key)) {
+        if(!is_string($target)) {
+            return 'must end with a field name';
+        }
+
+        $target_path = strlen($path) ? "$path.$target" : $target;
+        if(!isset($schema[$target])) {
+            return "references unknown field '$target_path'";
+        }
+        return null;
+    }
+
+    if(!is_string($key) || !strlen($key)) {
+        return 'contains an invalid relation field';
+    }
+
+    $relation_path = strlen($path) ? "$path.$key" : $key;
+    if(!isset($schema[$key])) {
+        return "references unknown field '$relation_path'";
+    }
+    if(empty($schema[$key]['foreign_object']) || !is_string($schema[$key]['foreign_object'])) {
+        return "uses non-relational field '$relation_path' before the end of the path";
+    }
+
+    $foreign_object = $schema[$key]['foreign_object'];
+    if(!class_exists($foreign_object) || !is_subclass_of($foreign_object, 'equal\\orm\\Model')) {
+        return "references unknown entity '$foreign_object' through field '$relation_path'";
+    }
+
+    try {
+        $relation_model = $orm->getModel($foreign_object);
+        if(!$relation_model || !is_object($relation_model)) {
+            return "cannot resolve relation target for field '$relation_path'";
+        }
+        $relation_schema = $relation_model->getSchema();
+    }
+    catch(Throwable) {
+        return "cannot resolve relation target for field '$relation_path'";
+    }
+
+    if(is_string($target)) {
+        $target_path = "$relation_path.$target";
+        if(!isset($relation_schema[$target])) {
+            return "references unknown field '$target_path'";
+        }
+        return null;
+    }
+    if(!is_array($target)) {
+        return "contains an invalid target after field '$relation_path'";
+    }
+
+    return $validate_relation($target, $relation_schema, $relation_path);
+};
+
 // result of the tests : array containing errors (if no errors are found, array is empty)
 $result = [];
 
@@ -509,33 +571,9 @@ foreach($classes as $class) {
                     }
                 }
                 elseif(isset($descriptor['relation'])) {
-                    if(!is_array($descriptor['relation'])) {
-                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation must be an array ($class_filename)";
-                    }
-                    elseif(count($descriptor['relation']) !== 1 && !is_string(array_values($descriptor['relation'])[0])) {
-                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation must be a valid array like '".json_encode(['name'])."' or '".json_encode(['user_id' => 'name'])."' ($class_filename)";
-                    }
-                    else {
-                        if(is_string(array_keys($descriptor['relation'])[0])) {
-                            $obj_field = array_keys($descriptor['relation'])[0];
-                            $foreign_field = array_values($descriptor['relation'])[0];
-                            if(!isset($schema[$obj_field]['foreign_object'])) {
-                                $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
-                            }
-                            else {
-                                $relationModel = $orm->getModel($schema[$obj_field]['foreign_object']);
-                                $relation_full_schema = $relationModel->getSchema();
-                                if(!isset($relation_full_schema[$foreign_field])) {
-                                    $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field.$foreign_field' ($class_filename)";
-                                }
-                            }
-                        }
-                        else {
-                            $obj_field = array_values($descriptor['relation'])[0];
-                            if(!isset($schema[$obj_field])) {
-                                $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
-                            }
-                        }
+                    $relation_error = $validate_relation($descriptor['relation'], $schema);
+                    if(!is_null($relation_error)) {
+                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation $relation_error ($class_filename)";
                     }
                 }
                 break;
