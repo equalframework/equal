@@ -450,6 +450,9 @@ foreach($classes as $class) {
             if(!array_key_exists($domain_attribute, $descriptor)) {
                 continue;
             }
+            if($domain_attribute === 'visible' && is_bool($descriptor[$domain_attribute])) {
+                continue;
+            }
 
             $domain_schema = $schema;
             if($domain_attribute === 'domain') {
