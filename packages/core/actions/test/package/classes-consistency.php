@@ -615,7 +615,7 @@ foreach($classes as $class) {
                                     if(isset($relation_full_schema[$sub_value]['dependents'])) {
                                         foreach($relation_full_schema[$sub_value]['dependents'] as $k => $v) {
                                             if(is_array($v) && isset($relation_full_schema[$k]['foreign_object']) && $relation_full_schema[$k]['foreign_object'] === $class_name) {
-                                                $result[] = "ERROR - ORM - Class $class_name: Field $field has circular dependency";
+                                                $result[] = "WARN  - ORM - Class $class_name: Field $field may have a circular dependency";
                                             }
                                         }
                                     }
