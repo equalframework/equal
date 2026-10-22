@@ -233,6 +233,9 @@ foreach($classes as $class) {
                     if(!isset($full_schema[$value])) {
                         $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$value'";
                     }
+                    elseif($full_schema[$value]['type'] !== 'computed') {
+                        $result[] = "ERROR - ORM - Class $class_name: Field $field has dependent '$value' that isn't of computed type";
+                    }
                 }
                 elseif(is_array($value)) {
                     if(!isset($full_schema[$key])) {
@@ -250,6 +253,9 @@ foreach($classes as $class) {
                                 if(!isset($relation_full_schema[$sub_value])) {
                                     $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key.$sub_value'";
                                 }
+                                elseif($relation_full_schema[$sub_value]['type'] !== 'computed') {
+                                    $result[] = "ERROR - ORM - Class $class_name: Field $field has dependent '$key.$sub_value' that isn't of computed type";
+                                }
                             }
                         }
                         else {
@@ -261,6 +267,10 @@ foreach($classes as $class) {
                     $result[] = "ERROR - ORM - Class $class_name: Field $field has misconfigured dependent'";
                 }
             }
+        }
+
+        if(isset($descriptor['dependencies'])) {
+            $result[] = "WARN  - ORM - Usage of deprecated attribute 'dependencies' for field '$field'";
         }
     }
 }
