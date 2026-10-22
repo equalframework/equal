@@ -370,7 +370,7 @@ foreach($classes as $class) {
         if(isset($descriptor['order'])) {
             $relationModel = $orm->getModel($descriptor['foreign_object']);
             $relation_full_schema = $relationModel->getSchema();
-            $order_fields = explode(',', $relation_full_schema[$descriptor['order']]);
+            $order_fields = explode(',', $descriptor['order']);
             foreach($order_fields as $order_field) {
                 if(!isset($relation_full_schema[$order_field])) {
                     $result[] = "ERROR - ORM - Class $class_name: Invalid order '$order_field' for field $field ($class_filename)";
