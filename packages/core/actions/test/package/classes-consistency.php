@@ -170,7 +170,7 @@ foreach($classes as $class) {
             continue;
         }
         if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
-            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$descriptor['type']}) - mandatory attributes are : ".json_encode($orm::$mandatory_attributes[$descriptor['type']])." ($class_filename)";
+            $result[] = "ERROR - ORM - Class $class_name: Missing at least one mandatory attribute for field '$field' ({$descriptor['type']}) - mandatory attributes are : ".json_encode($orm::$mandatory_attributes[$descriptor['type']])." ($class_filename)";
             continue;
         }
         foreach($descriptor as $attribute => $value) {
@@ -179,74 +179,74 @@ foreach($classes as $class) {
                 continue;
             }
             if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
-                $result[] = "WARN  - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
+                $result[] = "WARN  - ORM - Class $class_name: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
             }
             if(in_array($attribute, ['store', 'multilang', 'readonly']) && $value !== true && $value !== false) {
-                $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false) ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false) ($class_filename)";
             }
         }
         if(isset($descriptor['foreign_object']) && !class_exists($descriptor['foreign_object']))  {
-            $result[] = "ERROR - ORM - Class $class: Non-existing entity '{$descriptor['foreign_object']}' given for attribute foreign_object in field $field of type {$descriptor['type']} ($class_filename)";
+            $result[] = "ERROR - ORM - Class $class_name: Non-existing entity '{$descriptor['foreign_object']}' given for attribute foreign_object in field $field of type {$descriptor['type']} ($class_filename)";
         }
         if(isset($descriptor['foreign_field'])) {
             $relationModel = $orm->getModel($descriptor['foreign_object']);
             $relation_full_schema = $relationModel->getSchema();
             if(!isset($relation_full_schema[$descriptor['foreign_field']])) {
-                $result[] = "ERROR - ORM - Class $class: Invalid foreign_field '{$descriptor['foreign_field']}' for field $field ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Invalid foreign_field '{$descriptor['foreign_field']}' for field $field ($class_filename)";
             }
         }
         if(isset($descriptor['alias'])) {
             if(!isset($schema[$descriptor['alias']])) {
-                $result[] = "ERROR - ORM - Class $class: Unknown alias '{$descriptor['alias']}' for field $field ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Unknown alias '{$descriptor['alias']}' for field $field ($class_filename)";
             }
             elseif($descriptor['alias'] === $field) {
-                $result[] = "ERROR - ORM - Class $class: Self referencing alias '{$descriptor['alias']}' for field $field ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Self referencing alias '{$descriptor['alias']}' for field $field ($class_filename)";
             }
         }
         if(isset($descriptor['sort']) && !in_array($descriptor['sort'], ['asc', 'desc'])) {
-            $result[] = "ERROR - ORM - Class $class: Invalid sort '{$descriptor['sort']}' for field $field ($class_filename)";
+            $result[] = "ERROR - ORM - Class $class_name: Invalid sort '{$descriptor['sort']}' for field $field ($class_filename)";
         }
         if(isset($descriptor['order'])) {
             $relationModel = $orm->getModel($descriptor['foreign_object']);
             $relation_full_schema = $relationModel->getSchema();
             if(!isset($relation_full_schema[$descriptor['order']])) {
-                $result[] = "ERROR - ORM - Class $class: Invalid order '{$descriptor['order']}' for field $field ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Invalid order '{$descriptor['order']}' for field $field ($class_filename)";
             }
         }
         switch($descriptor['type']) {
             case 'computed':
                 if(!isset($descriptor['result_type'])) {
-                    $result[] = "ERROR - ORM - Class $class: Computed field $field is missing 'result_type' attribute ($class_filename)";
+                    $result[] = "ERROR - ORM - Class $class_name: Computed field $field is missing 'result_type' attribute ($class_filename)";
                 }
                 elseif(!in_array($descriptor['result_type'], $orm::$simple_types)) {
-                    $result[] = "ERROR - ORM - Class $class: Computed field $field result_type '{$descriptor['result_type']}' is invalid ($class_filename)";
+                    $result[] = "ERROR - ORM - Class $class_name: Computed field $field result_type '{$descriptor['result_type']}' is invalid ($class_filename)";
                 }
                 if(!isset($descriptor['function']) && !isset($descriptor['relation'])) {
-                    $result[] = "ERROR - ORM - Class $class: Computed field $field is missing one of the 'function' and 'relation' attributes ($class_filename)";
+                    $result[] = "ERROR - ORM - Class $class_name: Computed field $field is missing one of the 'function' and 'relation' attributes ($class_filename)";
                 }
                 elseif(isset($descriptor['function']) && isset($descriptor['relation'])) {
-                    $result[] = "ERROR - ORM - Class $class: Computed field $field cannot use the 'function' and 'relation' attributes together ($class_filename)";
+                    $result[] = "ERROR - ORM - Class $class_name: Computed field $field cannot use the 'function' and 'relation' attributes together ($class_filename)";
                 }
                 elseif(isset($descriptor['function'])) {
                     if(!is_string($descriptor['function'])) {
-                        $result[] = "ERROR - ORM - Class $class: Computed field $field function must be a string ($class_filename)";
+                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field function must be a string ($class_filename)";
                     }
                     if(!$refClass->hasMethod($descriptor['function'])) {
-                        $result[] = "ERROR - ORM - Class $class: Computed field $field function '{$descriptor['function']}' doesn't exist ($class_filename)";
+                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' doesn't exist ($class_filename)";
                     }
                     else {
                         $method = $refClass->getMethod($descriptor['function']);
                         if(!$method->isStatic()) {
-                            $result[] = "ERROR - ORM - Class $class: Computed field $field function '{$descriptor['function']}' is not static ($class_filename)";
+                            $result[] = "ERROR - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not static ($class_filename)";
                         }
                         elseif(!$method->isProtected()) {
-                            $result[] = "WARN  - ORM - Class $class: Computed field $field function '{$descriptor['function']}' is not protected ($class_filename)";
+                            $result[] = "WARN  - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not protected ($class_filename)";
                         }
                         else {
                             foreach($method->getParameters() as $paramConf) {
                                 $param_name = $paramConf->getName();
                                 if(!in_array($param_name, $orm::$valid_inject_params)) {
-                                    $result[] = "ERROR - ORM - Class $class: Computed field $field function '{$descriptor['function']}' has an invalid parameter '$param_name' ($class_filename)";
+                                    $result[] = "ERROR - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' has an invalid parameter '$param_name' ($class_filename)";
                                 }
                             }
                         }
@@ -254,22 +254,22 @@ foreach($classes as $class) {
                 }
                 elseif(isset($descriptor['relation'])) {
                     if(!is_array($descriptor['relation'])) {
-                        $result[] = "ERROR - ORM - Class $class: Computed field $field relation must be an array ($class_filename)";
+                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation must be an array ($class_filename)";
                     }
                     elseif(count($descriptor['relation']) !== 1 || !is_string(array_keys($descriptor['relation'])[0]) || !is_string(array_values($descriptor['relation'])[0])) {
-                        $result[] = "ERROR - ORM - Class $class: Computed field $field relation must be a valid array like '".json_encode(['user_id' => 'name'])."' ($class_filename)";
+                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation must be a valid array like '".json_encode(['user_id' => 'name'])."' ($class_filename)";
                     }
                     else {
                         $obj_field = array_keys($descriptor['relation'])[0];
                         $foreign_field = array_values($descriptor['relation'])[0];
                         if(!isset($schema[$obj_field]['foreign_object'])) {
-                            $result[] = "ERROR - ORM - Class $class: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
+                            $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
                         }
                         else {
                             $relationModel = $orm->getModel($schema[$obj_field]['foreign_object']);
                             $relation_full_schema = $relationModel->getSchema();
                             if(!isset($relation_full_schema[$foreign_field])) {
-                                $result[] = "ERROR - ORM - Class $class: Computed field $field relation has an unknown field '$obj_field.$foreign_field' ($class_filename)";
+                                $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field.$foreign_field' ($class_filename)";
                             }
                         }
                     }
@@ -308,6 +308,27 @@ foreach($classes as $class) {
                 }
                 if(!method_exists($called_class, $called_method)) {
                     $result[] = "ERROR - ORM - Class $class_name: Field $field has onupdate property with unknown handler '{$descriptor['onupdate']}'";
+                }
+            }
+        }
+
+        if(isset($descriptor['onrevert'])) {
+            $parts = explode('::', $descriptor['onrevert']);
+            $count = count((array) $parts);
+
+            $called_class = $class_name;
+            $called_method = $descriptor['onrevert'];
+
+            if($count < 1 || $count > 2) {
+                $result[] = "ERROR - ORM - Class $class_name: Field $field has invalid onrevert property ({$descriptor['onrevert']})";
+            }
+            else {
+                if($count == 2) {
+                    $called_class = $parts[0];
+                    $called_method = $parts[1];
+                }
+                if(!method_exists($called_class, $called_method)) {
+                    $result[] = "ERROR - ORM - Class $class_name: Field $field has onrevert property with unknown handler '{$descriptor['onrevert']}'";
                 }
             }
         }
