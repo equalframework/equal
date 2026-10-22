@@ -532,7 +532,7 @@ foreach($classes as $class) {
                         }
                         else {
                             $obj_field = array_values($descriptor['relation'])[0];
-                            if(!isset($schema[$obj_field]['foreign_object'])) {
+                            if(!isset($schema[$obj_field])) {
                                 $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
                             }
                         }
