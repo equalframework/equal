@@ -162,19 +162,52 @@ foreach($classes as $class) {
             $result[] = "ERROR - ORM - Class $class: Invalid type '{$descriptor['type']}' for field $field ($class_filename)";
             continue;
         }
+        if(!isset($orm::$mandatory_attributes[$descriptor['type']])) {
+            $result[] = "ERROR - ORM - Missing mandatory attributes definition for type {$descriptor['type']}";
+            continue;
+        }
         if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
             $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$descriptor['type']}) - mandatory attributes are : ".json_encode($orm::$mandatory_attributes[$descriptor['type']])." ($class_filename)";
             continue;
         }
         foreach($descriptor as $attribute => $value) {
+            if(!isset($orm::$valid_attributes[$descriptor['type']])) {
+                $result[] = "ERROR - ORM - Missing valid attributes definition for type {$descriptor['type']}";
+                continue;
+            }
             if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
                 $result[] = "WARN  - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
             }
             if(in_array($attribute, ['store', 'multilang', 'readonly']) && $value !== true && $value !== false) {
-                $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false)"." ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false) ($class_filename)";
             }
-            if($attribute == 'foreign_object' && !class_exists($value))  {
-                $result[] = "ERROR - ORM - Class $class: Non-existing entity '{$value}' given for attribute $attribute in field $field of type {$descriptor['type']}"." ($class_filename)";
+        }
+        if(isset($descriptor['foreign_object']) && !class_exists($descriptor['foreign_object']))  {
+            $result[] = "ERROR - ORM - Class $class: Non-existing entity '{$descriptor['foreign_object']}' given for attribute foreign_object in field $field of type {$descriptor['type']} ($class_filename)";
+        }
+        if(isset($descriptor['foreign_field'])) {
+            $relationModel = $orm->getModel($descriptor['foreign_object']);
+            $relation_full_schema = $relationModel->getSchema();
+            if(!isset($relation_full_schema[$descriptor['foreign_field']])) {
+                $result[] = "ERROR - ORM - Class $class: Invalid foreign_field '{$descriptor['foreign_field']}' for field $field ($class_filename)";
+            }
+        }
+        if(isset($descriptor['alias'])) {
+            if(!isset($schema[$descriptor['alias']])) {
+                $result[] = "ERROR - ORM - Class $class: Unknown alias '{$descriptor['alias']}' for field $field ($class_filename)";
+            }
+            elseif($descriptor['alias'] === $field) {
+                $result[] = "ERROR - ORM - Class $class: Self referencing alias '{$descriptor['alias']}' for field $field ($class_filename)";
+            }
+        }
+        if(isset($descriptor['sort']) && !in_array($descriptor['sort'], ['asc', 'desc'])) {
+            $result[] = "ERROR - ORM - Class $class: Invalid sort '{$descriptor['sort']}' for field $field ($class_filename)";
+        }
+        if(isset($descriptor['order'])) {
+            $relationModel = $orm->getModel($descriptor['foreign_object']);
+            $relation_full_schema = $relationModel->getSchema();
+            if(!isset($relation_full_schema[$descriptor['order']])) {
+                $result[] = "ERROR - ORM - Class $class: Invalid order '{$descriptor['order']}' for field $field ($class_filename)";
             }
         }
     }
