@@ -210,7 +210,7 @@ class Setting extends Model {
         return $result;
     }
 
-    public function getUnique() {
+    public function getUniques(): array {
         return [
             ['package', 'section_id', 'code']
         ];

@@ -54,7 +54,7 @@ class Change extends Model {
         ];
     }
 
-    public function getUnique() {
+    public function getUniques(): array {
         return [
             [ 'log_id', 'object_class', 'object_id' ]
         ];

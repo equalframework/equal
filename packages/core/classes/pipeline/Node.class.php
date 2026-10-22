@@ -60,7 +60,7 @@ class Node extends Model
         ];
     }
 
-    public function getUnique()
+    public function getUniques(): array
     {
         return [
             ['name', 'pipeline_id']

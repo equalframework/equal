@@ -79,6 +79,100 @@ $count_result = function(array $result): array {
     return $counts;
 };
 
+$is_value_compatible_with_type = function($value, string $type): bool {
+    if(is_null($value)) {
+        return true;
+    }
+
+    switch($type) {
+        case 'boolean':
+            return is_bool($value);
+        case 'integer':
+        case 'date':
+        case 'time':
+        case 'datetime':
+        case 'many2one':
+            return is_int($value);
+        case 'float':
+            return is_float($value) || is_int($value);
+        case 'string':
+        case 'text':
+        case 'binary':
+        case 'file':
+            return is_string($value);
+        case 'one2many':
+        case 'many2many':
+            return is_array($value);
+    }
+
+    return true;
+};
+
+$validate_domain = function($domain, array $schema) use($orm): ?string {
+    if(!is_array($domain)) {
+        return 'must be an array';
+    }
+    if(empty($domain)) {
+        return null;
+    }
+    if(!array_key_exists(0, $domain)) {
+        return 'contains an invalid clause';
+    }
+
+    if(!is_array($domain[0])) {
+        $domain = [[$domain]];
+    }
+    elseif(empty($domain[0])) {
+        return null;
+    }
+    elseif(!array_key_exists(0, $domain[0])) {
+        return 'contains an invalid condition';
+    }
+    elseif(!is_array($domain[0][0])) {
+        $domain = [$domain];
+    }
+
+    foreach($domain as $clause) {
+        if(!is_array($clause) || empty($clause)) {
+            return 'contains an invalid clause';
+        }
+        foreach($clause as $condition) {
+            if(!is_array($condition) || array_keys($condition) !== [0, 1, 2]) {
+                return 'contains a condition that must have exactly three values';
+            }
+
+            [$condition_field, $operator] = $condition;
+            if(!is_string($condition_field) || !isset($schema[$condition_field])) {
+                return "references unknown field '".(is_scalar($condition_field) ? $condition_field : gettype($condition_field))."'";
+            }
+            if(!is_string($operator)) {
+                return 'contains a non-string operator';
+            }
+
+            $condition_descriptor = $schema[$condition_field];
+            $visited_aliases = [];
+            while(($condition_descriptor['type'] ?? null) === 'alias') {
+                $alias = $condition_descriptor['alias'] ?? null;
+                if(!is_string($alias) || !isset($schema[$alias]) || isset($visited_aliases[$alias])) {
+                    return "references invalid alias '$condition_field'";
+                }
+                $visited_aliases[$alias] = true;
+                $condition_descriptor = $schema[$alias];
+            }
+
+            $condition_type = $condition_descriptor['result_type'] ?? $condition_descriptor['type'] ?? null;
+            if(!is_string($condition_type) || !isset($orm::$valid_operators[$condition_type])) {
+                return "uses unsupported field type '$condition_type'";
+            }
+            if(!in_array($operator, $orm::$valid_operators[$condition_type], true)) {
+                return "uses invalid operator '$operator' for field '$condition_field'";
+            }
+        }
+    }
+
+    return null;
+};
+
 // result of the tests : array containing errors (if no errors are found, array is empty)
 $result = [];
 
@@ -95,9 +189,6 @@ foreach($classes as $class) {
         throw new Exception("FATAL - class definition file missing for '{$class_name}' ", QN_ERROR_UNKNOWN_OBJECT);
     }
 
-    // create reflection class to allow checks on class
-    $refClass = new ReflectionClass($class_name);
-
     // check PHP syntax
     $output = shell_exec(sprintf('php -l %s 2>&1', escapeshellarg($class_filename)));
     if(!preg_match('!No syntax errors detected!', $output)) {
@@ -109,9 +200,18 @@ foreach($classes as $class) {
     }
 
     if(!class_exists($class_name, false)) {
-        $result[] = "ERROR - ORM - unknown class '{$class_name}'";
+        $result[] = "ERROR - ORM - Class declaration does not match expected namespace and class '{$class_name}' for file $class_filename";
         continue;
     }
+
+    // create reflection class to allow checks on class
+    $refClass = new ReflectionClass($class_name);
+    $refClassFilename = $refClass->getFileName();
+    if($refClass->getName() !== $class_name || !$refClassFilename || realpath($refClassFilename) !== realpath($class_filename)) {
+        $result[] = "ERROR - ORM - Class '{$refClass->getName()}' namespace, name, or source file does not match expected class '$class_name' and path $class_filename";
+        continue;
+    }
+
     if(!is_subclass_of($class_name, 'equal\orm\Model')) {
         $result[] = "ERROR - ORM - Class $class_name does not inherit from `equal\orm\Model` root class.";
         continue;
@@ -154,7 +254,7 @@ foreach($classes as $class) {
 
     $valid_types = array_merge($orm::$virtual_types, $orm::$simple_types, $orm::$complex_types);
 
-    // #toto - fields involved in unique constraint should be set as required
+    $boolean_attributes = ['instant', 'multilang', 'readonly', 'required', 'sensitive', 'store', 'unique'];
 
     foreach($schema as $field => $descriptor) {
         if(!isset($descriptor['type'])) {
@@ -181,10 +281,71 @@ foreach($classes as $class) {
             if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
                 $result[] = "WARN  - ORM - Class $class_name: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
             }
-            if(in_array($attribute, ['store', 'instant', 'multilang', 'readonly']) && $value !== true && $value !== false) {
+            if(in_array($attribute, $boolean_attributes, true) && !is_bool($value)) {
                 $result[] = "ERROR - ORM - Class $class_name: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false) ($class_filename)";
             }
         }
+
+        $effective_type = $descriptor['result_type'] ?? $descriptor['type'];
+        if($descriptor['type'] === 'alias' && isset($descriptor['alias'], $schema[$descriptor['alias']])) {
+            $target_descriptor = $schema[$descriptor['alias']];
+            $effective_type = $target_descriptor['result_type'] ?? $target_descriptor['type'] ?? $effective_type;
+        }
+
+        $selection_values = null;
+        if(array_key_exists('selection', $descriptor)) {
+            if(!is_array($descriptor['selection']) || empty($descriptor['selection'])) {
+                $result[] = "ERROR - ORM - Class $class_name: Selection for field $field must be a non-empty array ($class_filename)";
+            }
+            else {
+                $selection = $descriptor['selection'];
+                $is_list = array_keys($selection) === range(0, count($selection) - 1);
+                $selection_values = $is_list ? array_values($selection) : array_keys($selection);
+
+                foreach($selection_values as $index => $selection_value) {
+                    if(!$is_value_compatible_with_type($selection_value, $effective_type)) {
+                        $result[] = "ERROR - ORM - Class $class_name: Selection value at index $index for field $field is incompatible with type $effective_type ($class_filename)";
+                    }
+                }
+
+                if(!$is_list) {
+                    foreach($selection as $selection_label) {
+                        if(!is_string($selection_label)) {
+                            $result[] = "ERROR - ORM - Class $class_name: Associative selection labels for field $field must be strings ($class_filename)";
+                            break;
+                        }
+                    }
+                }
+
+                for($i = 0, $count = count($selection_values); $i < $count; ++$i) {
+                    for($j = $i + 1; $j < $count; ++$j) {
+                        if($selection_values[$i] === $selection_values[$j]) {
+                            $result[] = "ERROR - ORM - Class $class_name: Selection for field $field contains duplicate values ($class_filename)";
+                            break 2;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(array_key_exists('default', $descriptor) && !is_null($descriptor['default']) && !($descriptor['default'] instanceof Closure)) {
+            $default = $descriptor['default'];
+            $is_dynamic_default = is_string($default)
+                && ($default === 'defaultFromSetting' || method_exists($class_name, $default));
+            if(!$is_dynamic_default && !$is_value_compatible_with_type($default, $effective_type)) {
+                $result[] = "ERROR - ORM - Class $class_name: Default value for field $field is incompatible with type $effective_type ($class_filename)";
+            }
+            elseif(!$is_dynamic_default && is_array($selection_values) && !in_array($default, $selection_values, true)) {
+                $result[] = "ERROR - ORM - Class $class_name: Default value for field $field is not present in its selection ($class_filename)";
+            }
+        }
+
+        if(array_key_exists('pattern', $descriptor)) {
+            if(!is_string($descriptor['pattern']) || @preg_match($descriptor['pattern'], '') === false) {
+                $result[] = "ERROR - ORM - Class $class_name: Invalid regular expression pattern for field $field ($class_filename)";
+            }
+        }
+
         if(isset($descriptor['foreign_object']) && !class_exists($descriptor['foreign_object']))  {
             $result[] = "ERROR - ORM - Class $class_name: Non-existing entity '{$descriptor['foreign_object']}' given for attribute foreign_object in field $field of type {$descriptor['type']} ($class_filename)";
         }
@@ -219,19 +380,51 @@ foreach($classes as $class) {
         if(isset($descriptor['ondetach']) && !in_array($descriptor['ondetach'], ['delete', 'null'])) {
             $result[] = "ERROR - ORM - Class $class_name: Invalid ondetach '{$descriptor['ondetach']}' for field $field ($class_filename)";
         }
-    }
 
-    $uniques = $model->getUnique();
-    foreach($uniques as $unique_fields) {
-        foreach($unique_fields as $ufield) {
-            if(!isset($schema[$ufield])) {
-                $result[] = "ERROR - ORM - Class $class: Non-existing field '{$ufield}' given in unique constraints";
+        foreach(['domain', 'visible'] as $domain_attribute) {
+            if(!array_key_exists($domain_attribute, $descriptor)) {
+                continue;
+            }
+
+            $domain_schema = $schema;
+            if($domain_attribute === 'domain') {
+                if(!isset($descriptor['foreign_object']) || !class_exists($descriptor['foreign_object'])) {
+                    $result[] = "ERROR - ORM - Class $class_name: Domain for field $field requires a valid foreign_object ($class_filename)";
+                    continue;
+                }
+                $domain_schema = $orm->getModel($descriptor['foreign_object'])->getSchema();
+            }
+
+            $domain_error = $validate_domain($descriptor[$domain_attribute], $domain_schema);
+            if(!is_null($domain_error)) {
+                $result[] = "ERROR - ORM - Class $class_name: Invalid $domain_attribute for field $field: $domain_error ($class_filename)";
             }
         }
     }
 
-    // #todo - 2) check presence of class definition files to which some field may be related to + domain validity (ref to other object), when present
+    $getUniqueMethod = new ReflectionMethod($class_name, 'getUnique');
+    if($getUniqueMethod->getDeclaringClass()->getName() === $class_name) {
+        $result[] = "WARN  - ORM - Class $class_name: Usage of deprecated method 'getUnique()'; use 'getUniques()' instead ($class_filename)";
+    }
 
+    $uniques = $model->getUnique();
+    if(!is_array($uniques)) {
+        $result[] = "ERROR - ORM - Class $class_name: Unique constraints must be an array ($class_filename)";
+        $uniques = [];
+    }
+    foreach($uniques as $unique_fields) {
+        if(!is_array($unique_fields) || empty($unique_fields)) {
+            $result[] = "ERROR - ORM - Class $class_name: Each unique constraint must be a non-empty array of fields ($class_filename)";
+            continue;
+        }
+        foreach($unique_fields as $ufield) {
+            if(!is_string($ufield) || !isset($schema[$ufield])) {
+                $result[] = "ERROR - ORM - Class $class_name: Non-existing field '".(is_scalar($ufield) ? $ufield : gettype($ufield))."' given in unique constraints ($class_filename)";
+            }
+        }
+    }
+
+    // 2) check consistency of the complete schema
     $full_schema = $model->getSchema();
     foreach($full_schema as $field => $descriptor) {
         foreach(['onupdate', 'onrevert'] as $callback_attribute) {

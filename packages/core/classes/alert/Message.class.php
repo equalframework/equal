@@ -142,7 +142,7 @@ class Message extends Model {
         return $result;
     }
 
-    public function getUnique() {
+    public function getUniques(): array {
         return [
             ['object_class', 'object_id', 'message_model_id']
         ];
