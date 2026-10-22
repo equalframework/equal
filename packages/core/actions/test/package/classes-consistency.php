@@ -181,7 +181,7 @@ foreach($classes as $class) {
             if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
                 $result[] = "WARN  - ORM - Class $class_name: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
             }
-            if(in_array($attribute, ['store', 'multilang', 'readonly']) && $value !== true && $value !== false) {
+            if(in_array($attribute, ['store', 'instant', 'multilang', 'readonly']) && $value !== true && $value !== false) {
                 $result[] = "ERROR - ORM - Class $class_name: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false) ($class_filename)";
             }
         }
@@ -213,6 +213,66 @@ foreach($classes as $class) {
                 $result[] = "ERROR - ORM - Class $class_name: Invalid order '{$descriptor['order']}' for field $field ($class_filename)";
             }
         }
+        if(isset($descriptor['ondelete']) && !in_array($descriptor['ondelete'], ['cascade', 'null'])) {
+            $result[] = "ERROR - ORM - Class $class_name: Invalid ondelete '{$descriptor['ondelete']}' for field $field ($class_filename)";
+        }
+        if(isset($descriptor['ondetach']) && !in_array($descriptor['ondetach'], ['delete', 'null'])) {
+            $result[] = "ERROR - ORM - Class $class_name: Invalid ondetach '{$descriptor['ondetach']}' for field $field ($class_filename)";
+        }
+    }
+
+    $uniques = $model->getUnique();
+    foreach($uniques as $unique_fields) {
+        foreach($unique_fields as $ufield) {
+            if(!isset($schema[$ufield])) {
+                $result[] = "ERROR - ORM - Class $class: Non-existing field '{$ufield}' given in unique constraints";
+            }
+        }
+    }
+
+    // #todo - 2) check presence of class definition files to which some field may be related to + domain validity (ref to other object), when present
+
+    $full_schema = $model->getSchema();
+    foreach($full_schema as $field => $descriptor) {
+        foreach(['onupdate', 'onrevert'] as $callback_attribute) {
+            if(!isset($descriptor[$callback_attribute])) {
+                continue;
+            }
+
+            $parts = explode('::', $descriptor[$callback_attribute]);
+            $count = count((array) $parts);
+
+            $called_class = $class_name;
+            $called_method = $descriptor[$callback_attribute];
+
+            if($count < 1 || $count > 2) {
+                $result[] = "ERROR - ORM - Class $class_name: Field $field has invalid $callback_attribute property ({$descriptor[$callback_attribute]})";
+            }
+            else {
+                if($count == 2) {
+                    $called_class = $parts[0];
+                    $called_method = $parts[1];
+                }
+                if(!method_exists($called_class, $called_method)) {
+                    $result[] = "ERROR - ORM - Class $class_name: Field $field has $callback_attribute property with unknown handler '{$descriptor[$callback_attribute]}'";
+                }
+            }
+        }
+
+        if(isset($descriptor['description'])) {
+            if(mb_strlen($descriptor['description'])) {
+                if(!preg_match('/^\p{Lu}/u', $descriptor['description'])) {
+                    $result[] = "WARN  - ORM - Value for attribute 'description' should start with uppercase for field '$field' referenced in file $class_filename";
+                }
+                if(!in_array(substr($descriptor['description'], -1), ['.', '?', '!'])) {
+                    $result[] = "WARN  - ORM - Value for attribute 'description' should end by '.' for field '$field' referenced in file $class_filename";
+                }
+                if(mb_strlen($descriptor['description']) > 65) {
+                    $result[] = "WARN  - ORM - Value for attribute 'description' should not exceed 65 chars for field '$field' referenced in file $class_filename";
+                }
+            }
+        }
+
         switch($descriptor['type']) {
             case 'computed':
                 if(!isset($descriptor['result_type'])) {
@@ -275,76 +335,6 @@ foreach($classes as $class) {
                     }
                 }
                 break;
-        }
-    }
-
-    $uniques = $model->getUnique();
-    foreach($uniques as $unique_fields) {
-        foreach($unique_fields as $ufield) {
-            if(!isset($schema[$ufield])) {
-                $result[] = "ERROR - ORM - Class $class: Non-existing field '{$ufield}' given in unique constraints";
-            }
-        }
-    }
-
-    // #todo - 2) check presence of class definition files to which some field may be related to + domain validity (ref to other object), when present
-
-    $full_schema = $model->getSchema();
-    foreach($full_schema as $field => $descriptor) {
-        if(isset($descriptor['onupdate'])) {
-            $parts = explode('::', $descriptor['onupdate']);
-            $count = count((array) $parts);
-
-            $called_class = $class_name;
-            $called_method = $descriptor['onupdate'];
-
-            if($count < 1 || $count > 2) {
-                $result[] = "ERROR - ORM - Class $class_name: Field $field has invalid onupdate property ({$descriptor['onupdate']})";
-            }
-            else {
-                if($count == 2) {
-                    $called_class = $parts[0];
-                    $called_method = $parts[1];
-                }
-                if(!method_exists($called_class, $called_method)) {
-                    $result[] = "ERROR - ORM - Class $class_name: Field $field has onupdate property with unknown handler '{$descriptor['onupdate']}'";
-                }
-            }
-        }
-
-        if(isset($descriptor['onrevert'])) {
-            $parts = explode('::', $descriptor['onrevert']);
-            $count = count((array) $parts);
-
-            $called_class = $class_name;
-            $called_method = $descriptor['onrevert'];
-
-            if($count < 1 || $count > 2) {
-                $result[] = "ERROR - ORM - Class $class_name: Field $field has invalid onrevert property ({$descriptor['onrevert']})";
-            }
-            else {
-                if($count == 2) {
-                    $called_class = $parts[0];
-                    $called_method = $parts[1];
-                }
-                if(!method_exists($called_class, $called_method)) {
-                    $result[] = "ERROR - ORM - Class $class_name: Field $field has onrevert property with unknown handler '{$descriptor['onrevert']}'";
-                }
-            }
-        }
-
-        if(isset($descriptor['description'])) {
-            if(mb_strlen($descriptor['description'])) {
-                if(!preg_match('/^\p{Lu}/u', $descriptor['description'])) {
-                    $result[] = "WARN  - ORM - Value for attribute 'description' should start with uppercase for field '$field' referenced in file $class_filename";
-                }
-                if(!in_array(substr($descriptor['description'], -1), ['.', '?', '!'])) {
-                    $result[] = "WARN  - ORM - Value for attribute 'description' should end by '.' for field '$field' referenced in file $class_filename";
-                }
-                if(mb_strlen($descriptor['description']) > 65) {
-                    $result[] = "WARN  - ORM - Value for attribute 'description' should not exceed 65 chars for field '$field' referenced in file $class_filename";
-                }
-            }
         }
 
         if(isset($descriptor['dependents'])) {
