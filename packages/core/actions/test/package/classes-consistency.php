@@ -512,20 +512,28 @@ foreach($classes as $class) {
                     if(!is_array($descriptor['relation'])) {
                         $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation must be an array ($class_filename)";
                     }
-                    elseif(count($descriptor['relation']) !== 1 || !is_string(array_keys($descriptor['relation'])[0]) || !is_string(array_values($descriptor['relation'])[0])) {
-                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation must be a valid array like '".json_encode(['user_id' => 'name'])."' ($class_filename)";
+                    elseif(count($descriptor['relation']) !== 1 && !is_string(array_values($descriptor['relation'])[0])) {
+                        $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation must be a valid array like '".json_encode(['name'])."' or '".json_encode(['user_id' => 'name'])."' ($class_filename)";
                     }
                     else {
-                        $obj_field = array_keys($descriptor['relation'])[0];
-                        $foreign_field = array_values($descriptor['relation'])[0];
-                        if(!isset($schema[$obj_field]['foreign_object'])) {
-                            $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
+                        if(is_string(array_keys($descriptor['relation'])[0])) {
+                            $obj_field = array_keys($descriptor['relation'])[0];
+                            $foreign_field = array_values($descriptor['relation'])[0];
+                            if(!isset($schema[$obj_field]['foreign_object'])) {
+                                $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
+                            }
+                            else {
+                                $relationModel = $orm->getModel($schema[$obj_field]['foreign_object']);
+                                $relation_full_schema = $relationModel->getSchema();
+                                if(!isset($relation_full_schema[$foreign_field])) {
+                                    $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field.$foreign_field' ($class_filename)";
+                                }
+                            }
                         }
                         else {
-                            $relationModel = $orm->getModel($schema[$obj_field]['foreign_object']);
-                            $relation_full_schema = $relationModel->getSchema();
-                            if(!isset($relation_full_schema[$foreign_field])) {
-                                $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field.$foreign_field' ($class_filename)";
+                            $obj_field = array_values($descriptor['relation'])[0];
+                            if(!isset($schema[$obj_field]['foreign_object'])) {
+                                $result[] = "ERROR - ORM - Class $class_name: Computed field $field relation has an unknown field '$obj_field' ($class_filename)";
                             }
                         }
                     }
