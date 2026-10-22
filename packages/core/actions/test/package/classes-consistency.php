@@ -86,9 +86,6 @@ $result = [];
 $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
 foreach($classes as $class) {
-    // #todo - check match between namespace and package
-    // #todo - check match between classname and filename
-
     // get the full class name
     $class_name = $params['package'].'\\'.$class;
     // get the related filename
@@ -226,6 +223,42 @@ foreach($classes as $class) {
                 }
                 if(mb_strlen($descriptor['description']) > 65) {
                     $result[] = "WARN  - ORM - Value for attribute 'description' should not exceed 65 chars for field '$field' referenced in file $class_filename";
+                }
+            }
+        }
+
+        if(isset($descriptor['dependents'])) {
+            foreach($descriptor['dependents'] as $key => $value) {
+                if(is_string($value)) {
+                    if(!isset($full_schema[$value])) {
+                        $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$value'";
+                    }
+                }
+                elseif(is_array($value)) {
+                    if(!isset($full_schema[$key])) {
+                        $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key'";
+                    }
+
+                    foreach($value as $sub_value) {
+                        if(is_string($sub_value)) {
+                            if(!isset($full_schema[$key]) || empty($full_schema[$key]['foreign_object'])) {
+                                $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key.$sub_value'";
+                            }
+                            else {
+                                $relationModel = $orm->getModel($full_schema[$key]['foreign_object']);
+                                $relation_full_schema = $relationModel->getSchema();
+                                if(!isset($relation_full_schema[$sub_value])) {
+                                    $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key.$sub_value'";
+                                }
+                            }
+                        }
+                        else {
+                            $result[] = "ERROR - ORM - Class $class_name: Field $field has misconfigured dependent '$sub_value'";
+                        }
+                    }
+                }
+                else {
+                    $result[] = "ERROR - ORM - Class $class_name: Field $field has misconfigured dependent'";
                 }
             }
         }
