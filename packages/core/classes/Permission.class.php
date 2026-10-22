@@ -107,7 +107,7 @@ class Permission extends Model {
         return implode(', ', $result);
     }
 
-    public static function calcRightsTxt($self) {
+    protected static function calcRightsTxt($self) {
         $result = [];
         $self->read(['rights']);
         foreach($self as $id => $permission) {

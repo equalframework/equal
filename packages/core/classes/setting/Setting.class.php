@@ -199,7 +199,7 @@ class Setting extends Model {
         return ['user_id'];
     }
 
-    public static function calcName($self) {
+    protected static function calcName($self) {
         $result = [];
         $self->read(['state', 'package', 'section', 'code']);
         foreach($self as $id => $setting) {
