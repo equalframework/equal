@@ -535,6 +535,9 @@ foreach($classes as $class) {
 
         if(isset($descriptor['dependents'])) {
             foreach($descriptor['dependents'] as $key => $value) {
+                if(is_string($key) && is_string($value)) {
+                    $value = [$value];
+                }
                 if(is_string($value)) {
                     if(!isset($full_schema[$value])) {
                         $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$value'";
