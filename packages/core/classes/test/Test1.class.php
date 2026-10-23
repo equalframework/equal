@@ -38,7 +38,7 @@ class Test1 extends Model
         ];
     }
 
-    public static function calcTest($self) {
+    protected static function calcTest($self) {
         $result = [];
         $self->read(['test_id' => ['id', 'string_short']]);
         foreach($self as $id => $test1) {

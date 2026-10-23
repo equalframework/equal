@@ -71,7 +71,7 @@ class ColumnMapping extends Model {
         ];
     }
 
-    public static function calcMappingType($self): array {
+    protected static function calcMappingType($self): array {
         $result = [];
         $self->read(['entity_mapping_id' => ['mapping_type']]);
 
@@ -82,7 +82,7 @@ class ColumnMapping extends Model {
         return $result;
     }
 
-    public static function calcOrigin($self): array {
+    protected static function calcOrigin($self): array {
         $result = [];
         $self->read(['mapping_type', 'origin_name', 'origin_index']);
 

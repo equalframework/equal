@@ -72,6 +72,10 @@ Guidelines:
 
 Reduce the description length, make it concise. Use the help field for more information.
 
+### ORM - Class xxx\\xxx: Computed field name function 'calcXxx' is not protected (packages/xxx/classes/xxx.class.php)
+
+Modify the function from public or private to protected
+
 ### Errors
 
 #### ERROR - GUI - Class {entity}: missing default form view (/views/xxx\\xxx.{view_id}.json)

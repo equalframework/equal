@@ -7,6 +7,7 @@
 */
 namespace core;
 
+use equal\orm\Collection;
 use equal\orm\Model;
 
 class User extends Model {
@@ -254,7 +255,7 @@ class User extends Model {
         $self->update(['validated' => false]);
     }
 
-    public static function calcName($self) {
+    protected static function calcName($self) {
         $result = [];
         $mask = constant('USER_ACCOUNT_DISPLAYNAME');
         $self->read(['id', 'login', 'nickname', 'firstname', 'lastname', 'fullname']);
@@ -302,10 +303,11 @@ class User extends Model {
     /**
      * Compute the value of the fullname of the user (concatenate firstname and lastname).
      *
-     * @param \equal\orm\Collection $self  An instance of a User collection.
-     *
+     * @param Collection $self An instance of a User collection.
+     * @return array
+     * @throws \Exception
      */
-    public static function calcFullname($self) {
+    protected static function calcFullname($self) {
         $result = [];
         $self->read(['firstname', 'lastname']);
         foreach($self as $id => $user) {
