@@ -127,7 +127,11 @@ class ObjectManager extends Service {
         'many2many'     => array('contains'),
     ];
 
-    public static $valid_inject_params = ['om', 'orm', 'ids', 'oids', 'values', 'lang', 'self'];
+    public static $valid_inject_params = [
+        'om', 'orm',
+        'ids', 'oids', 'values', 'lang', 'self',
+        'report', 'auth', 'access', 'context', 'validate', 'adapt', 'route', 'log', 'cron', 'dispatch', 'db'
+    ];
 
     /**
      * Mapping of ORM types with their sized notations.
