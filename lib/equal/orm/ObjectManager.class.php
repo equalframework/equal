@@ -67,7 +67,7 @@ class ObjectManager extends Service {
     private $db;
 
     public static $virtual_types = ['alias'];
-    public static $simple_types  = ['boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one'];
+    public static $simple_types  = ['boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one', 'array'];
     public static $complex_types = ['one2many', 'many2many', 'computed'];
 
     /**
