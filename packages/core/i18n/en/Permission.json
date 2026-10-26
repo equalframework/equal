@@ -1,14 +1,49 @@
-{	
-	"name": "Permission",
-	"plural": "Permissions",
-	"description": "Permissions.",
-	"model": {
-        "class_name":{"label":"Class", "description": "Entity class to which the permission applies.", "help": "Enter the fully qualified class name that the permission targets."},
-		"rights":{"label":"Rights", "description": "Binary mask of the granted access rights.", "help":"Permissions are set by using a binary mask, bits meaning:\nbit 0 (2^0 = 1): create\nbit 1 (2^1 = 2): read\nbit 2 (2^2 = 4): write\nbit 3 (2^3 = 8): delete\nbit 4 (2^4 = 16): manage\n\nEx.: To grant read and write permissions, we need to set bits 1 and 2,\n so field value would be 6 (2^1+2^2)."},
-        "group_id":{"label":"Group", "description": "Group to which the permission belongs.", "help": "Select the group that receives the permission."},
-        "rights_txt":{"label":"Rights", "description": "Text representation of the granted rights.", "help": "This value is calculated automatically from the rights mask."}
-	},
-	"view": {
-
-	}
+{
+    "name": "Permission",
+    "plural": "Permissions",
+    "description": "Permissions.",
+    "model": {
+        "description": {
+            "label": "Description",
+            "description": "Optional summary of the permission's purpose.",
+            "help": "Enter a short explanation of what the permission is intended to grant."
+        },
+        "class_name": {
+            "label": "Class",
+            "description": "Entity class to which the permission applies.",
+            "help": "Enter the fully qualified class name that the permission targets."
+        },
+        "domain": {
+            "label": "Domain",
+            "description": "JSON constraint domain applied by the permission.",
+            "help": "Enter the JSON domain that limits which objects are accessible."
+        },
+        "object_id": {
+            "label": "Object",
+            "description": "Identifier of the object targeted by the permission.",
+            "help": "Enter the object identifier when the permission applies to one specific object."
+        },
+        "rights": {
+            "label": "Rights",
+            "description": "Binary mask of the granted access rights.",
+            "help": "Permissions are set by using a binary mask, bits meaning:\nbit 0 (2^0 = 1): create\nbit 1 (2^1 = 2): read\nbit 2 (2^2 = 4): write\nbit 3 (2^3 = 8): delete\nbit 4 (2^4 = 16): manage\n\nEx.: To grant read and write permissions, we need to set bits 1 and 2,\n so field value would be 6 (2^1+2^2)."
+        },
+        "group_id": {
+            "label": "Group",
+            "description": "Group to which the permission belongs.",
+            "help": "Select the group that receives the permission."
+        },
+        "user_id": {
+            "label": "User",
+            "description": "User to whom the permission applies.",
+            "help": "Select the user who receives the permission."
+        },
+        "rights_txt": {
+            "label": "Rights",
+            "description": "Text representation of the granted rights.",
+            "help": "This value is calculated automatically from the rights mask."
+        }
+    },
+    "view": {
+    }
 }

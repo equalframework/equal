@@ -190,7 +190,7 @@ foreach($classes as $class) {
         continue;
     }
 
-    // 3) check if default views are present (form.default.json and list.default.json)
+    // 1) check if default views are present (form.default.json and list.default.json)
 
     try {
         eQual::run('get', 'model_view', ['entity' => $class_name, 'view_id' => 'form.default']);
@@ -206,7 +206,7 @@ foreach($classes as $class) {
         $result[] = "ERROR - GUI - Class $class: missing default list view (/views/$class.list.default.json)";
     }
 
-    // 5) check view files consistency (.json)
+    // 2) check view files consistency (.json)
 
     $view_files = glob("$view_dir/$class.*.json");
 

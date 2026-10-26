@@ -131,6 +131,8 @@ if(is_dir($lang_dir) && ($list = scandir($lang_dir))) {
     }
 }
 
+$auto_translated_fields = ['id', 'model', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state', 'name'];
+
 foreach($classes as $class) {
     // get the full class name
     $class_name = $params['package'].'\\'.$class;
@@ -139,7 +141,7 @@ foreach($classes as $class) {
         continue;
     }
 
-    // 4) check if translation file are present (.json)
+    // 1) check if translation file are present (.json)
 
     foreach($lang_list as $lang) {
         try {
@@ -150,78 +152,91 @@ foreach($classes as $class) {
         }
     }
 
-    // 6) check translation file consistency (.json)
+    // 2) check translation file consistency (.json)
 
     foreach($lang_list as $lang) {
         $i18n_file = "$lang_dir/$lang/$class.json";
-        if(is_file($i18n_file)) {
-            $json = file_get_contents($i18n_file);
-            $data = @json_decode($json, true);
-            if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-                $result[] = "ERROR - I18 - Syntax error in file: $i18n_file";
-                continue;
+        if(!is_file($i18n_file)) {
+            continue;
+        }
+
+        $json = file_get_contents($i18n_file);
+        $data = @json_decode($json, true);
+        if($data === null && json_last_error() !== JSON_ERROR_NONE) {
+            $result[] = "ERROR - I18 - Syntax error in file: $i18n_file";
+            continue;
+        }
+
+        $mandatory_properties = ['name', 'plural', 'description', 'model', 'view'];
+        foreach($mandatory_properties as $property) {
+            if(!isset($data[$property])) {
+                $result[] = "ERROR - I18 - Missing mandatory property '$property' in file: $i18n_file";
             }
-            $mandatory_properties = ['name', 'plural', 'description', 'model', 'view'];
-            foreach($mandatory_properties as $property) {
-                if(!isset($data[$property])) {
-                    $result[] = "ERROR - I18 - Missing mandatory property '$property' in file: $i18n_file";
+        }
+
+        if(isset($data['model'])) {
+            $fields = array_keys($data['model']);
+
+            // check that the referenced fields are valid (defined in the schema)
+            foreach($fields as $field) {
+                if(!isset($schema[$field])) {
+                    $result[] = "WARN  - I18 - Unknown field '$field' referenced in file $i18n_file";
+                }
+                // warn about renaming root fields (special fields from Model interface)
+                if(in_array($field, ['id', 'creator', 'modifier', 'modified','created', 'deleted', 'state'])) {
+                    $result[] = "WARN  - I18 - Root field '$field' shouldn't be referenced in file $i18n_file";
                 }
             }
-            if(isset($data['model'])) {
-                $fields = array_keys($data['model']);
-                // check that the referenced fields are valid (defined in the schema)
-                foreach($fields as $field) {
-                    if(!isset($schema[$field])) {
-                        $result[] = "WARN  - I18 - Unknown field '$field' referenced in file $i18n_file";
+
+            // check that the translation description is complete for each field
+            foreach($fields as $field) {
+                $mandatory_properties = ['label', 'help', 'description'];
+                foreach($mandatory_properties as $property) {
+                    if(!isset($data['model'][$field][$property])) {
+                        $result[] = "WARN  - I18 - Missing property '$property' for field '$field' referenced in file $i18n_file";
                     }
-                    // warn about renaming root fields (special fields from Model interface)
-                    if(in_array($field, ['id', 'creator', 'modifier', 'modified','created', 'deleted', 'state'])) {
-                        $result[] = "WARN  - I18 - Root field '$field' shouldn't be referenced in file $i18n_file";
-                    }
-                }
-                // check that the translation description is complete for each field
-                foreach($fields as $field) {
-                    $mandatory_properties = ['label', 'help', 'description'];
-                    foreach($mandatory_properties as $property) {
-                        if(!isset($data['model'][$field][$property])) {
-                            $result[] = "WARN  - I18 - Missing property '$property' for field '$field' referenced in file $i18n_file";
+                    else {
+                        if(mb_strlen($data['model'][$field][$property]) === 0) {
+                            $result[] = "WARN  - I18 - Value for property '$property' should not be empty for field '$field' referenced in file $i18n_file";
+                            continue;
                         }
-                        else {
-                            if(mb_strlen($data['model'][$field][$property]) == 0) {
-                                $result[] = "WARN  - I18 - Value for property '$property' should not be empty for field '$field' referenced in file $i18n_file";
-                                continue;
+                        if(!preg_match('/^\p{Lu}/u', $data['model'][$field][$property])) {
+                            $result[] = "WARN  - I18 - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
+                        }
+                        if($property === 'label') {
+                            if(mb_strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) === '.') {
+                                $result[] = "WARN  - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
                             }
-                            if(!preg_match('/^\p{Lu}/u', $data['model'][$field][$property])) {
-                                $result[] = "WARN  - I18 - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
+                        }
+                        elseif($property === 'help') {
+                            if(mb_strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!'])) {
+                                $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                             }
-                            if($property == 'label') {
-                                if(mb_strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) == '.') {
-                                    $result[] = "WARN  - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
-                                }
-                            }
-                            elseif($property == 'help') {
-                                if(mb_strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!'])) {
+                        }
+                        elseif($property === 'description') {
+                            if(mb_strlen($data['model'][$field][$property])) {
+                                if(!in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!'])) {
                                     $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
-                            }
-                            elseif($property == 'description') {
-                                if(mb_strlen($data['model'][$field][$property])) {
-                                    if(!in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!'])) {
-                                        $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
-                                    }
-                                    if(mb_strlen($data['model'][$field][$property]) > 65) {
-                                        $result[] = "WARN  - I18 - Property '$property' should not exceed 65 chars for field '$field' referenced in file $i18n_file";
-                                    }
+                                if(mb_strlen($data['model'][$field][$property]) > 65) {
+                                    $result[] = "WARN  - I18 - Property '$property' should not exceed 65 chars for field '$field' referenced in file $i18n_file";
                                 }
                             }
                         }
                     }
-                    // check for 'selection' property
-                    if(isset($schema[$field]) && $schema[$field]['type'] == 'string' && isset($schema[$field]['selection'])) {
-                        if(!isset($data['model'][$field]['selection'])) {
-                            $result[] = "WARN  - I18 - Missing property 'selection' for field '$field' referenced in file $i18n_file";
-                        }
+                }
+                // check for 'selection' property
+                if(isset($schema[$field]['type']) && $schema[$field]['type'] === 'string' && isset($schema[$field]['selection'])) {
+                    if(!isset($data['model'][$field]['selection'])) {
+                        $result[] = "WARN  - I18 - Missing property 'selection' for field '$field' referenced in file $i18n_file";
                     }
+                }
+            }
+
+            // check for missing translations
+            foreach($schema as $field => $descriptor) {
+                if(!in_array($field, $auto_translated_fields) && !isset($data['model'][$field])) {
+                    $result[] = "WARN  - I18 - Missing translation for field '$field' referenced in file $i18n_file";
                 }
             }
         }
@@ -237,13 +252,14 @@ if(!count($result)) {
 }
 
 // send json result
-$context->httpResponse()
-        ->body([
-            'result'   => $result,
-            'errors'   => $counts['errors'],
-            'warnings' => $counts['warnings']
-        ])
-        ->send();
+$context
+    ->httpResponse()
+    ->body([
+        'result'   => $result,
+        'errors'   => $counts['errors'],
+        'warnings' => $counts['warnings']
+    ])
+    ->send();
 
 // in case of error(s), force exiting with an error code
 if($counts['errors'] && $params['exit_on_error']) {

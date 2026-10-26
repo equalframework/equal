@@ -59,6 +59,14 @@ Example:
 "help": "Le taux est normalement déterminé à partir du prix sélectionné."
 ```
 
+#### I18 - Missing translation for field 'xxx' referenced in file packages/xxx/i18n/{lang}/xxx.json
+
+Add the missing field translation with the needed attributes.
+
+Guidelines:
+
+- Try to keep the order of fields given in the class `getColumns` method
+
 #### ORM - Value for attribute 'xxx' should start with uppercase for field 'xxx' referenced in file packages/xxx/classes/xxx.class.php
 
 Modify the first character to uppercase.
