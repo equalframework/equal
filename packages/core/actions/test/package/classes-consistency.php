@@ -539,7 +539,7 @@ foreach($classes as $class) {
                 if(!isset($descriptor['result_type'])) {
                     $result[] = "ERROR - ORM - Class $class_name: Computed field $field is missing 'result_type' attribute ($class_filename)";
                 }
-                elseif(!in_array($descriptor['result_type'], $orm::$simple_types)) {
+                elseif(!in_array($descriptor['result_type'], array_merge($orm::$simple_types, ['one2many']))) {
                     $result[] = "ERROR - ORM - Class $class_name: Computed field $field result_type '{$descriptor['result_type']}' is invalid ($class_filename)";
                 }
                 if(!isset($descriptor['function']) && !isset($descriptor['relation'])) {
