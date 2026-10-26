@@ -328,7 +328,7 @@ foreach($classes as $class) {
             continue;
         }
         if(!isset($orm::$mandatory_attributes[$descriptor['type']])) {
-            $result[] = "ERROR - ORM - Missing mandatory attributes definition for type {$descriptor['type']}";
+            $result[] = "ERROR - ORM - Missing mandatory attributes definition for type {$descriptor['type']} ($class_filename)";
             continue;
         }
         if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
@@ -337,14 +337,14 @@ foreach($classes as $class) {
         }
         foreach($descriptor as $attribute => $value) {
             if(!isset($orm::$valid_attributes[$descriptor['type']])) {
-                $result[] = "ERROR - ORM - Missing valid attributes definition for type {$descriptor['type']}";
+                $result[] = "ERROR - ORM - Missing valid attributes definition for type {$descriptor['type']} ($class_filename)";
                 continue;
             }
             if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
                 $result[] = "WARN  - ORM - Class $class_name: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
             }
             if(in_array($attribute, $boolean_attributes, true) && !is_bool($value)) {
-                $result[] = "ERROR - ORM - Class $class_name: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false) ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Incompatible value for attribute $attribute in field '$field' of type {$descriptor['type']} (possible attributes are : true, false) ($class_filename)";
             }
         }
 
@@ -357,7 +357,7 @@ foreach($classes as $class) {
         $selection_values = null;
         if(array_key_exists('selection', $descriptor)) {
             if(!is_array($descriptor['selection']) || empty($descriptor['selection'])) {
-                $result[] = "ERROR - ORM - Class $class_name: Selection for field $field must be a non-empty array ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Selection for field '$field' must be a non-empty array ($class_filename)";
             }
             else {
                 $selection = $descriptor['selection'];
@@ -366,14 +366,14 @@ foreach($classes as $class) {
 
                 foreach($selection_values as $index => $selection_value) {
                     if(!$is_value_compatible_with_type($selection_value, $effective_type)) {
-                        $result[] = "ERROR - ORM - Class $class_name: Selection value at index $index for field $field is incompatible with type $effective_type ($class_filename)";
+                        $result[] = "ERROR - ORM - Class $class_name: Selection value at index $index for field '$field' is incompatible with type $effective_type ($class_filename)";
                     }
                 }
 
                 if(!$is_list) {
                     foreach($selection as $selection_label) {
                         if(!is_string($selection_label)) {
-                            $result[] = "ERROR - ORM - Class $class_name: Associative selection labels for field $field must be strings ($class_filename)";
+                            $result[] = "ERROR - ORM - Class $class_name: Associative selection labels for field '$field' must be strings ($class_filename)";
                             break;
                         }
                     }
@@ -382,7 +382,7 @@ foreach($classes as $class) {
                 for($i = 0, $count = count($selection_values); $i < $count; ++$i) {
                     for($j = $i + 1; $j < $count; ++$j) {
                         if($selection_values[$i] === $selection_values[$j]) {
-                            $result[] = "ERROR - ORM - Class $class_name: Selection for field $field contains duplicate values ($class_filename)";
+                            $result[] = "ERROR - ORM - Class $class_name: Selection for field '$field' contains duplicate values ($class_filename)";
                             break 2;
                         }
                     }
@@ -395,16 +395,16 @@ foreach($classes as $class) {
             $is_dynamic_default = is_string($default)
                 && ($default === 'defaultFromSetting' || method_exists($class_name, $default));
             if(!$is_dynamic_default && !$is_value_compatible_with_type($default, $effective_type)) {
-                $result[] = "ERROR - ORM - Class $class_name: Default value for field $field is incompatible with type $effective_type ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Default value for field '$field' is incompatible with type $effective_type ($class_filename)";
             }
             elseif(!$is_dynamic_default && is_array($selection_values) && !in_array($default, $selection_values, true)) {
-                $result[] = "ERROR - ORM - Class $class_name: Default value for field $field is not present in its selection ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Default value for field '$field' is not present in its selection ($class_filename)";
             }
         }
 
         if(array_key_exists('pattern', $descriptor)) {
             if(!is_string($descriptor['pattern']) || @preg_match($descriptor['pattern'], '') === false) {
-                $result[] = "ERROR - ORM - Class $class_name: Invalid regular expression pattern for field $field ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Invalid regular expression pattern for field '$field' ($class_filename)";
             }
         }
 
@@ -457,7 +457,7 @@ foreach($classes as $class) {
             $domain_schema = $schema;
             if($domain_attribute === 'domain') {
                 if(!isset($descriptor['foreign_object']) || !class_exists($descriptor['foreign_object'])) {
-                    $result[] = "ERROR - ORM - Class $class_name: Domain for field $field requires a valid foreign_object ($class_filename)";
+                    $result[] = "ERROR - ORM - Class $class_name: Domain for field '$field' requires a valid foreign_object ($class_filename)";
                     continue;
                 }
                 $domain_schema = $orm->getModel($descriptor['foreign_object'])->getSchema();
@@ -465,7 +465,7 @@ foreach($classes as $class) {
 
             $domain_error = $validate_domain($descriptor[$domain_attribute], $domain_schema);
             if(!is_null($domain_error)) {
-                $result[] = "ERROR - ORM - Class $class_name: Invalid $domain_attribute for field $field: $domain_error ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class_name: Invalid $domain_attribute for field '$field': $domain_error ($class_filename)";
             }
         }
     }
@@ -507,7 +507,7 @@ foreach($classes as $class) {
             $called_method = $descriptor[$callback_attribute];
 
             if($count < 1 || $count > 2) {
-                $result[] = "ERROR - ORM - Class $class_name: Field $field has invalid $callback_attribute property ({$descriptor[$callback_attribute]})";
+                $result[] = "ERROR - ORM - Class $class_name: Field $field has invalid $callback_attribute property ({$descriptor[$callback_attribute]}) ($class_filename)";
             }
             else {
                 if($count == 2) {
@@ -515,7 +515,7 @@ foreach($classes as $class) {
                     $called_method = $parts[1];
                 }
                 if(!method_exists($called_class, $called_method)) {
-                    $result[] = "ERROR - ORM - Class $class_name: Field $field has $callback_attribute property with unknown handler '{$descriptor[$callback_attribute]}'";
+                    $result[] = "ERROR - ORM - Class $class_name: Field $field has $callback_attribute property with unknown handler '{$descriptor[$callback_attribute]}' ($class_filename)";
                 }
             }
         }
@@ -523,13 +523,13 @@ foreach($classes as $class) {
         if(isset($descriptor['description'])) {
             if(mb_strlen($descriptor['description'])) {
                 if(!preg_match('/^\p{Lu}/u', $descriptor['description'])) {
-                    $result[] = "WARN  - ORM - Value for attribute 'description' should start with uppercase for field '$field' referenced in file $class_filename";
+                    $result[] = "WARN  - ORM - Class $class_name: Value for attribute 'description' should start with uppercase for field '$field' ($class_filename)";
                 }
                 if(!in_array(substr($descriptor['description'], -1), ['.', '?', '!'])) {
-                    $result[] = "WARN  - ORM - Value for attribute 'description' should end by '.' for field '$field' referenced in file $class_filename";
+                    $result[] = "WARN  - ORM - Class $class_name: Value for attribute 'description' should end by '.' for field '$field' ($class_filename)";
                 }
                 if(mb_strlen($descriptor['description']) > 65) {
-                    $result[] = "WARN  - ORM - Value for attribute 'description' should not exceed 65 chars for field '$field' referenced in file $class_filename";
+                    $result[] = "WARN  - ORM - Class $class_name: Value for attribute 'description' should not exceed 65 chars for field '$field' ($class_filename)";
                 }
             }
         }
@@ -589,55 +589,55 @@ foreach($classes as $class) {
                 }
                 if(is_string($value)) {
                     if(!isset($full_schema[$value])) {
-                        $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$value'";
+                        $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$value' ($class_filename)";
                     }
                     elseif($full_schema[$value]['type'] !== 'computed') {
-                        $result[] = "ERROR - ORM - Class $class_name: Field $field has dependent '$value' that isn't of computed type";
+                        $result[] = "ERROR - ORM - Class $class_name: Field $field has dependent '$value' that isn't of computed type ($class_filename)";
                     }
                 }
                 elseif(is_array($value)) {
                     if(!isset($full_schema[$key])) {
-                        $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key'";
+                        $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key' ($class_filename)";
                     }
 
                     foreach($value as $sub_value) {
                         if(is_string($sub_value)) {
                             if(!isset($full_schema[$key]) || empty($full_schema[$key]['foreign_object'])) {
-                                $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key.$sub_value'";
+                                $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key.$sub_value' ($class_filename)";
                             }
                             else {
                                 $relationModel = $orm->getModel($full_schema[$key]['foreign_object']);
                                 $relation_full_schema = $relationModel->getSchema();
                                 if(!isset($relation_full_schema[$sub_value])) {
-                                    $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key.$sub_value'";
+                                    $result[] = "ERROR - ORM - Class $class_name: Field $field has unknown dependent '$key.$sub_value' ($class_filename)";
                                 }
                                 else {
                                     if(isset($relation_full_schema[$sub_value]['dependents'])) {
                                         foreach($relation_full_schema[$sub_value]['dependents'] as $k => $v) {
                                             if(is_array($v) && isset($relation_full_schema[$k]['foreign_object']) && $relation_full_schema[$k]['foreign_object'] === $class_name) {
-                                                $result[] = "WARN  - ORM - Class $class_name: Field $field may have a circular dependency";
+                                                $result[] = "WARN  - ORM - Class $class_name: Field $field may have a circular dependency ($class_filename)";
                                             }
                                         }
                                     }
                                     if($relation_full_schema[$sub_value]['type'] !== 'computed') {
-                                        $result[] = "ERROR - ORM - Class $class_name: Field $field has dependent '$key.$sub_value' that isn't of computed type";
+                                        $result[] = "ERROR - ORM - Class $class_name: Field $field has dependent '$key.$sub_value' that isn't of computed type ($class_filename)";
                                     }
                                 }
                             }
                         }
                         else {
-                            $result[] = "ERROR - ORM - Class $class_name: Field $field has misconfigured dependent '$sub_value'";
+                            $result[] = "ERROR - ORM - Class $class_name: Field $field has misconfigured dependent '$sub_value' ($class_filename)";
                         }
                     }
                 }
                 else {
-                    $result[] = "ERROR - ORM - Class $class_name: Field $field has misconfigured dependent'";
+                    $result[] = "ERROR - ORM - Class $class_name: Field $field has misconfigured dependent' ($class_filename)";
                 }
             }
         }
 
         if(isset($descriptor['dependencies'])) {
-            $result[] = "WARN  - ORM - Usage of deprecated attribute 'dependencies' for field '$field'";
+            $result[] = "WARN  - ORM - Class $class_name: Usage of deprecated attribute 'dependencies' for field '$field' ($class_filename)";
         }
     }
 }
