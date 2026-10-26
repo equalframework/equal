@@ -8,7 +8,9 @@
 
 [$params, $providers] = eQual::announce([
     'description' => 'Install an external binary dependency and persist its runtime files in a dedicated bundle.',
-    'help'        => 'The binary and its shared libraries are persisted under `/opt/bin/.equal-packages/{binary}`. Optional `configuration.persist.paths` entries copy absolute files or directories into the bundle. `configuration.persist.environment` maps environment variables to strings or path lists and supports the `{bundle}` and `{rootfs}` placeholders.',
+    'help'        => "The binary and its shared libraries are persisted under `/opt/bin/.equal-packages/{binary}`.
+                `configuration.persist.paths` copies required absolute files or directories to the same path under `/opt/bin/.equal-packages/{binary}/rootfs`.
+                `configuration.persist.environment` maps environment variables to absolute paths to replicate under `/opt/bin/.equal-packages/{binary}/rootfs`.",
     'params'      => [
         'binary' => [
             'description' => 'Name of the binary dependency.',
@@ -113,29 +115,24 @@ $resolveEnvironmentValue = function($value, string $staging_bundle, string $fina
     $resolved_values = [];
 
     foreach($values as $configured_value) {
-        if(!is_string($configured_value)) {
+        if(!is_string($configured_value) || strlen($configured_value) === 0 || $configured_value[0] !== '/') {
             throw new Exception('invalid_persist_environment_value', EQ_ERROR_INVALID_CONFIG);
         }
 
-        $staging_value = str_replace(
-            ['{bundle}', '{rootfs}'],
-            [$staging_bundle, $staging_bundle . '/rootfs'],
-            $configured_value
-        );
+        $staging_value = $staging_bundle . '/rootfs/' . ltrim($configured_value, '/');
         $is_pattern = strpbrk($staging_value, '*?[') !== false;
-        $matches = $is_pattern ? (glob($staging_value) ?: []) : [$staging_value];
+        $matches = $is_pattern
+            ? (glob($staging_value) ?: [])
+            : ((file_exists($staging_value) || is_link($staging_value)) ? [$staging_value] : []);
         if(empty($matches)) {
             throw new Exception('persist_environment_path_not_found', EQ_ERROR_INVALID_CONFIG);
         }
         sort($matches, SORT_NATURAL);
         foreach($matches as $match) {
-            if(strpos($match, $staging_bundle) === 0) {
-                $match = $final_bundle . substr($match, strlen($staging_bundle));
-            }
-            elseif($is_pattern) {
+            if(strpos($match, $staging_bundle . '/rootfs/') !== 0) {
                 throw new Exception('invalid_persist_environment_path', EQ_ERROR_INVALID_CONFIG);
             }
-            $resolved_values[] = $match;
+            $resolved_values[] = $final_bundle . substr($match, strlen($staging_bundle));
         }
     }
 
@@ -247,34 +244,19 @@ if(!is_array($configured_paths)) {
 }
 
 foreach($configured_paths as $configured_path) {
-    $required = true;
-    if(is_string($configured_path)) {
-        $source_pattern = $configured_path;
-    }
-    elseif(is_array($configured_path)) {
-        $source_pattern = $configured_path['source'] ?? $configured_path['path'] ?? null;
-        $required = $configured_path['required'] ?? true;
-    }
-    else {
+    if(!is_string($configured_path) || strlen($configured_path) === 0) {
         throw new Exception('invalid_persist_path', EQ_ERROR_INVALID_CONFIG);
     }
-
-    if(!is_string($source_pattern) || strlen($source_pattern) === 0) {
-        throw new Exception('invalid_persist_path', EQ_ERROR_INVALID_CONFIG);
-    }
-    if($source_pattern[0] !== '/') {
+    if($configured_path[0] !== '/') {
         throw new Exception('persist_path_must_be_absolute', EQ_ERROR_INVALID_CONFIG);
     }
 
-    $source_paths = strpbrk($source_pattern, '*?[') === false
-        ? ((file_exists($source_pattern) || is_link($source_pattern)) ? [$source_pattern] : [])
-        : (glob($source_pattern) ?: []);
+    $source_paths = strpbrk($configured_path, '*?[') === false
+        ? ((file_exists($configured_path) || is_link($configured_path)) ? [$configured_path] : [])
+        : (glob($configured_path) ?: []);
 
     if(empty($source_paths)) {
-        if($required) {
-            throw new Exception('persist_source_not_found', EQ_ERROR_INVALID_CONFIG);
-        }
-        continue;
+        throw new Exception('persist_source_not_found', EQ_ERROR_INVALID_CONFIG);
     }
 
     foreach($source_paths as $source_path) {
