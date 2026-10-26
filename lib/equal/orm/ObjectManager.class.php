@@ -104,7 +104,7 @@ class ObjectManager extends Service {
         'binary'        => array('type'),
         'file'          => array('type'),
         'many2one'      => array('type', 'foreign_object'),
-        'one2many'      => array('type', 'foreign_object', 'foreign_field'),
+        'one2many'      => array('type', 'foreign_object', ['foreign_field', 'domain']),
         'many2many'     => array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
         'computed'      => array('type', 'result_type', ['function', 'relation'])
     ];
