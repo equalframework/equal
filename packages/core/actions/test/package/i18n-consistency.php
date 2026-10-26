@@ -143,9 +143,10 @@ foreach($classes as $class) {
 
     // 1) check if translation file are present (.json)
 
+    $resolved_translations = [];
     foreach($lang_list as $lang) {
         try {
-            eQual::run('get', 'config_i18n', ['entity' => $class_name, 'lang' => $lang]);
+            $resolved_translations[$lang] = eQual::run('get', 'config_i18n', ['entity' => $class_name, 'lang' => $lang]);
         }
         catch(Exception $e) {
             $result[] = "WARN  - I18 - Class $class: missing translation file for language $lang";
@@ -234,8 +235,9 @@ foreach($classes as $class) {
             }
 
             // check for missing translations
+            $translated_model = $resolved_translations[$lang]['model'] ?? $data['model'];
             foreach($schema as $field => $descriptor) {
-                if(!in_array($field, $auto_translated_fields) && !isset($data['model'][$field])) {
+                if(!in_array($field, $auto_translated_fields, true) && !isset($translated_model[$field])) {
                     $result[] = "WARN  - I18 - Missing translation for field '$field' referenced in file $i18n_file";
                 }
             }
