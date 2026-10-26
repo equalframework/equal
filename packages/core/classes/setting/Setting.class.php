@@ -593,7 +593,7 @@ class Setting extends Model {
     /**
      * Retrieve the value of a given setting.
      *
-     * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
+     * @return  mixed       Returns the value of the target setting or value provided as default if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
     public static function get_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
 
