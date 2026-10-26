@@ -1160,7 +1160,7 @@ class ObjectManager extends Service {
                             // state
                             'instance',
                             // deleted
-                            0
+                            $adapter->adaptOut(false, 'boolean')
                         ];
                     }
                 }
@@ -3073,7 +3073,7 @@ class ObjectManager extends Service {
             $auth = $this->container->get('auth');
 
             $db->setRecords($table_name, $ids, [
-                'deleted'  => 1,
+                'deleted'  => $adapter->adaptOut(true, 'boolean'),
                 'modified' => $adapter->adaptOut(time(), 'datetime'),
                 'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
             ]);
