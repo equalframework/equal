@@ -442,10 +442,6 @@ foreach($classes as $class) {
         if(isset($descriptor['ondelete']) && !in_array($descriptor['ondelete'], ['cascade', 'null'])) {
             $result[] = "ERROR - ORM - Class $class_name: Invalid ondelete '{$descriptor['ondelete']}' for field $field ($class_filename)";
         }
-        if(isset($descriptor['ondetach']) && !in_array($descriptor['ondetach'], ['delete', 'null'])) {
-            $result[] = "ERROR - ORM - Class $class_name: Invalid ondetach '{$descriptor['ondetach']}' for field $field ($class_filename)";
-        }
-
         foreach(['domain', 'visible'] as $domain_attribute) {
             if(!array_key_exists($domain_attribute, $descriptor)) {
                 continue;
@@ -495,8 +491,11 @@ foreach($classes as $class) {
     // 2) check consistency of the complete schema
     $full_schema = $model->getSchema();
     foreach($full_schema as $field => $descriptor) {
-        foreach(['onupdate', 'onrevert'] as $callback_attribute) {
+        foreach(['onupdate', 'onrevert', 'ondetach'] as $callback_attribute) {
             if(!isset($descriptor[$callback_attribute])) {
+                continue;
+            }
+            if($callback_attribute === 'ondetach' && in_array($descriptor[$callback_attribute], ['delete', 'null'], true)) {
                 continue;
             }
 
