@@ -57,7 +57,6 @@ $findBinary = function(string $binary, string $path) use($runCommand): ?string {
     if($result_code !== 0 || !is_executable($binary_path)) {
         return null;
     }
-
     return realpath($binary_path) ?: $binary_path;
 };
 
@@ -70,7 +69,7 @@ $getSharedLibraries = function(string $binary_path) use($runCommand): array {
         }
 
         $filename = basename($matches[1]);
-        // These system runtime libraries are provided by the container base image.
+        // #memo - System runtime libraries are provided by the container base image
         if(preg_match('/^lib(?:c|dl|m|pthread|resolv|rt|util)\.so(?:\.|$)/', $filename)) {
             continue;
         }
@@ -96,6 +95,7 @@ $copyPath = function(string $source, string $destination) use($ensureDirectory, 
     [$result_code] = $runCommand(
         'cp -aL -- ' . escapeshellarg($source) . ' ' . escapeshellarg($destination)
     );
+
     if($result_code !== 0) {
         throw new Exception('unable_to_persist_file', EQ_ERROR_UNKNOWN);
     }
@@ -161,8 +161,6 @@ $wrapper_path = $opt_bin_dir . '/' . $binary;
 $package_key = preg_replace('/[^A-Za-z0-9._-]+/', '_', $binary);
 $packages_dir = $opt_bin_dir . '/.equal-packages';
 $bundle_dir = $packages_dir . '/' . $package_key;
-$bundle_is_ready = is_executable($wrapper_path)
-    && is_file($bundle_dir . '/.ready');
 
 $current_path = getenv('PATH') ?: '';
 $system_path = implode(PATH_SEPARATOR, array_filter(
@@ -173,7 +171,7 @@ $system_path = implode(PATH_SEPARATOR, array_filter(
 ));
 
 [$current_check_code] = $runCommand($check_cmd);
-if($current_check_code === 0 && $bundle_is_ready) {
+if($current_check_code === 0 && is_executable($wrapper_path) && is_file($bundle_dir . '/.ready')) {
     $context->httpResponse()
             ->status(204)
             ->send();
@@ -236,6 +234,7 @@ $libraries = $getSharedLibraries($binary_path);
 
 $staging_id = bin2hex(random_bytes(4));
 $staging_bundle = $packages_dir . '/.' . $package_key . '-' . $staging_id . '.tmp';
+
 $ensureDirectory($packages_dir);
 $ensureDirectory($staging_bundle . '/bin');
 $ensureDirectory($staging_bundle . '/lib');
@@ -324,9 +323,11 @@ $wrapper_content = implode("\n", [
     '. ' . escapeshellarg($bundle_dir . '/environment.sh'),
     'exec ' . escapeshellarg($bundle_dir . '/bin/' . basename($binary_path)) . ' "$@"'
 ]) . "\n";
+
 if(file_put_contents($wrapper_temporary_path, $wrapper_content) === false) {
     throw new Exception('unable_to_write_persist_wrapper', EQ_ERROR_UNKNOWN);
 }
+
 chmod($wrapper_temporary_path, 0755);
 
 if(is_dir($wrapper_path)) {
@@ -342,9 +343,8 @@ if($persistent_check_code !== 0) {
     @unlink($wrapper_path);
     throw new Exception('persisted_binary_check_failed', EQ_ERROR_UNKNOWN);
 }
-if(!touch($bundle_dir . '/.ready')) {
-    throw new Exception('unable_to_mark_persist_bundle_ready', EQ_ERROR_UNKNOWN);
-}
+
+touch($bundle_dir . '/.ready');
 
 $context->httpResponse()
         ->status(204)
