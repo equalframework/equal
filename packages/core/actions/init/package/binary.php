@@ -7,8 +7,8 @@
 */
 
 [$params, $providers] = eQual::announce([
-    'description' => 'Install an external binary dependency and persist its runtime files when persistent binary storage is available.',
-    'help'        => 'Optional `configuration.persist.paths` entries copy absolute files or directories into the persistent bundle. `configuration.persist.environment` maps environment variables to strings or path lists and supports the `{bundle}` and `{rootfs}` placeholders.',
+    'description' => 'Install an external binary dependency and persist its runtime files in a dedicated bundle.',
+    'help'        => 'The binary and its shared libraries are persisted under `/opt/bin/.equal-packages/{binary}`. Optional `configuration.persist.paths` entries copy absolute files or directories into the bundle. `configuration.persist.environment` maps environment variables to strings or path lists and supports the `{bundle}` and `{rootfs}` placeholders.',
     'params'      => [
         'binary' => [
             'description' => 'Name of the binary dependency.',
@@ -151,18 +151,17 @@ $configuration = $params['configuration'];
 $check_cmd = $configuration['check'] ?? "$binary --version";
 $opt_bin_dir = '/opt/bin';
 
-$persist_configuration = $configuration['persist'] ?? null;
-if($persist_configuration !== null && !is_array($persist_configuration)) {
+// Every binary uses a bundle; `persist` only adds runtime paths and environment variables.
+$persist_configuration = $configuration['persist'] ?? [];
+if(!is_array($persist_configuration)) {
     throw new Exception('invalid_persist_configuration', EQ_ERROR_INVALID_CONFIG);
 }
 
-$persist_requested = is_array($persist_configuration) && is_dir($opt_bin_dir);
 $wrapper_path = $opt_bin_dir . '/' . $binary;
 $package_key = preg_replace('/[^A-Za-z0-9._-]+/', '_', $binary);
 $packages_dir = $opt_bin_dir . '/.equal-packages';
 $bundle_dir = $packages_dir . '/' . $package_key;
-$persist_is_ready = $persist_requested
-    && is_executable($wrapper_path)
+$bundle_is_ready = is_executable($wrapper_path)
     && is_file($bundle_dir . '/.ready');
 
 $current_path = getenv('PATH') ?: '';
@@ -174,14 +173,14 @@ $system_path = implode(PATH_SEPARATOR, array_filter(
 ));
 
 [$current_check_code] = $runCommand($check_cmd);
-if($current_check_code === 0 && (!$persist_requested || $persist_is_ready)) {
+if($current_check_code === 0 && $bundle_is_ready) {
     $context->httpResponse()
             ->status(204)
             ->send();
     return;
 }
 
-if($persist_requested && (file_exists($bundle_dir) || is_link($bundle_dir))) {
+if(file_exists($bundle_dir) || is_link($bundle_dir)) {
     throw new Exception('persist_bundle_requires_cleanup', EQ_ERROR_UNKNOWN);
 }
 
@@ -204,7 +203,8 @@ if($system_check_code !== 0) {
     ];
     $install_cmd = null;
     foreach($installers as $manager => $command) {
-        [$manager_code] = $runCommand('command -v ' . $manager, $system_path);
+        [$manager_code, $manager_output] = $runCommand('command -v ' . $manager, $system_path);
+        trigger_error("PHP::Installing binary {$binary}: command exited with code {$manager_code}: command -v {$manager}\n" . (empty($manager_output) ? '[no output]' : implode("\n", $manager_output)), $manager_code === 0 ? EQ_REPORT_INFO : EQ_REPORT_WARNING);
         if($manager_code === 0) {
             $install_cmd = $command . escapeshellarg($binary_package_name);
             break;
@@ -214,12 +214,14 @@ if($system_check_code !== 0) {
         throw new Exception('unsupported_linux_package_manager', EQ_ERROR_UNKNOWN);
     }
 
-    [$install_code] = $runCommand($install_cmd, $system_path);
+    [$install_code, $install_output] = $runCommand($install_cmd, $system_path);
+    trigger_error("PHP::Installing binary {$binary}: command exited with code {$install_code}: {$install_cmd}\n" . (empty($install_output) ? '[no output]' : implode("\n", $install_output)), $install_code === 0 ? EQ_REPORT_INFO : EQ_REPORT_WARNING);
     if($install_code !== 0) {
         throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
     }
 
-    [$system_check_code] = $runCommand($check_cmd, $system_path);
+    [$system_check_code, $system_check_output] = $runCommand($check_cmd, $system_path);
+    trigger_error("PHP::Installing binary {$binary}: command exited with code {$system_check_code}: {$check_cmd}\n" . (empty($system_check_output) ? '[no output]' : implode("\n", $system_check_output)), $system_check_code === 0 ? EQ_REPORT_INFO : EQ_REPORT_WARNING);
     if($system_check_code !== 0) {
         throw new Exception('binary_missing_after_install', EQ_ERROR_UNKNOWN);
     }
@@ -232,121 +234,116 @@ if($binary_path === null) {
 
 $libraries = $getSharedLibraries($binary_path);
 
-if(is_dir($opt_bin_dir) && !$persist_requested) {
-    $copyRuntime($binary_path, $libraries, $opt_bin_dir);
+$staging_id = bin2hex(random_bytes(4));
+$staging_bundle = $packages_dir . '/.' . $package_key . '-' . $staging_id . '.tmp';
+$ensureDirectory($packages_dir);
+$ensureDirectory($staging_bundle . '/bin');
+$ensureDirectory($staging_bundle . '/lib');
+$ensureDirectory($staging_bundle . '/rootfs');
+$copyRuntime($binary_path, $libraries, $staging_bundle . '/bin', $staging_bundle . '/lib');
+
+$configured_paths = $persist_configuration['paths'] ?? [];
+if(!is_array($configured_paths)) {
+    throw new Exception('invalid_persist_paths', EQ_ERROR_INVALID_CONFIG);
 }
-elseif($persist_requested) {
-    $staging_id = bin2hex(random_bytes(4));
-    $staging_bundle = $packages_dir . '/.' . $package_key . '-' . $staging_id . '.tmp';
-    $ensureDirectory($packages_dir);
-    $ensureDirectory($staging_bundle . '/bin');
-    $ensureDirectory($staging_bundle . '/lib');
-    $ensureDirectory($staging_bundle . '/rootfs');
-    $copyRuntime($binary_path, $libraries, $staging_bundle . '/bin', $staging_bundle . '/lib');
 
-    $configured_paths = $persist_configuration['paths'] ?? [];
-    if(!is_array($configured_paths)) {
-        throw new Exception('invalid_persist_paths', EQ_ERROR_INVALID_CONFIG);
+foreach($configured_paths as $configured_path) {
+    $required = true;
+    if(is_string($configured_path)) {
+        $source_pattern = $configured_path;
+    }
+    elseif(is_array($configured_path)) {
+        $source_pattern = $configured_path['source'] ?? $configured_path['path'] ?? null;
+        $required = $configured_path['required'] ?? true;
+    }
+    else {
+        throw new Exception('invalid_persist_path', EQ_ERROR_INVALID_CONFIG);
     }
 
-    foreach($configured_paths as $configured_path) {
-        $required = true;
-        if(is_string($configured_path)) {
-            $source_pattern = $configured_path;
-        }
-        elseif(is_array($configured_path)) {
-            $source_pattern = $configured_path['source'] ?? $configured_path['path'] ?? null;
-            $required = $configured_path['required'] ?? true;
-        }
-        else {
-            throw new Exception('invalid_persist_path', EQ_ERROR_INVALID_CONFIG);
-        }
+    if(!is_string($source_pattern) || strlen($source_pattern) === 0) {
+        throw new Exception('invalid_persist_path', EQ_ERROR_INVALID_CONFIG);
+    }
+    if($source_pattern[0] !== '/') {
+        throw new Exception('persist_path_must_be_absolute', EQ_ERROR_INVALID_CONFIG);
+    }
 
-        if(!is_string($source_pattern) || strlen($source_pattern) === 0) {
-            throw new Exception('invalid_persist_path', EQ_ERROR_INVALID_CONFIG);
-        }
-        if($source_pattern[0] !== '/') {
-            throw new Exception('persist_path_must_be_absolute', EQ_ERROR_INVALID_CONFIG);
-        }
+    $source_paths = strpbrk($source_pattern, '*?[') === false
+        ? ((file_exists($source_pattern) || is_link($source_pattern)) ? [$source_pattern] : [])
+        : (glob($source_pattern) ?: []);
 
-        $source_paths = strpbrk($source_pattern, '*?[') === false
-            ? ((file_exists($source_pattern) || is_link($source_pattern)) ? [$source_pattern] : [])
-            : (glob($source_pattern) ?: []);
+    if(empty($source_paths)) {
+        if($required) {
+            throw new Exception('persist_source_not_found', EQ_ERROR_INVALID_CONFIG);
+        }
+        continue;
+    }
 
-        if(empty($source_paths)) {
-            if($required) {
-                throw new Exception('persist_source_not_found', EQ_ERROR_INVALID_CONFIG);
-            }
-            continue;
+    foreach($source_paths as $source_path) {
+        $source_real_path = realpath($source_path) ?: $source_path;
+        $normalized_source = rtrim($source_real_path, '/');
+        if(strpos($normalized_source . '/', $opt_bin_dir . '/') === 0) {
+            throw new Exception('invalid_persist_source', EQ_ERROR_INVALID_CONFIG);
         }
 
-        foreach($source_paths as $source_path) {
-            $source_real_path = realpath($source_path) ?: $source_path;
-            $normalized_source = rtrim($source_real_path, '/');
-            if(strpos($normalized_source . '/', $opt_bin_dir . '/') === 0) {
-                throw new Exception('invalid_persist_source', EQ_ERROR_INVALID_CONFIG);
-            }
+        $relative_path = ltrim($source_path, '/');
+        $destination = $staging_bundle . '/rootfs/' . $relative_path;
+        $copyPath($source_path, $destination);
+    }
+}
 
-            $relative_path = ltrim($source_path, '/');
-            $destination = $staging_bundle . '/rootfs/' . $relative_path;
-            $copyPath($source_path, $destination);
-        }
-    }
+$configured_environment = $persist_configuration['environment'] ?? [];
+if(!is_array($configured_environment)) {
+    throw new Exception('invalid_persist_environment', EQ_ERROR_INVALID_CONFIG);
+}
 
-    $configured_environment = $persist_configuration['environment'] ?? [];
-    if(!is_array($configured_environment)) {
-        throw new Exception('invalid_persist_environment', EQ_ERROR_INVALID_CONFIG);
-    }
+$environment_lines = [
+    'export PATH=' . escapeshellarg($bundle_dir . '/bin') . '${PATH:+:' . '$PATH}',
+    'export LD_LIBRARY_PATH=' . escapeshellarg($bundle_dir . '/lib') . '${LD_LIBRARY_PATH:+:' . '$LD_LIBRARY_PATH}'
+];
 
-    $environment_lines = [
-        'export PATH=' . escapeshellarg($bundle_dir . '/bin') . '${PATH:+:' . '$PATH}',
-        'export LD_LIBRARY_PATH=' . escapeshellarg($bundle_dir . '/lib') . '${LD_LIBRARY_PATH:+:' . '$LD_LIBRARY_PATH}'
-    ];
+foreach($configured_environment as $name => $value) {
+    if(!is_string($name) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name)) {
+        throw new Exception('invalid_persist_environment_name', EQ_ERROR_INVALID_CONFIG);
+    }
+    $resolved_value = $resolveEnvironmentValue($value, $staging_bundle, $bundle_dir);
+    $environment_lines[] = 'export ' . $name . '=' . escapeshellarg($resolved_value) . '${' . $name . ':+:' . '$' . $name . '}';
+}
 
-    foreach($configured_environment as $name => $value) {
-        if(!is_string($name) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name)) {
-            throw new Exception('invalid_persist_environment_name', EQ_ERROR_INVALID_CONFIG);
-        }
-        $resolved_value = $resolveEnvironmentValue($value, $staging_bundle, $bundle_dir);
-        $environment_lines[] = 'export ' . $name . '=' . escapeshellarg($resolved_value) . '${' . $name . ':+:' . '$' . $name . '}';
-    }
+if(file_put_contents($staging_bundle . '/environment.sh', implode("\n", $environment_lines) . "\n") === false) {
+    throw new Exception('unable_to_write_persist_environment', EQ_ERROR_UNKNOWN);
+}
 
-    if(file_put_contents($staging_bundle . '/environment.sh', implode("\n", $environment_lines) . "\n") === false) {
-        throw new Exception('unable_to_write_persist_environment', EQ_ERROR_UNKNOWN);
-    }
+if(!rename($staging_bundle, $bundle_dir)) {
+    throw new Exception('unable_to_activate_persist_bundle', EQ_ERROR_UNKNOWN);
+}
 
-    if(!rename($staging_bundle, $bundle_dir)) {
-        throw new Exception('unable_to_activate_persist_bundle', EQ_ERROR_UNKNOWN);
-    }
+$wrapper_temporary_path = $opt_bin_dir . '/.' . $package_key . '-' . $staging_id . '.tmp';
+$wrapper_content = implode("\n", [
+    '#!/bin/sh',
+    '# Generated by init_package_binary.',
+    '. ' . escapeshellarg($bundle_dir . '/environment.sh'),
+    'exec ' . escapeshellarg($bundle_dir . '/bin/' . basename($binary_path)) . ' "$@"'
+]) . "\n";
+if(file_put_contents($wrapper_temporary_path, $wrapper_content) === false) {
+    throw new Exception('unable_to_write_persist_wrapper', EQ_ERROR_UNKNOWN);
+}
+chmod($wrapper_temporary_path, 0755);
 
-    $wrapper_temporary_path = $opt_bin_dir . '/.' . $package_key . '-' . $staging_id . '.tmp';
-    $wrapper_content = implode("\n", [
-        '#!/bin/sh',
-        '# Generated by init_package_binary.',
-        '. ' . escapeshellarg($bundle_dir . '/environment.sh'),
-        'exec ' . escapeshellarg($bundle_dir . '/bin/' . basename($binary_path)) . ' "$@"'
-    ]) . "\n";
-    if(file_put_contents($wrapper_temporary_path, $wrapper_content) === false) {
-        throw new Exception('unable_to_write_persist_wrapper', EQ_ERROR_UNKNOWN);
-    }
-    chmod($wrapper_temporary_path, 0755);
+if(is_dir($wrapper_path)) {
+    throw new Exception('invalid_persist_wrapper_path', EQ_ERROR_INVALID_CONFIG);
+}
+if(!rename($wrapper_temporary_path, $wrapper_path)) {
+    throw new Exception('unable_to_activate_persist_wrapper', EQ_ERROR_UNKNOWN);
+}
 
-    if(is_dir($wrapper_path)) {
-        throw new Exception('invalid_persist_wrapper_path', EQ_ERROR_INVALID_CONFIG);
-    }
-    if(!rename($wrapper_temporary_path, $wrapper_path)) {
-        throw new Exception('unable_to_activate_persist_wrapper', EQ_ERROR_UNKNOWN);
-    }
-
-    $persistent_path = $opt_bin_dir . (strlen($system_path) > 0 ? PATH_SEPARATOR . $system_path : '');
-    [$persistent_check_code] = $runCommand($check_cmd, $persistent_path);
-    if($persistent_check_code !== 0) {
-        @unlink($wrapper_path);
-        throw new Exception('persisted_binary_check_failed', EQ_ERROR_UNKNOWN);
-    }
-    if(!touch($bundle_dir . '/.ready')) {
-        throw new Exception('unable_to_mark_persist_bundle_ready', EQ_ERROR_UNKNOWN);
-    }
+$persistent_path = $opt_bin_dir . (strlen($system_path) > 0 ? PATH_SEPARATOR . $system_path : '');
+[$persistent_check_code] = $runCommand($check_cmd, $persistent_path);
+if($persistent_check_code !== 0) {
+    @unlink($wrapper_path);
+    throw new Exception('persisted_binary_check_failed', EQ_ERROR_UNKNOWN);
+}
+if(!touch($bundle_dir . '/.ready')) {
+    throw new Exception('unable_to_mark_persist_bundle_ready', EQ_ERROR_UNKNOWN);
 }
 
 $context->httpResponse()
