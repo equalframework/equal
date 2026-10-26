@@ -131,8 +131,6 @@ if(is_dir($lang_dir) && ($list = scandir($lang_dir))) {
     }
 }
 
-$auto_translated_fields = ['id', 'model', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state', 'name'];
-
 foreach($classes as $class) {
     // get the full class name
     $class_name = $params['package'].'\\'.$class;
@@ -237,7 +235,7 @@ foreach($classes as $class) {
             // check for missing translations
             $translated_model = $resolved_translations[$lang]['model'] ?? $data['model'];
             foreach($schema as $field => $descriptor) {
-                if(!in_array($field, $auto_translated_fields, true) && !isset($translated_model[$field])) {
+                if(!isset($translated_model[$field])) {
                     $result[] = "WARN  - I18 - Missing translation for field '$field' referenced in file $i18n_file";
                 }
             }
