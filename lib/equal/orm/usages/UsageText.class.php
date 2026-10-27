@@ -11,6 +11,8 @@ use equal\data\DataGenerator;
 
 class UsageText extends Usage {
 
+    private const LIBXML_HTML_UNKNOWN_TAG_ERROR_CODE = 801;
+
     private const LIBXML_LITERAL_AMPERSAND_ERROR_CODES = [
         23, // XML_ERR_ENTITYREF_SEMICOL_MISSING
         68  // XML_ERR_NAME_REQUIRED
@@ -145,7 +147,7 @@ class UsageText extends Usage {
     private function isSafeHtml(string $html): bool {
         $tags = array_flip(explode(
             ' ',
-            'html body p br strong b em i u s ul ol li blockquote pre code small big h1 h2 h3 h4 h5 h6 a span'
+            'html body p br strong b em i u s ul ol li blockquote pre code small big h1 h2 h3 h4 h5 h6 a span div hr wbr table thead tbody tfoot tr td th caption colgroup col'
         ));
 
         $global_attributes = array_flip(['class', 'style']);
@@ -162,13 +164,19 @@ class UsageText extends Usage {
             LIBXML_NONET
         );
 
-        $errors = array_filter(libxml_get_errors(), function($error) {
+        $errors = array_filter(libxml_get_errors(), function($error) use ($tags) {
             // libxml reports literal ampersands as recoverable entity-reference errors.
             $is_literal_ampersand_error = $error->level !== LIBXML_ERR_FATAL
                 && in_array($error->code, self::LIBXML_LITERAL_AMPERSAND_ERROR_CODES, true)
                 && strpos(trim($error->message), 'htmlParseEntityRef:') === 0;
 
-            return !$is_literal_ampersand_error;
+            // libxml's HTML4 parser reports some whitelisted HTML5 tags as unknown.
+            $is_whitelisted_html5_tag_error = $error->level !== LIBXML_ERR_FATAL
+                && $error->code === self::LIBXML_HTML_UNKNOWN_TAG_ERROR_CODE
+                && preg_match('/^Tag ([a-z][a-z0-9:-]*) invalid$/i', trim($error->message), $match)
+                && isset($tags[strtolower($match[1])]);
+
+            return !$is_literal_ampersand_error && !$is_whitelisted_html5_tag_error;
         });
 
         $invalid = !$loaded
