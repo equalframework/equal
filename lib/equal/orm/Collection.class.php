@@ -1618,7 +1618,7 @@ class Collection implements \Iterator, \Countable {
         $ids = $this->ids();
         if(count($ids)) {
             // check if action can be performed
-            $res = $this->ac->canPerform($action, $this->class, $ids);
+            $res = $this->ac->canPerform($action, $this->class, $ids, null, $values);
 
             if(count($res)) {
                 throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);

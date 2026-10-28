@@ -8,6 +8,29 @@
 use core\User;
 use core\Group;
 
+class ActionPolicyValuesTestModel {
+
+    public static function getActions() {
+        return [
+            'check_values' => [
+                'policies' => ['values_allowed']
+            ]
+        ];
+    }
+
+    public static function getPolicies() {
+        return [
+            'values_allowed' => [
+                'function' => 'policyValuesAllowed'
+            ]
+        ];
+    }
+
+    protected static function policyValuesAllowed($values) {
+        return !empty($values['allowed']) ? [] : ['values_not_allowed'];
+    }
+}
+
 $providers = eQual::inject(['context', 'orm', 'auth', 'access']);
 
 $tests = [
@@ -249,6 +272,16 @@ $tests = [
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_7@example.com'])->delete(true);
+                }
+        ],
+
+  '0402' => [
+            'description'       => "Check that action values are relayed to policies.",
+            'assert'            => function() use($providers) {
+                    $access = $providers['access'];
+                    $allowed = $access->userCanPerform(1, 'check_values', ActionPolicyValuesTestModel::class, [1], ['allowed' => true]);
+                    $denied = $access->userCanPerform(1, 'check_values', ActionPolicyValuesTestModel::class, [1], ['allowed' => false]);
+                    return empty($allowed) && isset($denied['values_allowed']);
                 }
         ]
 ];
