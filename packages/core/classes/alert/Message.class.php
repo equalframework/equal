@@ -111,7 +111,7 @@ class Message extends Model {
         ];
     }
 
-    public static function calcObjectLink($om, $oids, $lang) {
+    protected static function calcObjectLink($om, $oids, $lang) {
         $result = [];
         $messages = $om->read(__CLASS__, $oids, ['object_class', 'object_id'], $lang);
 
@@ -122,7 +122,7 @@ class Message extends Model {
         return $result;
     }
 
-    public static function calcLabel($om, $oids, $lang) {
+    protected static function calcLabel($om, $oids, $lang) {
         $result = [];
         $messages = $om->read(__CLASS__, $oids, ['message_model_id.label'], $lang);
 
@@ -132,7 +132,7 @@ class Message extends Model {
         return $result;
     }
 
-    public static function calcDescription($om, $oids, $lang) {
+    protected static function calcDescription($om, $oids, $lang) {
         $result = [];
         $messages = $om->read(__CLASS__, $oids, ['message_model_id.description'], $lang);
 
@@ -142,7 +142,7 @@ class Message extends Model {
         return $result;
     }
 
-    public function getUnique() {
+    public function getUniques(): array {
         return [
             ['object_class', 'object_id', 'message_model_id']
         ];

@@ -8,9 +8,31 @@
 			"description": "Email address used to authenticate the user.",
 			"help":"The email address is used as login."
 		},
+		"username":{"label":"Username", "description": "Unique username assigned to the account.", "help": "Enter a unique username containing letters, numbers, or single hyphens."},
 		"password":{"label":"Password", "description": "Password used for account authentication.", "help": "Enter a new value only when the password must be changed."},
+		"nickname":{"label":"Nickname", "description": "Alias of the account username.", "help": "This value reflects the username assigned to the account."},
 		"firstname":{"label":"Given name", "description": "User's given name.", "help": "Enter the user's given name."},
-		"lastname":{"label":"Family name", "description": "User's family name.", "help": "Enter the user's family name."}
+		"lastname":{"label":"Family name", "description": "User's family name.", "help": "Enter the user's family name."},
+		"fullname":{"label":"Full name", "description": "Full name calculated from the given and family names.", "help": "This value is calculated automatically from the given and family names."},
+		"language":{"label":"Language", "description": "Preferred locale for user interfaces.", "help": "Select the user's preferred interface language."},
+		"validated":{"label":"Validated", "description": "Indicates whether the user account has been validated.", "help": "This value prevents the user from signing in until the account is validated."},
+		"groups_ids":{"label":"Groups", "description": "Groups to which the user belongs.", "help": "Select the groups to which the user belongs."},
+		"permissions_ids":{"label":"Permissions", "description": "Permissions granted directly to the user.", "help": "This list contains the permissions assigned directly to the user."},
+		"setting_values_ids":{"label":"Setting values", "description": "User-specific setting values.", "help": "This list contains the preferences and settings assigned to the user."},
+		"passkeys_ids":{"label":"Passkeys", "description": "Passkeys owned by the user.", "help": "This list contains the passkeys registered for the user."},
+		"status":{
+			"label":"Status",
+			"description": "Current state of the user account.",
+			"help":"This value tracks the account through creation, validation, confirmation, or suspension.",
+			"selection": {
+				"created": "Created",
+				"validated": "Validated",
+				"confirmed": "Confirmed",
+				"suspended": "Suspended"
+			}
+		},
+		"allow_auth":{"label":"Allow authentication", "description": "Allows password, passkey, or email authentication.", "help": "Disable this option to allow access only through manually generated access tokens."},
+		"access_tokens_ids":{"label":"Access tokens", "description": "Access tokens owned by the user.", "help": "This list contains the access tokens issued to the user."}
 	},
 	"view": {
 		"identification":{"label":"Identification"},

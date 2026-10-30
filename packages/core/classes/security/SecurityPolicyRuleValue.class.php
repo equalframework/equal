@@ -51,7 +51,7 @@ class SecurityPolicyRuleValue extends Model {
         ];
     }
 
-    public static function calcSecurityPolicyId($self) {
+    protected static function calcSecurityPolicyId($self) {
         $result = [];
         $self->read(['policy_rule_id' => ['security_policy_id']]);
         foreach($self as $id => $value) {
