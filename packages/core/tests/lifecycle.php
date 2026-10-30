@@ -6,12 +6,90 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
+namespace core\tests\fixtures\lifecycle {
+
+    class WriteCapabilityProbe extends \core\test\Test
+    {
+        public static function getCapabilities(): array {
+            return [EQ_R_UPDATE => false];
+        }
+    }
+
+    class WriteAccessProbe extends \core\test\Test
+    {
+    }
+
+    class WritePolicyProbe extends \core\test\Test
+    {
+        public static function getOperationPolicies() {
+            return [EQ_R_UPDATE => false];
+        }
+    }
+
+    class WriteGuardProbe extends \core\test\Test
+    {
+        protected static function canupdate($self, $values) {
+            return ['write_guard_denied'];
+        }
+    }
+
+    class WriteValidationProbe extends \core\test\Test
+    {
+        private static $field_events = [];
+
+        public static function getColumns() {
+            return [
+                'string_short' => [
+                    'type'     => 'string',
+                    'usage'    => 'text/plain:9',
+                    'onupdate' => 'onupdateStringShort'
+                ]
+            ];
+        }
+
+        public static function getConstraints() {
+            return [
+                'string_short' => [
+                    'invalid_write_value' => [
+                        'message'  => 'The technical-write test value is invalid.',
+                        'function' => function ($value) {
+                            return $value !== 'invalid';
+                        }
+                    ]
+                ]
+            ];
+        }
+
+        public static function resetFieldEvents() {
+            self::$field_events = [];
+        }
+
+        public static function getFieldEvents() {
+            return self::$field_events;
+        }
+
+        protected static function onupdateStringShort($self, $ids, $values) {
+            self::$field_events[] = [
+                'ids'    => $ids,
+                'values' => $values
+            ];
+        }
+    }
+}
+
 namespace {
 
+    use core\tests\fixtures\lifecycle\WriteAccessProbe;
+    use core\tests\fixtures\lifecycle\WriteCapabilityProbe;
+    use core\tests\fixtures\lifecycle\WriteGuardProbe;
+    use core\tests\fixtures\lifecycle\WritePolicyProbe;
+    use core\tests\fixtures\lifecycle\WriteValidationProbe;
+    use core\User;
     use core\test\LifecycleConsistencyProbe;
     use core\test\LifecycleReadonlyRequiredProbe;
     use core\test\LifecycleProbe;
     use core\test\Test;
+    use core\test\Test1;
     use equal\orm\ObjectManager;
 
     $tests = [
@@ -701,6 +779,426 @@ namespace {
 
                         if(count($ids)) {
                             LifecycleProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
+
+        '5022' => [
+                'description' => 'Lifecycle write: readonly required fields remain writable and may be set to null.',
+                'arrange'     => function () {
+                        $first = LifecycleReadonlyRequiredProbe::create(['string_short' => 'first'])
+                            ->read(['id'])
+                            ->first();
+                        $second = LifecycleReadonlyRequiredProbe::create(['string_short' => 'second'])
+                            ->read(['id'])
+                            ->first();
+
+                        return ['ids' => [$first['id'], $second['id']]];
+                    },
+                'act'         => function ($fixtures) {
+                        $objects = LifecycleReadonlyRequiredProbe::ids($fixtures['ids'])
+                            ->write(['string_short' => null])
+                            ->read(['id', 'state', 'string_short'])
+                            ->toArray();
+
+                        return $fixtures + ['objects' => $objects];
+                    },
+                'assert'      => function($result) {
+                        if(count($result['objects'] ?? []) !== 2) {
+                            return false;
+                        }
+
+                        foreach($result['objects'] as $object) {
+                            if(($object['state'] ?? null) !== 'instance'
+                                || !array_key_exists('string_short', $object)
+                                || $object['string_short'] !== null) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    },
+                'rollback'    => function($result) {
+                        $ids = $result['ids'] ?? [];
+                        if(count($ids)) {
+                            LifecycleReadonlyRequiredProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
+
+        '5023' => [
+                'description' => 'Lifecycle write: unique constraints are not validated.',
+                'arrange'     => function () {
+                        $first = LifecycleConsistencyProbe::create(['string_short' => 'unique-1'])
+                            ->read(['id'])
+                            ->first();
+                        $second = LifecycleConsistencyProbe::create(['string_short' => 'unique-2'])
+                            ->read(['id'])
+                            ->first();
+
+                        return ['ids' => [$first['id'], $second['id']]];
+                    },
+                'act'         => function ($fixtures) {
+                        LifecycleConsistencyProbe::id($fixtures['ids'][1])
+                            ->write(['string_short' => 'unique-1']);
+
+                        $objects = LifecycleConsistencyProbe::ids($fixtures['ids'])
+                            ->read(['id', 'string_short'])
+                            ->toArray();
+
+                        return $fixtures + ['objects' => $objects];
+                    },
+                'assert'      => function($result) {
+                        if(count($result['objects'] ?? []) !== 2) {
+                            return false;
+                        }
+
+                        foreach($result['objects'] as $object) {
+                            if(($object['string_short'] ?? null) !== 'unique-1') {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    },
+                'rollback'    => function($result) {
+                        $ids = $result['ids'] ?? [];
+                        if(count($ids)) {
+                            LifecycleConsistencyProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
+
+        '5024' => [
+                'description' => 'Lifecycle write: technical writes preserve state and invoke no lifecycle hooks.',
+                'arrange'     => function () {
+                        $test = LifecycleProbe::create([
+                                'state'        => 'draft',
+                                'string_short' => 'before'
+                            ])
+                            ->read(['id'])
+                            ->first();
+
+                        LifecycleProbe::resetLifecycleEvents();
+
+                        return ['id' => $test['id']];
+                    },
+                'act'         => function ($fixtures) {
+                        $object = LifecycleProbe::id($fixtures['id'])
+                            ->write([
+                                'state'        => 'instance',
+                                'string_short' => 'after'
+                            ])
+                            ->read(['id', 'state', 'string_short'])
+                            ->first();
+
+                        return $fixtures + [
+                            'object' => $object,
+                            'events' => LifecycleProbe::getLifecycleEvents()
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['object']['state'] ?? null) === 'draft'
+                            && ($result['object']['string_short'] ?? null) === 'after'
+                            && ($result['events'] ?? null) === [];
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5025' => [
+                'description' => 'Lifecycle write: technical writes do not invalidate or recompute dependent fields.',
+                'arrange'     => function () {
+                        $test = Test::create(['string_short' => 'before'])
+                            ->read(['id'])
+                            ->first();
+                        $test1 = Test1::create(['test_id' => $test['id']])
+                            ->read(['id', 'test'])
+                            ->first();
+
+                        return [
+                            'test_id'     => $test['id'],
+                            'test1_id'    => $test1['id'],
+                            'before_test' => $test1['test']
+                        ];
+                    },
+                'act'         => function ($fixtures) {
+                        $test = Test::id($fixtures['test_id'])
+                            ->write(['string_short' => 'after'])
+                            ->read(['string_short'])
+                            ->first();
+                        $test1 = Test1::id($fixtures['test1_id'])
+                            ->read(['test'])
+                            ->first();
+
+                        return $fixtures + [
+                            'source_value'    => $test['string_short'],
+                            'dependent_value' => $test1['test']
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['before_test'] ?? null) === 'before'
+                            && ($result['source_value'] ?? null) === 'after'
+                            && ($result['dependent_value'] ?? null) === 'before';
+                    },
+                'rollback'    => function($result) {
+                        $test1_id = $result['test1_id'] ?? 0;
+                        if($test1_id > 0) {
+                            Test1::id($test1_id)->delete(true);
+                        }
+
+                        $test_id = $result['test_id'] ?? 0;
+                        if($test_id > 0) {
+                            Test::id($test_id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5026' => [
+                'description' => 'Lifecycle write: UPDATE capabilities are enforced.',
+                'arrange'     => function () {
+                        $object = WriteCapabilityProbe::create(['string_short' => 'before'])
+                            ->read(['id'])
+                            ->first();
+
+                        return ['id' => $object['id']];
+                    },
+                'act'         => function ($fixtures) {
+                        $error = null;
+                        try {
+                            WriteCapabilityProbe::id($fixtures['id'])
+                                ->write(['string_short' => 'after']);
+                        }
+                        catch(Exception $exception) {
+                            $error = [
+                                'code'    => $exception->getCode(),
+                                'message' => $exception->getMessage()
+                            ];
+                        }
+
+                        $object = WriteCapabilityProbe::id($fixtures['id'])
+                            ->read(['string_short'])
+                            ->first();
+
+                        return $fixtures + [
+                            'error' => $error,
+                            'value' => $object['string_short']
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['error']['code'] ?? null) === EQ_ERROR_NOT_ALLOWED
+                            && ($result['error']['message'] ?? null) === 'capability_denied'
+                            && ($result['value'] ?? null) === 'before';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            WriteCapabilityProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5027' => [
+                'description' => 'Lifecycle write: ACL UPDATE permissions are enforced.',
+                'arrange'     => function () {
+                        $suffix = bin2hex(random_bytes(4));
+                        $object = WriteAccessProbe::create(['string_short' => 'before'])
+                            ->read(['id'])
+                            ->first();
+                        $user = User::create([
+                                'login'    => "write-acl-{$suffix}@example.com",
+                                'password' => 'write-acl-test'
+                            ])
+                            ->read(['id', 'login'])
+                            ->first();
+
+                        return [
+                            'id'      => $object['id'],
+                            'user_id' => $user['id'],
+                            'login'   => $user['login']
+                        ];
+                    },
+                'act'         => function ($fixtures) {
+                        ['auth' => $auth, 'access' => $access] = eQual::inject(['auth', 'access']);
+                        $error = null;
+
+                        $reflection = new ReflectionObject($access);
+                        $default_rights = $reflection->getProperty('default_rights');
+                        $permissions_table = $reflection->getProperty('permissionsTable');
+                        $default_rights->setAccessible(true);
+                        $permissions_table->setAccessible(true);
+
+                        $original_default_rights = $default_rights->getValue($access);
+                        $original_permissions_table = $permissions_table->getValue($access);
+                        $default_rights->setValue($access, 0);
+                        $permissions_table->setValue($access, []);
+
+                        try {
+                            $auth->su($fixtures['user_id']);
+                            WriteAccessProbe::id($fixtures['id'])
+                                ->write(['string_short' => 'after']);
+                        }
+                        catch(Exception $exception) {
+                            $error = [
+                                'code'    => $exception->getCode(),
+                                'message' => $exception->getMessage()
+                            ];
+                        }
+                        finally {
+                            $auth->su();
+                            $default_rights->setValue($access, $original_default_rights);
+                            $permissions_table->setValue($access, $original_permissions_table);
+                        }
+
+                        $object = WriteAccessProbe::id($fixtures['id'])
+                            ->read(['string_short'])
+                            ->first();
+
+                        return $fixtures + [
+                            'error' => $error,
+                            'value' => $object['string_short']
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['error']['code'] ?? null) === EQ_ERROR_NOT_ALLOWED
+                            && ($result['error']['message'] ?? null) === 'access_denied'
+                            && ($result['value'] ?? null) === 'before';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            WriteAccessProbe::id($id)->delete(true);
+                        }
+
+                        $user_id = $result['user_id'] ?? 0;
+                        if($user_id > 0) {
+                            User::id($user_id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5028' => [
+                'description' => 'Lifecycle write: UPDATE operation policies are enforced.',
+                'arrange'     => function () {
+                        $object = WritePolicyProbe::create(['string_short' => 'before'])
+                            ->read(['id'])
+                            ->first();
+
+                        return ['id' => $object['id']];
+                    },
+                'act'         => function ($fixtures) {
+                        $error = null;
+                        try {
+                            WritePolicyProbe::id($fixtures['id'])
+                                ->write(['string_short' => 'after']);
+                        }
+                        catch(Exception $exception) {
+                            $error = [
+                                'code'    => $exception->getCode(),
+                                'message' => $exception->getMessage()
+                            ];
+                        }
+
+                        $object = WritePolicyProbe::id($fixtures['id'])
+                            ->read(['string_short'])
+                            ->first();
+
+                        return $fixtures + [
+                            'error' => $error,
+                            'value' => $object['string_short']
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['error']['code'] ?? null) === EQ_ERROR_NOT_ALLOWED
+                            && ($result['error']['message'] ?? null) === 'operation_policy_denied'
+                            && ($result['value'] ?? null) === 'before';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            WritePolicyProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5029' => [
+                'description' => 'Lifecycle write: the legacy canupdate guard is enforced.',
+                'arrange'     => function () {
+                        $object = WriteGuardProbe::create(['string_short' => 'before'])
+                            ->read(['id'])
+                            ->first();
+
+                        return ['id' => $object['id']];
+                    },
+                'act'         => function ($fixtures) {
+                        $error = null;
+                        try {
+                            WriteGuardProbe::id($fixtures['id'])
+                                ->write(['string_short' => 'after']);
+                        }
+                        catch(Exception $exception) {
+                            $error = [
+                                'code'    => $exception->getCode(),
+                                'details' => @unserialize($exception->getMessage())
+                            ];
+                        }
+
+                        $object = WriteGuardProbe::id($fixtures['id'])
+                            ->read(['string_short'])
+                            ->first();
+
+                        return $fixtures + [
+                            'error' => $error,
+                            'value' => $object['string_short']
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['error']['code'] ?? null) === EQ_ERROR_NOT_ALLOWED
+                            && ($result['error']['details'] ?? null) === ['write_guard_denied']
+                            && ($result['value'] ?? null) === 'before';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            WriteGuardProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5030' => [
+                'description' => 'Lifecycle write: custom validation and field callbacks are bypassed.',
+                'arrange'     => function () {
+                        $object = WriteValidationProbe::create(['string_short' => 'before'])
+                            ->read(['id'])
+                            ->first();
+
+                        WriteValidationProbe::resetFieldEvents();
+
+                        return ['id' => $object['id']];
+                    },
+                'act'         => function ($fixtures) {
+                        $object = WriteValidationProbe::id($fixtures['id'])
+                            ->write(['string_short' => 'invalid'])
+                            ->read(['string_short'])
+                            ->first();
+
+                        return $fixtures + [
+                            'value'  => $object['string_short'],
+                            'events' => WriteValidationProbe::getFieldEvents()
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['value'] ?? null) === 'invalid'
+                            && ($result['events'] ?? null) === [];
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            WriteValidationProbe::id($id)->delete(true);
                         }
                     }
             ],

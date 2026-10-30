@@ -1337,20 +1337,25 @@ class Collection implements \Iterator, \Countable {
 
 
     /**
-     * Persists the same field values on every selected object through the secured technical-write path.
+     * Persists the same values on every selected object through the secured technical-write path.
      *
-     * This method checks UPDATE capabilities, ACLs, operation policies, and the legacy `canupdate()` guard.
-     * It performs no:
-     *   - data validation
-     *   - entity and field lifecycle callbacks
-     *   - dependent-field invalidation/recomputation
-     *   - automatic workflow transitions
-     *   - lifecycle changes on `state` field
+     * Unlike update(), write() enforces UPDATE capabilities, ACLs, operation policies, and the legacy
+     * `canupdate()` guard, but skips ORM validation and lifecycle processing.
      *
-     * @param   array|null  $values   Associative array mapping fields and values.
+     * Consequences:
+     *   - `readonly` are writable, `required` can be set to null, and `unique` are not checked;
+     *   - entity and field callbacks are not invoked (onupdate..., onbefore..., onafter...);
+     *   - dependent fields are neither invalidated nor recomputed;
+     *   - `state` values are ignored and no workflow transition is triggered.
+     *
+     * Database constraints still apply.
+     *
+     * @param   array       $values   Associative array mapping fields and values.
      * @param   string|null $lang     Language for multilang fields.
      *
      * @return  Collection  Returns the current instance (allowing call chaining).
+     *
+     * @see self::update()
      */
     public function write(array $values, $lang=null) {
         if(count($this->objects) <= 0) {
