@@ -2191,7 +2191,7 @@ class ObjectManager extends Service {
     /**
      * Persists the same field values on every selected object as a privileged technical write.
      *
-     * This low-level method performs no:
+     * This low-level method performs NO:
      *   - capabilities, ACL or operation-policy checks
      *   - data validation
      *   - entity and field lifecycle callbacks
