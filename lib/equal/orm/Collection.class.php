@@ -648,7 +648,7 @@ class Collection implements \Iterator, \Countable {
                     throw new \Exception('invalid_operation_policy_rule', EQ_ERROR_INVALID_CONFIG);
                 }
 
-                $inconsistencies = (array) $this->ac->isCompliant($policy, $this->class, $ids, $user_id);
+                $inconsistencies = (array) $this->ac->isCompliant($policy, $this->class, $ids, $user_id, $fields);
                 if(count($inconsistencies)) {
                     throw new \Exception(serialize([$policy => $inconsistencies]), EQ_ERROR_NOT_ALLOWED);
                 }
