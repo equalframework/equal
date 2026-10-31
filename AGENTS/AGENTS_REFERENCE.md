@@ -116,7 +116,7 @@ public static function getActions() {
   return [
     'init' => [
       'description' => 'Initialize report lines.',
-      'policies'    => [],
+      'policies'    => ['initializable'],
       'function'    => 'doInit'
     ]
   ];
@@ -129,7 +129,21 @@ Actions are triggered with:
 Report::create()->do('init');
 ```
 
-Each action can define `policies` to restrict access.
+Each mutating inline ORM action must declare named policies that validate all foreseeable business prerequisites before its function is invoked. The corresponding policies must be declared through `getPolicies()`.
+
+### Preflight Policy Contract
+
+Inline ORM actions declared through `getActions()` and implemented by `do*` methods use a preflight policy contract:
+
+- Policies validate the current state, required values and relations, related-object compatibility, and the prerequisites of every targeted object before the action starts.
+- Policies are side-effect-free: they may read or search, but they do not create, update, or delete business objects.
+- For a collection action, the whole collection must comply before the first mutation.
+- After policies pass, the `do*` method follows only the success path. It does not repeat predictable functional checks, deliberately abort, or return a partial business result.
+- Predictable business failures are returned by policies with stable error keys, not thrown or caught by the action body.
+- An inline ORM action contains no `try/catch` and does not start, commit, roll back, or otherwise manage an SQL transaction.
+- Unexpected technical exceptions propagate to the framework's normal error handling.
+
+If the required preconditions cannot be checked before mutation and the operation requires transactional or compensating behavior, stop and ask for guidance before implementing it as an inline ORM action. These rules do not automatically apply to standalone controllers under `actions/`, whose request-validation and error contract may require stable domain exceptions.
 
 ### ORM Actions and Synchronization Logic
 
@@ -142,12 +156,14 @@ public static function getActions() {
   return array_merge(parent::getActions(), [
     'sync_primary_lang' => [
       'description' => 'Synchronize the primary language.',
-      'policies'    => [],
+      'policies'    => ['primary_lang_syncable'],
       'function'    => 'doSyncPrimaryLang'
     ]
   ]);
 }
 ```
+
+The `primary_lang_syncable` policy must be declared through `getPolicies()` and must validate all prerequisites of the synchronization before `doSyncPrimaryLang()` is called.
 
 Implement the logic in a `do*` method:
 

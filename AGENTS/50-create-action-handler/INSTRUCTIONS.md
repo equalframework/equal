@@ -7,10 +7,10 @@
 7. Declare the inline action in `getActions()` with at least `description`, `policies`, and `function`; `help` may be added if the action is not obvious.
 8. Clearly define the input contract: for `getActions()`, the main input is the current collection (`$self`) and possibly dependencies injected by the framework based on parameter names (`$auth`, `$orm`, `$context`, `$dispatch`, `$lang`, `$values`); for an `action handler`, parameters must be declared in `eQual::announce()`.
 9. If the action must accept one or multiple objects via HTTP, follow the repository handler pattern with `id` and optionally `ids`, then normalize the identifier list before processing.
-10. Move business preconditions into policies whenever possible; in this repository, inline actions are often gated by `can_*` or `is_*`, and these policies return a structured map per object and per error key.
+10. For inline ORM actions, move every foreseeable business precondition into declared policies. Before the action function starts, policies must validate the current state, required field values, required relations, compatibility of related objects, and prerequisites for every object in the target collection.
 11. Return stable and explicit business error keys, not just free-form messages; examples use keys such as `already_processing`, `missing_due_date`, `invalid_invoice_status`.
-12. Reserve `trigger_error("APP::...")` for logging, warnings, and diagnostics; for expected functional blocking, prefer a policy or a domain exception consistent with the flow conventions.
-13. Explicitly load the required fields before processing the action using `$self->read([...])`, then iterate over the collection; repository actions are designed to work on one or multiple ids, not just a singleton.
+12. For inline ORM actions, expected functional blocking belongs exclusively to declared policies. Do not throw or catch domain exceptions in the `do*` method. Standalone controllers under `actions/` may still use stable exceptions for request validation when required by their controller contract; do not transpose that controller convention to inline ORM actions. Reserve `trigger_error("APP::...")` for logging, warnings, and diagnostics.
+13. Load fields needed for precondition checks inside the policy with `$self->read([...])`. In the `do*` method, load only fields still required to perform the successful mutations; do not repeat policy checks. Repository actions are designed to work on one or multiple ids, not just a singleton.
 14. Do not duplicate logic already present in another action, transition, `onupdate`, or business method; if the behavior already exists, chain with `->do('...')` or call the appropriate existing entry point.
 15. Avoid adding public helper methods unless an existing consumer or stable cross-entity API clearly requires them.
 16. If the inline action is triggered from a view, the view must use `controller: "core_model_do"` with `params.entity`, `params.action`, and generally `ids: []`; if it is a workflow transition, use `core_model_transition`, not `core_model_do`.
@@ -25,3 +25,18 @@
 25. If implementing the action requires editing `getActions()`, `getWorkflow()`, validations, computed fields, or any other `.class.php` method, run `./equal.run --do=test_db-access`; if the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
 26. If any `.class.php` file was modified, reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true`.
 27. Refer to `AGENTS/AGENTS_REFERENCE.md`, `AGENTS/00-general/VALIDATION-SCHEMAS.md`, and `DOC/application-developers/core-development-guide/controllers-routing/controllers.md` for detailed controller conventions.
+
+## Preflight contract for inline ORM actions
+
+These rules apply to inline ORM actions declared through `getActions()` and implemented by `do*` methods. They do not automatically apply to standalone controllers under `actions/`.
+
+- Design an inline ORM action as a straight-through success path.
+- Before the action function is invoked, its declared policies must validate every foreseeable business precondition required for the complete action: the current state, required field values, required relations, compatibility of related objects, and prerequisites for every object in the collection.
+- Policies must be side-effect-free. They may read or search for information, but must not create, update, or delete business objects.
+- For collection actions, policies must validate the complete target collection before the first mutation occurs.
+- Once the policies have passed, the `do*` method must assume that all business prerequisites are satisfied. It must not repeat predictable business checks, intentionally stop for a functional reason, or return a partial business result.
+- Expected business failures must be reported by policies using stable error keys. They must not be implemented by throwing or catching exceptions inside the `do*` method.
+- Do not use `try/catch` inside an inline ORM action.
+- Do not start, commit, roll back, or otherwise manage an SQL transaction inside an inline ORM action, either directly or through an ORM or database helper.
+- Unexpected technical exceptions must be allowed to propagate to the framework's normal error handling.
+- If an operation can predictably fail only after mutations have started, move the missing prerequisite check into a policy. If this is impossible and the operation requires transactional or compensating behavior, stop and ask for guidance before implementing it as an inline ORM action.

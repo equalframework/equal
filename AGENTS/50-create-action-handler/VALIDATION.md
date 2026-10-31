@@ -14,6 +14,18 @@
 - [ ] No duplicate logic was added when reusable services already exist.
 - [ ] No unrelated action or data-provider files were modified.
 
+## Inline ORM Action Validation
+
+- [ ] Every foreseeable business precondition is checked by a declared policy.
+- [ ] Policies cover the current state, required values, required relations, related-object compatibility, and all targeted objects.
+- [ ] Policies do not create, update, or delete business objects.
+- [ ] The complete collection is validated before the first mutation.
+- [ ] The `do*` method contains only the expected success path.
+- [ ] The `do*` method does not perform functional rejection already belonging to a policy.
+- [ ] The `do*` method contains no `try/catch`.
+- [ ] The `do*` method does not start, commit, roll back, or otherwise manage an SQL transaction.
+- [ ] Predictable failures use stable policy error keys.
+
 ## Announcement Metadata Validation
 
 Validate the action handler definition through eQual's `announce` mechanism. No dedicated action-consistency controller currently covers action announcement metadata, so this is an allowed `core_json-validate` exception.

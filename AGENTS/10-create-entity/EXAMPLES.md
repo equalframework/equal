@@ -159,11 +159,49 @@ class AssemblyExample extends \equal\orm\Model {
         ];
     }
 
+    public static function getPolicies() {
+        return [
+            'publishable' => [
+                'description' => 'Checks that the assembly can be published.',
+                'function'    => 'policyPublishable'
+            ],
+            'items_order_refreshable' => [
+                'description' => 'Checks that agenda ordering can be refreshed.',
+                'function'    => 'policyItemsOrderRefreshable'
+            ]
+        ];
+    }
+
     public static function getActions() {
         return [
-            'publish' => ['description' => 'Publish the assembly.', 'policies' => [], 'function' => 'doPublish'],
-            'refresh_items_order' => ['description' => 'Normalize agenda ordering.', 'policies' => [], 'function' => 'doRefreshItemsOrder']
+            'publish' => ['description' => 'Publish the assembly.', 'policies' => ['publishable'], 'function' => 'doPublish'],
+            'refresh_items_order' => ['description' => 'Normalize agenda ordering.', 'policies' => ['items_order_refreshable'], 'function' => 'doRefreshItemsOrder']
         ];
+    }
+
+    protected static function policyPublishable($self): array {
+        $self->read(['status', 'assembly_date', 'assembly_items_ids']);
+        foreach($self as $assembly) {
+            if($assembly['status'] !== 'draft') {
+                return ['status' => ['not_draft' => 'Only draft assemblies can be published.']];
+            }
+            if(!$assembly['assembly_date']) {
+                return ['assembly_date' => ['missing_required_data' => 'The assembly date is required.']];
+            }
+            if(!count($assembly['assembly_items_ids'])) {
+                return ['assembly_items_ids' => ['missing_required_data' => 'At least one agenda item is required.']];
+            }
+        }
+        return [];
+    }
+
+    protected static function policyItemsOrderRefreshable($self): array {
+        foreach($self as $id => $assembly) {
+            if((int) $id <= 0) {
+                return ['id' => ['not_persisted' => 'Agenda ordering requires a persisted assembly.']];
+            }
+        }
+        return [];
     }
 
     protected static function onupdateCondoId($self) {
@@ -206,16 +244,7 @@ class AssemblyExample extends \equal\orm\Model {
     }
 
     protected static function doPublish($self) {
-        $self->read(['status', 'assembly_date', 'assembly_items_ids']);
-        foreach($self as $id => $assembly) {
-            if($assembly['status'] !== 'draft') {
-                continue;
-            }
-            if(!$assembly['assembly_date'] || !count($assembly['assembly_items_ids'])) {
-                throw new \Exception('missing_required_data', EQ_ERROR_INVALID_PARAM);
-            }
-            self::id($id)->update(['status' => 'published']);
-        }
+        $self->update(['status' => 'published']);
     }
 
     protected static function doRefreshItemsOrder($self) {
