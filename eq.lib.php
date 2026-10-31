@@ -1033,7 +1033,7 @@ namespace config {
 
             if($self_provider_requested && !array_key_exists('id', $body) && !array_key_exists('ids', $body)) {
                 $response->body(['announcement' => $announcement]);
-                throw new \Exception('id,ids', EQ_ERROR_MISSING_PARAM);
+                throw new \Exception('no_id_nor_ids', EQ_ERROR_MISSING_PARAM);
             }
 
             // 2) find any missing parameters
