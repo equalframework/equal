@@ -1038,7 +1038,7 @@ class AccessController extends Service {
      * var_dump(validate_time_range(1719925622, 'mon@09:00-wed@17:00')); // true
      * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@17:00')); // true
      * var_dump(validate_time_range(1719925622, 'mon@09:00-fri@17:00')); // true
-     * var_dump(validate_time_range(1719925622, 'thi@09:00-fri@17:00')); // false
+     * var_dump(validate_time_range(1719925622, 'thu@09:00-fri@17:00')); // false
      * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@11:00')); // false
      * var_dump(validate_time_range(1719925622, 'mon@09:00-mon@11:00')); // false
      * var_dump(validate_time_range(1719925622, 'tue@13:00-tue@14:00')); // true
@@ -1048,7 +1048,7 @@ class AccessController extends Service {
         $time_of_day = ($hours * 3600) + ($minutes * 60);
 
         // retrieve timezone offset between local timezone and UTC (times in settings use local time)
-        $tz = new \DateTimeZone(Setting::get_value('core', 'locale', 'time_zone', 'Europe/Brussels'));
+        $tz = new \DateTimeZone(Setting::get_value('core', 'locale', 'time.zone', 'Europe/Brussels'));
         // apply timezone offset, in seconds to apply, depending on the date of the given date (based on received timestamp)
         $time_of_day += $tz->getOffset(new \DateTime('@'.$time));
 
