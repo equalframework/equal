@@ -1408,7 +1408,7 @@ class Collection implements \Iterator, \Countable {
         $this
             ->assertCapabilities(EQ_R_UPDATE, $fields, $ids)
             ->assertAccessControl(EQ_R_UPDATE, $fields, $ids)
-            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids)
+            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids, $values)
             ->assertOperationGuards(EQ_R_UPDATE, array_diff_key($values, Model::getSpecialColumns()));
 
         // by convention, update operation sets modifier as current user
