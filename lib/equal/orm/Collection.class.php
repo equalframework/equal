@@ -578,8 +578,13 @@ class Collection implements \Iterator, \Countable {
     /**
      * Assert that the current collection complies with the operation policies
      * declared by the target Model class.
+     *
+     * @param int        $operation Operation being checked.
+     * @param array      $fields    Fields involved in the operation, when applicable.
+     * @param array      $ids       Object identifiers involved in the operation, when applicable.
+     * @param array|null $values    Values relayed to policy callbacks. Defaults to fields for backward compatibility.
      */
-    private function assertOperationPolicies(int $operation, array $fields=[], array $ids=[]): self {
+    private function assertOperationPolicies(int $operation, array $fields=[], array $ids=[], ?array $values=null): self {
         if(!in_array($operation, [EQ_R_CREATE, EQ_R_READ, EQ_R_UPDATE, EQ_R_DELETE], true)) {
             return $this;
         }
@@ -648,7 +653,13 @@ class Collection implements \Iterator, \Countable {
                     throw new \Exception('invalid_operation_policy_rule', EQ_ERROR_INVALID_CONFIG);
                 }
 
-                $inconsistencies = (array) $this->ac->isCompliant($policy, $this->class, $ids, $user_id, $fields);
+                $inconsistencies = (array) $this->ac->isCompliant(
+                    $policy,
+                    $this->class,
+                    $ids,
+                    $user_id,
+                    $values ?? $fields
+                );
                 if(count($inconsistencies)) {
                     throw new \Exception(serialize([$policy => $inconsistencies]), EQ_ERROR_NOT_ALLOWED);
                 }
@@ -971,7 +982,8 @@ class Collection implements \Iterator, \Countable {
 
         $this
             ->assertCapabilities(EQ_R_CREATE)
-            ->assertAccessControl(EQ_R_CREATE, $fields);
+            ->assertAccessControl(EQ_R_CREATE, $fields)
+            ->assertOperationPolicies(EQ_R_CREATE, $fields, [], $values);
 
         // set current user as creator and modifier
         $values['creator'] = $user_id;

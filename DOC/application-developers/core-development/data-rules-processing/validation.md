@@ -12,7 +12,7 @@ The informal mnemonics **CRUD** (`create`, `read`, `update`, `delete`) and **DWI
 
 | Call | Data validation | Operation policy through `Collection` | Deprecated compatibility guard |
 | ---- | --------------- | ------------------------------------- | ------------------------------ |
-| `create()` | Supplied values and uniqueness are validated; required fields are checked before instantiation. | None in the current implementation. | `cancreate()` |
+| `create()` | Supplied values and uniqueness are validated; required fields are checked before instantiation. | `EQ_R_CREATE` | `cancreate()` |
 | `read()` | None. | `EQ_R_READ` | `canread()` |
 | `update()` | Supplied values and uniqueness are validated; required fields are checked when a draft becomes an instance. | `EQ_R_UPDATE` | `canupdate()` |
 | `delete()` | None. | `EQ_R_DELETE` | `candelete()` |
@@ -21,7 +21,7 @@ The informal mnemonics **CRUD** (`create`, `read`, `update`, `delete`) and **DWI
 | `instantiate()` | Required fields and uniqueness are checked. | None. | None. |
 | `remove()` | None. | None; this low-level operation is not exposed by `Collection`. | None. |
 
-`EQ_R_CREATE` policies are currently evaluated by `Collection::clone()` for the target class, together with READ on the source and UPDATE on the target. `Collection::create()` does not yet invoke `assertOperationPolicies(EQ_R_CREATE)`.
+`EQ_R_CREATE` policies are evaluated by `Collection::create()` before persistence. They receive the sanitized submitted values and an empty target-ID list because the object does not exist yet. `Collection::clone()` also evaluates CREATE for the target class, together with READ on the source and UPDATE on the target.
 
 For the complete state-transition contract, see [Lifecycle Contract by Operation](../entities-persistence/entities.md#lifecycle-contract-by-operation).
 

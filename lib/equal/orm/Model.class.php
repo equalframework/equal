@@ -573,8 +573,9 @@ class Model implements \ArrayAccess, \Iterator {
      * Global capability rules do not grant permissions to users or groups: this remains the responsibility of ACLs, roles and
      * AccessController. Contextual capability rules may define explicit structural exceptions that are allowed before ACLs.
      *
-     * Operation policies are evaluated after capabilities and ACLs. Generic Collection operations currently use them
-     * for READ, UPDATE, and DELETE; cloning additionally uses CREATE and UPDATE for the target class.
+     * Operation policies are evaluated after capabilities and ACLs. Generic Collection CRUD operations use them
+     * for CREATE, READ, UPDATE, and DELETE; cloning additionally uses READ on the source and CREATE plus UPDATE
+     * on the target class.
      * Deprecated `can...()` guards may still run afterwards for backward compatibility.
      *
      * Each operation must be indexed by EQ_R_CREATE, EQ_R_READ, EQ_R_UPDATE, or EQ_R_DELETE.

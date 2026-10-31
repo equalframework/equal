@@ -15,6 +15,30 @@ namespace core\tests\fixtures\lifecycle {
         }
     }
 
+    class CreatePolicyProbe extends \core\test\Test
+    {
+        public static function getPolicies(): array {
+            return [
+                'create_values_allowed' => [
+                    'description' => 'Checks the values submitted for creation.',
+                    'function'    => 'policyCreateValuesAllowed'
+                ]
+            ];
+        }
+
+        public static function getOperationPolicies(): array {
+            return [
+                EQ_R_CREATE => ['create_values_allowed']
+            ];
+        }
+
+        protected static function policyCreateValuesAllowed($values): array {
+            return ($values['string_short'] ?? null) === 'allowed'
+                ? []
+                : ['create_value_denied'];
+        }
+    }
+
     class WriteAccessProbe extends \core\test\Test
     {
     }
@@ -79,6 +103,7 @@ namespace core\tests\fixtures\lifecycle {
 
 namespace {
 
+    use core\tests\fixtures\lifecycle\CreatePolicyProbe;
     use core\tests\fixtures\lifecycle\WriteAccessProbe;
     use core\tests\fixtures\lifecycle\WriteCapabilityProbe;
     use core\tests\fixtures\lifecycle\WriteGuardProbe;
@@ -1199,6 +1224,55 @@ namespace {
                         $id = $result['id'] ?? 0;
                         if($id > 0) {
                             WriteValidationProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5031' => [
+                'description' => 'Lifecycle create: CREATE operation policies receive submitted values and run before persistence.',
+                'act'         => function () {
+                        $error = null;
+
+                        try {
+                            CreatePolicyProbe::create(['string_short' => 'denied']);
+                        }
+                        catch(Exception $exception) {
+                            $error = [
+                                'code'    => $exception->getCode(),
+                                'details' => @unserialize($exception->getMessage())
+                            ];
+                        }
+
+                        $denied_ids = CreatePolicyProbe::search(['string_short', '=', 'denied'])->ids();
+                        $allowed = CreatePolicyProbe::create(['string_short' => 'allowed'])
+                            ->read(['id'])
+                            ->first();
+
+                        return [
+                            'allowed_id' => $allowed['id'] ?? 0,
+                            'denied_ids' => $denied_ids,
+                            'error'      => $error
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['allowed_id'] ?? 0) > 0
+                            && ($result['denied_ids'] ?? null) === []
+                            && ($result['error']['code'] ?? null) === EQ_ERROR_NOT_ALLOWED
+                            && ($result['error']['details'] ?? null) === [
+                                'create_values_allowed' => [
+                                    'error' => 'create_value_denied'
+                                ]
+                            ];
+                    },
+                'rollback'    => function($result) {
+                        $ids = $result['denied_ids'] ?? [];
+                        $allowed_id = $result['allowed_id'] ?? 0;
+                        if($allowed_id > 0) {
+                            $ids[] = $allowed_id;
+                        }
+
+                        if(count($ids)) {
+                            CreatePolicyProbe::ids($ids)->delete(true);
                         }
                     }
             ],
