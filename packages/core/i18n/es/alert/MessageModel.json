@@ -23,6 +23,11 @@
             "description": "Tipo de mensaje.",
             "help": ""
         },
+        "variables": {
+            "label": "Variables",
+            "description": "Las variables disponibles, que puedes usar como {variable} para incluirlas en el mensaje.",
+            "help": ""
+        },
         "messages_ids": {
             "label": "Mensajes",
             "description": "",

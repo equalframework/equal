@@ -28,6 +28,16 @@
                                                 "width": "50%"
                                             },
                                             {
+                                                "type": "label",
+                                                "value": "",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "variables",
+                                                "width": "100%"
+                                            },
+                                            {
                                                 "type": "field",
                                                 "value": "description",
                                                 "width": "100%"

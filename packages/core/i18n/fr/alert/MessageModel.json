@@ -22,12 +22,17 @@
             "label": "Type",
             "description": "Type de message.",
             "help": ""
+        },
+        "variables": {
+            "label": "Variables",
+            "description": "Les variables accessibles, à utiliser comme {variable} pour intégrer dans le message.",
+            "help": ""
         }
     },
     "view": {
         "form.default": {
             "name": "Modèle de message",
-            "description": "Modèe de message d'alerte."
+            "description": "Modèle de message d'alerte."
         },
         "list.default": {
             "name": "Modèles des messages",
