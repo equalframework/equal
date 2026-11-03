@@ -32,11 +32,6 @@ $packages = eQual::run('get', 'config_packages');
             'description'   => 'Flag to enable strict mode.',
             'type'          => 'boolean',
             'default'       => false
-        ],
-        'exit_on_error' => [
-            'description'   => 'Exit with a non-zero status code when consistency errors are found.',
-            'type'          => 'boolean',
-            'default'       => true
         ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
@@ -125,7 +120,7 @@ $context->httpResponse()
         ])
         ->send();
 
-// in case of error(s), force exiting with an error code
-if($errors_count && $params['exit_on_error']) {
+// exit with an error code according to the requested notification level
+if($errors_count || ($warnings_count && in_array($params['level'], ['*', 'warn']))) {
     exit(1);
 }
