@@ -5,8 +5,11 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 namespace equal\dispatch;
 
+use core\Mail;
+use equal\email\EmailMessage;
 use equal\organic\Service;
 use equal\services\Container;
 
@@ -89,8 +92,9 @@ class Dispatcher extends Service {
      *     user_id?: int|null,
      *     group_id?: int|null,
      *     vars?: array<string, mixed>
-     * } $options Default severity is 'notice'
+     * } $options Default severity is 'notice', the available choices are 'notice'|'warning'|'important'|'error'.
      * @return void
+     * @throws \Exception
      */
     public function emit(string $message_model, string $object_class, int $object_id, array $options = []) {
         $default_options = [
@@ -132,9 +136,55 @@ class Dispatcher extends Service {
                 ];
 
                 if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {
-                    $orm->create('core\alert\Message', $values);
+                    $message_id = $orm->create('core\alert\Message', $values);
                     // if targeted object has an 'alert' field (computed as convention), reset it
                     $orm->update($object_class, $object_id, ['alert' => null]);
+
+                    $message_models = $orm->read('core\alert\MessageModel', $message_model_id, ['with_send_email']);
+                    if(is_array($message_models) && count($message_models)) {
+                        $message_model = reset($message_models);
+                        if($message_model['with_send_email']) {
+                            $message = null;
+                            $messages = $orm->read('core\alert\Message', $message_id, ['label', 'description']);
+                            if(is_array($messages) && count($messages)) {
+                                $message = reset($messages);
+                            }
+
+                            $map_email_addresses = [];
+                            if($options['user_id']) {
+                                $users = $orm->read('core\User', $options['user_id'], ['login']);
+                                if(is_array($users) && count($users)) {
+                                    $user = reset($users);
+                                    if(!empty($user['login'])) {
+                                        $map_email_addresses[$user['login']] = true;
+                                    }
+                                }
+                            }
+                            if($options['group_id']) {
+                                $groups = $orm->read('core\Group', $options['group_id'], ['users_ids.login']);
+                                if(is_array($groups) && count($groups)) {
+                                    $group = reset($groups);
+                                    foreach($group['users_ids.login'] ?? [] as $user) {
+                                        if(!empty($user['login'])) {
+                                            $map_email_addresses[$user['login']] = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            $email_addresses = array_keys($map_email_addresses);
+                            foreach($email_addresses as $email_address) {
+                                $email = new EmailMessage();
+                                $email
+                                    ->setTo($email_address)
+                                    ->setSubject($message['label'])
+                                    ->setBody($message['description']);
+
+                                // #todo - create a mailer service to use it here instead of core\Mail
+                                Mail::queue($email, 'core\alert\Message', $message_id);
+                            }
+                        }
+                    }
                 }
             }
         }
