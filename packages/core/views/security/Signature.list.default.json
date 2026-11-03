@@ -1,0 +1,78 @@
+{
+    "name": "Model",
+    "description": "Interface for model definition classes.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "data_digest",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_method",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "has_certificate",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_drawn",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_json_cms",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_cert",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_hash",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_algo_oid",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_algo",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_hash_func",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_padding",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "sig_timestamp",
+                "width": "7%"
+            },
+            {
+                "type": "field",
+                "value": "is_valid",
+                "width": "7%"
+            }
+        ]
+    }
+}

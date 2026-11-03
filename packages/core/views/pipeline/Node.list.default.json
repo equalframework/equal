@@ -1,0 +1,33 @@
+{
+    "name": "Model",
+    "description": "Interface for model definition classes.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "description",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "pipeline_id",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "operation_controller",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "operation_type",
+                "width": "20%"
+            }
+        ]
+    }
+}
