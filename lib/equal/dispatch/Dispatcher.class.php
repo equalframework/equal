@@ -91,8 +91,15 @@ class Dispatcher extends Service {
      *     links?: list<string>,
      *     user_id?: int|null,
      *     group_id?: int|null,
-     *     vars?: array<string, mixed>
-     * } $options Default severity is 'notice', the available choices are 'notice'|'warning'|'important'|'error'.
+     *     values?: array<string, mixed>
+     * } $options Alert options:
+     * - `severity`: Defaults to `notice`; available choices are `notice`, `warning`, `important`, and `error`.
+     * - `controller`: Action controller to invoke when the message is dismissed; defaults to `null`.
+     * - `params`: Parameters to pass to the action controller; defaults to an empty array.
+     * - `links`: Markdown links related to the message; defaults to an empty list.
+     * - `user_id`: Identifier of the user targeted by the message; defaults to `null`.
+     * - `group_id`: Identifier of the group targeted by the message; defaults to `null`.
+     * - `values`: Values for variables referenced in the message label and description; defaults to an empty array.
      * @return void
      * @throws \Exception
      */
