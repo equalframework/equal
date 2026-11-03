@@ -25,8 +25,8 @@ class Dispatcher extends Service {
     }
 
     /**
-     * Run a batch of scheduled tasks.
-     * #memo - Scheduler always operates as root user.
+     * Dispatch alert message from given model
+     * @deprecated use emit() instead
      *
      * @param   string    $message_model    Name of the model the message relates to.
      * @param   string    $object_class     Class name of the entity the message relates to.
@@ -61,6 +61,74 @@ class Dispatcher extends Service {
                     'links'             => json_encode($links),
                     'user_id'           => $user_id,
                     'group_id'          => $group_id
+                ];
+
+                if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {
+                    $orm->create('core\alert\Message', $values);
+                    // if targeted object has an 'alert' field (computed as convention), reset it
+                    $orm->update($object_class, $object_id, ['alert' => null]);
+                }
+            }
+        }
+        else {
+            trigger_error("PHP::Unknown alert MessageModel {$message_model}", E_USER_WARNING);
+        }
+    }
+
+    /**
+     * Dispatch alert message from given model.
+     *
+     * @param string $message_model Name of the model the message relates to.
+     * @param string $object_class Class name of the entity the message relates to.
+     * @param int $object_id Identifier of the entity the message relates to.
+     * @param array{
+     *     severity?: 'notice'|'warning'|'important'|'error',
+     *     controller?: string|null,
+     *     params?: array<string, mixed>,
+     *     links?: list<string>,
+     *     user_id?: int|null,
+     *     group_id?: int|null,
+     *     vars?: array<string, mixed>
+     * } $options Default severity is 'notice'
+     * @return void
+     */
+    public function emit(string $message_model, string $object_class, int $object_id, array $options = []) {
+        $default_options = [
+            'severity'      => 'notice',
+            'controller'    => null,
+            'params'        => [],
+            'links'         => [],
+            'user_id'       => null,
+            'group_id'      => null,
+            'values'        => []
+        ];
+        foreach($default_options as $key => $default_value) {
+            if(!array_key_exists($key, $options)) {
+                $options[$key] = $default_value;
+            }
+        }
+
+        /** @var \equal\orm\ObjectManager $orm */
+        $orm = $this->container->get('orm');
+        trigger_error("PHP::dispatching message", EQ_REPORT_DEBUG);
+
+        $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
+        if(is_array($message_models_ids) && count($message_models_ids)) {
+            $message_model_id = reset($message_models_ids);
+            // prevent creating duplicates
+            $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]]);
+            if(is_array($messages_ids) && !count($messages_ids)) {
+                $values = [
+                    'message_model_id'  => $message_model_id,
+                    'object_class'      => $object_class,
+                    'object_id'         => $object_id,
+                    'severity'          => $options['severity'],
+                    'controller'        => $options['controller'],
+                    'params'            => json_encode($options['params']),
+                    'links'             => json_encode($options['links']),
+                    'user_id'           => $options['user_id'],
+                    'group_id'          => $options['group_id'],
+                    'values'            => json_encode($options['values'])
                 ];
 
                 if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {
