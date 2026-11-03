@@ -77,7 +77,7 @@ class SecurityPolicyRule extends Model {
         ];
     }
 
-    public static function calcName($self) {
+    protected static function calcName($self) {
         $result = [];
         $self->read(['policy_rule_type', 'user_id' => ['login']]);
         foreach($self as $id => $rule) {
@@ -93,7 +93,7 @@ class SecurityPolicyRule extends Model {
         return $result;
     }
 
-    public static function calcDescription($self) {
+    protected static function calcDescription($self) {
         $result = [];
         $self->read(['policy_rule_type']);
 

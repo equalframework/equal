@@ -67,7 +67,7 @@ class ObjectManager extends Service {
     private $db;
 
     public static $virtual_types = ['alias'];
-    public static $simple_types  = ['boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one'];
+    public static $simple_types  = ['boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one', 'array'];
     public static $complex_types = ['one2many', 'many2many', 'computed'];
 
     /**
@@ -104,7 +104,7 @@ class ObjectManager extends Service {
         'binary'        => array('type'),
         'file'          => array('type'),
         'many2one'      => array('type', 'foreign_object'),
-        'one2many'      => array('type', 'foreign_object', 'foreign_field'),
+        'one2many'      => array('type', 'foreign_object', ['foreign_field', 'domain']),
         'many2many'     => array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
         'computed'      => array('type', 'result_type', ['function', 'relation'])
     ];
@@ -125,6 +125,12 @@ class ObjectManager extends Service {
         'many2one'      => array('is', 'is not', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
         'one2many'      => array('contains'),
         'many2many'     => array('contains'),
+    ];
+
+    public static $valid_inject_params = [
+        'om', 'orm',
+        'ids', 'oids', 'values', 'lang', 'self',
+        'report', 'auth', 'access', 'context', 'validate', 'adapt', 'route', 'log', 'cron', 'dispatch', 'db'
     ];
 
     /**

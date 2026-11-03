@@ -5,6 +5,16 @@
             "description": "Unique identifier of the object.",
             "help": ""
         },
+        "name": {
+            "label": "Name",
+            "description": "Name used to identify the object.",
+            "help": "This value identifies the object in lists and references."
+        },
+        "model": {
+            "label": "Model",
+            "description": "Model discriminator associated with the object.",
+            "help": "This value identifies the model scope used to store the object."
+        },
         "creator": {
             "label": "Creator",
             "description": "User who created the object.",
@@ -32,8 +42,13 @@
         },
         "state": {
             "label": "State",
-            "description": "Status of the object (draft, instance).",
-            "help": ""
+            "description": "Status of the object (draft, instance, archive).",
+            "help": "",
+            "selection": {
+                "draft": "Draft",
+                "instance": "Active",
+                "archive": "Archived"
+            }
         }
     },
     "view": {

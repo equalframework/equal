@@ -3,6 +3,11 @@
     "plural": "Logs",
     "description": "",
     "model": {
+        "date": {
+            "label": "Fecha",
+            "description": "Fecha y hora de creación de la entrada de registro.",
+            "help": "Este valor indica cuándo se creó la entrada de registro."
+        },
         "user_id": {
             "label": "Usuario",
             "description": "Usuario que realizó la acción.",
@@ -17,6 +22,11 @@
             "label": "Identificador",
             "description": "Identificador del objeto objetivo (de la clase dada).",
             "help": "Este valor identifica el objeto afectado dentro de su clase."
+        },
+        "changes_ids": {
+            "label": "Cambios",
+            "description": "Valores anteriores y nuevos aplicados al objeto.",
+            "help": "Esta lista contiene los cambios asociados a la entrada de registro."
         },
         "history": {
             "label": "Historial",

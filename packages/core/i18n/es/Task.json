@@ -17,6 +17,11 @@
                 "running": "En ejecución"
             }
         },
+        "pid": {
+            "label": "Identificador del proceso",
+            "description": "Identificador del proceso que ejecuta la tarea.",
+            "help": "Este valor se muestra mientras la tarea está en ejecución."
+        },
         "last_run": {
             "label": "Ultima ejecución ",
             "description": "Instante en que se llevó a cabo la última tarea.",

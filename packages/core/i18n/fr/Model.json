@@ -10,6 +10,11 @@
             "description": "Nom de l'objet.",
             "help": ""
         },
+        "model": {
+            "label": "Modèle",
+            "description": "Discriminateur de modèle associé à l'objet.",
+            "help": "Cette valeur identifie la portée du modèle utilisée pour stocker l'objet."
+        },
         "creator": {
             "label": "Créé par",
             "description": "Utilisateur ayant créé l'objet.",
@@ -37,8 +42,13 @@
         },
         "state": {
             "label": "Statut",
-            "description": "Etat de l'objet (brouillon, instance, archive).",
-            "help": ""
+            "description": "État de l'objet (brouillon, instance, archive).",
+            "help": "",
+            "selection": {
+                "draft": "Brouillon",
+                "instance": "Actif",
+                "archive": "Archivé"
+            }
         }
     },
     "view": {

@@ -3,6 +3,25 @@
     "plural": "Correos",
     "description": "Correos electrónicos enviados.",
     "model": {
+        "message_id": {
+            "label": "Identificador del mensaje",
+            "description": "Identificador único del mensaje según RFC 5322.",
+            "help": "Este valor identifica el mensaje de correo según RFC 5322."
+        },
+        "date": {
+            "label": "Fecha",
+            "description": "Fecha y hora del mensaje de correo electrónico.",
+            "help": "Este valor se establece inicialmente con la fecha y hora actuales."
+        },
+        "direction": {
+            "label": "Dirección",
+            "description": "Dirección de circulación del mensaje de correo.",
+            "help": "Seleccione si el mensaje es saliente o entrante.",
+            "selection": {
+                "outgoing": "Saliente",
+                "incoming": "Entrante"
+            }
+        },
         "status": {
             "label": "Estado",
             "description": "Estado de envío del correo electrónico.",
@@ -24,6 +43,16 @@
             "description": "Dirección de respuesta.",
             "help": "Dirección en el campo `reply-to` a la que deben enviarse los correos electrónicos de respuesta."
         },
+        "cc": {
+            "label": "Copia",
+            "description": "Destinatarios que reciben una copia del mensaje.",
+            "help": "Indique las direcciones de copia separadas por comas."
+        },
+        "bcc": {
+            "label": "Copia oculta",
+            "description": "Destinatarios que reciben una copia oculta del mensaje.",
+            "help": "Indique las direcciones de copia oculta separadas por comas."
+        },
         "subject": {
             "label": "Asunto",
             "description": "Asunto del mensaje.",
@@ -38,6 +67,16 @@
             "label": "Archivos adjuntos",
             "description": "Lista de nombres de los documentos adjuntos al mensaje.",
             "help": "Indique los nombres de los documentos adjuntos, separados por comas."
+        },
+        "object_class": {
+            "label": "Clase del objeto",
+            "description": "Clase del objeto asociado al mensaje.",
+            "help": "Indique la clase del objeto de origen cuando el mensaje esté asociado a un objeto."
+        },
+        "object_id": {
+            "label": "Objeto",
+            "description": "Identificador del objeto asociado al mensaje.",
+            "help": "Indique el identificador del objeto de origen cuando el mensaje esté asociado a un objeto."
         },
         "response_status": {
             "label": "Repuesta",
