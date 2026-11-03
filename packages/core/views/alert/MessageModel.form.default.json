@@ -28,8 +28,8 @@
                                                 "width": "50%"
                                             },
                                             {
-                                                "type": "label",
-                                                "value": "",
+                                                "type": "field",
+                                                "value": "with_send_email",
                                                 "width": "50%"
                                             },
                                             {

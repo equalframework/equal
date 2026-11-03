@@ -27,6 +27,11 @@
             "label": "Variables",
             "description": "Les variables accessibles, à utiliser comme {variable} pour intégrer dans le message.",
             "help": ""
+        },
+        "with_send_email": {
+            "label": "Envoyer par e-mail",
+            "description": "Indique si les alertes de ce modèle doivent également être envoyées par e-mail.",
+            "help": "Activez cette option pour envoyer les alertes importantes par e-mail."
         }
     },
     "view": {

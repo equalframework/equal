@@ -45,6 +45,12 @@ class MessageModel extends Model {
                 'readonly'          => true
             ],
 
+            'with_send_email' => [
+                'type'              => 'boolean',
+                'description'       => 'Flag indicating that alerts using this model must also be sent by email.',
+                'default'           => false
+            ],
+
             'messages_ids' => [
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\alert\Message',
