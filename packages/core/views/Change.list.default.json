@@ -1,0 +1,33 @@
+{
+    "name": "Model",
+    "description": "Details of the modifications associated with a log (diff-type payload).",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "log_id",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "object_class",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "object_id",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "description",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "diff",
+                "width": "16%"
+            }
+        ]
+    }
+}

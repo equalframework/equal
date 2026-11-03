@@ -22,12 +22,22 @@
             "label": "Type",
             "description": "Type de message.",
             "help": ""
+        },
+        "variables": {
+            "label": "Variables",
+            "description": "Les variables accessibles, à utiliser comme {variable} pour intégrer dans le message.",
+            "help": ""
+        },
+        "with_send_email": {
+            "label": "Envoyer par e-mail",
+            "description": "Indique si les alertes de ce modèle doivent également être envoyées par e-mail.",
+            "help": "Activez cette option pour envoyer les alertes importantes par e-mail."
         }
     },
     "view": {
         "form.default": {
             "name": "Modèle de message",
-            "description": "Modèe de message d'alerte."
+            "description": "Modèle de message d'alerte."
         },
         "list.default": {
             "name": "Modèles des messages",

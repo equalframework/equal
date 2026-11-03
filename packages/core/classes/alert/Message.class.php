@@ -40,6 +40,12 @@ class Message extends Model {
                 'required'          => true
             ],
 
+            'values' => [
+                'type'              => 'string',
+                'usage'             => 'text/json',
+                'description'       => "JSON object containing values for variables referenced by the message model.",
+            ],
+
             'label' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
@@ -111,34 +117,60 @@ class Message extends Model {
         ];
     }
 
-    public static function calcObjectLink($om, $oids, $lang) {
+    public static function calcObjectLink($self, $orm) {
         $result = [];
-        $messages = $om->read(__CLASS__, $oids, ['object_class', 'object_id'], $lang);
-
-        foreach($messages as $mid => $message) {
-            $model = $om->getModel($message['object_class']);
-            $result[$mid] = str_replace('object.id', $message['object_id'], $model->getLink());
+        $self->read(['object_class', 'object_id']);
+        foreach($self as $id => $message) {
+            $model = $orm->getModel($message['object_class']);
+            $result[$id] = str_replace('object.id', $message['object_id'], $model->getLink());
         }
+
         return $result;
     }
 
-    public static function calcLabel($om, $oids, $lang) {
+    public static function calcLabel($self) {
         $result = [];
-        $messages = $om->read(__CLASS__, $oids, ['message_model_id.label'], $lang);
+        $self->read(['values', 'message_model_id' => ['label', 'variables']]);
+        foreach($self as $id => $message) {
+            $label = $message['message_model_id']['label'];
+            if(!empty($message['values']) && !empty($message['message_model_id']['variables'])) {
+                $values = json_decode($message['values'] ?? '', true);
+                $variables = json_decode($message['message_model_id']['variables'] ?? '', true);
+                if(is_array($values)) {
+                    foreach($variables as $var) {
+                        if(array_key_exists($var, $values)) {
+                            $label = str_replace('{'.$var.'}', (string) $values[$var], $label);
+                        }
+                    }
+                }
+            }
 
-        foreach($messages as $mid => $message) {
-            $result[$mid] = $message['message_model_id.label'];
+            $result[$id] = $label;
         }
+
         return $result;
     }
 
-    public static function calcDescription($om, $oids, $lang) {
+    public static function calcDescription($self) {
         $result = [];
-        $messages = $om->read(__CLASS__, $oids, ['message_model_id.description'], $lang);
+        $self->read(['values', 'message_model_id' => ['description', 'variables']]);
+        foreach($self as $id => $message) {
+            $description = $message['message_model_id']['description'];
+            if(!empty($message['values']) && !empty($message['message_model_id']['variables'])) {
+                $values = json_decode($message['values'] ?? '', true);
+                $variables = json_decode($message['message_model_id']['variables'] ?? '', true);
+                if(is_array($values)) {
+                    foreach($variables as $var) {
+                        if(array_key_exists($var, $values)) {
+                            $description = str_replace('{'.$var.'}', (string) $values[$var], $description);
+                        }
+                    }
+                }
+            }
 
-        foreach($messages as $mid => $message) {
-            $result[$mid] = $message['message_model_id.description'];
+            $result[$id] = $description;
         }
+
         return $result;
     }
 

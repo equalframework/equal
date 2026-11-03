@@ -1,0 +1,38 @@
+{
+    "name": "Model",
+    "description": "A nonce is a number used once to prevent replay attacks. It is typically used in security contexts to ensure that a request is unique and has not been reused maliciously.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "user_id",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "scope",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "expiry",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "use_count",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "use_max",
+                "width": "16%"
+            },
+            {
+                "type": "field",
+                "value": "name",
+                "width": "16%"
+            }
+        ]
+    }
+}
