@@ -43,7 +43,7 @@ class Message extends Model {
             'values' => [
                 'type'              => 'string',
                 'usage'             => 'text/json',
-                'description'       => 'Values associated with the message',
+                'description'       => 'Values associated with the message.',
                 'help'              => "JSON object containing values for variables referenced by the message model.",
             ],
 
