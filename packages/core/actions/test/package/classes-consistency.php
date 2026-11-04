@@ -11,9 +11,6 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'type'          =>  'do',
-    'name'          =>  'test_package_classes-consistency',
-    'package_name'  =>  'core',
     'description'   =>  'Test PHP classes and ORM model definitions for a package.',
     'params'        =>  [
         'package'   =>  [

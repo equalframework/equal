@@ -4,21 +4,7 @@
   "title": "eQual Controller Action Definition",
   "description": "Schema for eQual action controller structure (data action PHP files converted to JSON)",
   "type": "object",
-  "required": ["type", "name", "package_name"],
   "properties": {
-    "type": {
-      "type": "string",
-      "description": "Type identifier for the action definition"
-    },
-    "name": {
-      "type": "string",
-      "description": "Unique name for the action"
-    },
-    "package_name": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "Package namespace containing the action"
-    },
     "description": {
       "type": "string",
       "description": "Human-readable description of the action"

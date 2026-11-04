@@ -11,9 +11,6 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'type'          =>  'do',
-    'name'          =>  'test_package-consistency',
-    'package_name'  =>  'core',
     'description'   =>  "This script tests the given package and returns a report about found errors (if any).",
     'params'        =>  [
         'package' =>  [

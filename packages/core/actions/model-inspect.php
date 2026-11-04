@@ -7,9 +7,6 @@
 */
 
 [$params, $providers] = eQual::announce([
-    'type'          => 'do',
-    'name'          => 'model-inspect',
-    'package_name'  => 'core',
     'description'   => 'Check that every database table associated with a configured ORM model and each of its records define a model discriminator.',
     'params'        => [
         'exit_on_error' => [

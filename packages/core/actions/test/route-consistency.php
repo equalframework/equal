@@ -6,9 +6,6 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 [$params, $providers] = eQual::announce([
-    'type'          => 'do',
-    'name'          => 'test_route-consistency',
-    'package_name'  => 'core',
     'description'   => 'Validate an API route definition file against its JSON schema.',
     'params'        => [
         'package' =>  [

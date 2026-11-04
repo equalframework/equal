@@ -44,8 +44,5 @@ Validate the action handler definition through eQual's `announce` mechanism. No 
    - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
 6. See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
 
-**Required fields in metadata**:
-- `type`: "get" or "do" indicating retriever vs action
-- `name`: Name of the action handler
-- `package_name`: Package the action belongs to
+**Expected metadata**:
 - `description`: Clear description of what the action does

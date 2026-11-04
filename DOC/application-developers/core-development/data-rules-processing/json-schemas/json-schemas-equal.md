@@ -26,7 +26,6 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ### 3. **Controller Action** (`controller.json`)
 - **Schema ID**: `urn:equal:json-schema:core:controller.action`
 - **Usage**: Validate action controller definitions (JSON representation of data action PHP)
-- **Required fields**: `type`, `name`, `package_name`
 - **Common fields**: `description`, `deprecated`, `help`, `params`, `response`, `access`, `providers`, `constants`, `examples`
 
 ---

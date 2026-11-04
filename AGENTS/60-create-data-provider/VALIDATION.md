@@ -32,8 +32,5 @@ Validate the data provider definition through eQual's `announce` mechanism. No d
    - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
 6. See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
 
-**Required fields in metadata**:
-- `type`: "get" indicating retriever/data provider
-- `name`: Name of the data provider
-- `package_name`: Package the provider belongs to
+**Expected metadata**:
 - `description`: Clear description of what data is returned

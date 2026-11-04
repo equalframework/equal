@@ -6,9 +6,6 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 [$params, $providers] = eQual::announce([
-    'type'          => 'do',
-    'name'          => 'test_menu-consistency',
-    'package_name'  => 'core',
     'description'   => 'Validate a menu definition against its JSON schema.',
     'params'        => [
         'package' =>  [

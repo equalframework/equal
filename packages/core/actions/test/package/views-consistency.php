@@ -11,9 +11,6 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'type'          =>  'do',
-    'name'          =>  'test_package_views-consistency',
-    'package_name'  =>  'core',
     'description'   =>  'Test package view definitions and model field references.',
     'params'        =>  [
         'package'   =>  [

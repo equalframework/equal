@@ -11,9 +11,6 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'type'          =>  'do',
-    'name'          =>  'test_package_i18n-consistency',
-    'package_name'  =>  'core',
     'description'   =>  'Test package translation files and model translation references.',
     'params'        =>  [
         'package'   =>  [
