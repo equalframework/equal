@@ -1970,11 +1970,11 @@ class ObjectManager extends Service {
 
             if(!isset($creation_array['id'])) {
                 if(constant('DRAFT_ENABLED') && $use_draft) {
-                    // list ids of records having creation date older than DRAFT_VALIDITY
+                    // list ids of records having modification date older than DRAFT_VALIDITY
                     $ids = $this->search($class, [
                                 ['state', '=', 'draft'],
                                 // #todo - update search() so that we still use PHP timestamps at this stage
-                                ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]
+                                ['modified', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]
                             ],
                             ['id' => 'asc']
                         );

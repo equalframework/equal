@@ -34,6 +34,16 @@
             'type'          => 'boolean',
             'default'       => false
         ],
+        'previous_state' => [
+            'description'   => 'State of the object when it was loaded by the client.',
+            'type'          => 'string',
+            'default'       => ''
+        ],
+        'previous_modified' => [
+            'description'   => 'Modification timestamp of the object when it was loaded by the client.',
+            'type'          => 'string',
+            'default'       => ''
+        ],
         'lang' => [
             'description '  => 'Specific language for multilang field.',
             'type'          => 'string',
@@ -120,24 +130,36 @@ foreach($fields as $field => $value) {
 if(count($fields)) {
     // when updating a single object, enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
     if(count($params['ids']) == 1) {
-        // handle draft edition
-        if(isset($fields['state']) && $fields['state'] == 'draft') {
-            $object = $params['entity']::ids($params['ids'])->read(['state', 'modifier'])->first(true);
-            // if state has changed by another user, then we need to create a new object
+        // handle clients that provide the state and modification date of the loaded object
+        if($params['previous_state'] !== '' && $params['previous_modified'] !== '') {
+            $previous_modified = $adapter->adaptIn($params['previous_modified'], 'date/time');
+            $object = $params['entity']::ids($params['ids'])->read(['state', 'modified'])->first();
+
+            $changed = ($object['state'] !== $params['previous_state']) || ($object['modified'] !== $previous_modified);
+
+            if($params['previous_state'] === 'draft' && $changed) {
+                // use a new draft when the original draft was modified
+                $instance = $params['entity']::create(['state' => 'draft'])->first();
+                $params['ids'] = [$instance['id']];
+            }
+            elseif($changed && !$params['force']) {
+                throw new Exception("concurrent_change", EQ_ERROR_CONFLICT_OBJECT);
+            }
+        }
+        // handle draft edition for backward compatibility
+        elseif(isset($fields['state']) && $fields['state'] === 'draft') {
+            $object = $params['entity']::ids($params['ids'])->read(['state', 'modifier'])->first();
+            // if draft has been changed by another user, then create a new object
             $user_id = $auth->userId();
-            if($object['state'] != 'draft' && $object['modifier'] != $user_id) {
-                // create object as draft to avoid a missing_mandatory error, and then update it
-                $instance = $params['entity']::create(['state' => 'draft'])
-                    ->update($fields, $params['lang'])
-                    ->read(['id'])
-                    ->adapt('json')
-                    ->first(true);
+            if($object['state'] !== 'draft' && $object['modifier'] != $user_id) {
+                // #memo - create as draft to avoid a missing_mandatory error; fields are updated below
+                $instance = $params['entity']::create(['state' => 'draft'])->first();
                 $params['ids'] = [$instance['id']];
             }
         }
         // handle instances edition
         elseif(isset($fields['modified'])) {
-            $object = $params['entity']::ids($params['ids'])->read(['modified'])->first(true);
+            $object = $params['entity']::ids($params['ids'])->read(['modified'])->first();
             // a changed occurred in the meantime
             if($object['modified'] != $fields['modified'] && !$params['force']) {
                 throw new Exception("concurrent_change", EQ_ERROR_CONFLICT_OBJECT);
