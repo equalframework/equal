@@ -17,6 +17,10 @@ use equal\organic\Service;
  * @method void addMember(DBManipulator $member) Add a replica member.
  * @method mixed select(string $db_name) Select a database.
  * @method bool connected() Check whether a database connection is active.
+ * @method mixed beginTransaction() Start a transaction.
+ * @method mixed commitTransaction() Commit the active transaction.
+ * @method mixed rollbackTransaction() Roll back the active transaction.
+ * @method bool inTransaction() Check whether a transaction is active.
  * @method string getSqlType(string $type) Get the SQL type matching an ORM type.
  * @method bool canConnect() Check whether the database server is reachable.
  * @method mixed sendQuery(string $query) Send an SQL query to the database.
