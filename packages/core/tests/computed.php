@@ -6,6 +6,23 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
+class ComputedMultilangUserFixture extends core\User {
+
+    public static function getModelScope(): ?string {
+        return null;
+    }
+
+    public static function getColumns() {
+        $columns = parent::getColumns();
+        $columns['fullname']['multilang'] = true;
+        return $columns;
+    }
+
+    public static function calcFullname($self, $lang=null) {
+        return array_fill_keys($self->ids(), $lang);
+    }
+}
+
 $tests = [
 
     '1001' => [
@@ -113,6 +130,23 @@ $tests = [
                     $om = equal\orm\ObjectManager::getInstance();
                     $om->remove('core\alert\Message', [$result['message_id']]);
                     $om->remove('core\alert\MessageModel', [$result['message_model_id']]);
+                }
+        ],
+
+    '1004' => [
+            'description'   =>  "Checking that non-stored multilang computed fields receive the requested language.",
+            'act'           =>  function () {
+                    $lang = constant('DEFAULT_LANG') === 'fr' ? 'en' : 'fr';
+                    $objects = equal\orm\ObjectManager::getInstance()->read(
+                        ComputedMultilangUserFixture::class,
+                        [1],
+                        ['fullname'],
+                        $lang
+                    );
+                    return [$lang, $objects[1]['fullname'] ?? null];
+                },
+            'assert'        =>  function ($result) {
+                    return $result[1] === $result[0];
                 }
         ]
 
