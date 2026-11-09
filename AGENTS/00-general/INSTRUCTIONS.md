@@ -37,10 +37,12 @@
 31. Do not call `update()` from computed field logic.
 32. Do not duplicate controller or model logic that can be reached through `eQual::run()` or `$self->do()`.
 33. Do not silently change error keys, response shapes, HTTP statuses, or public method signatures.
-34. Never expose raw exception contents in user-facing output, API responses, client-visible logs, or notifications. In particular, do not return or append `$e->getMessage()`, for example `$result['logs'][] = "ERR - {$e->getMessage()}"`, because exception details can disclose security-sensitive information. Diagnostic details may be sent to server-side logs with `trigger_error()` or an equivalent server-only logger; return a generic, stable error key or safe message to the user instead.
-35. Do not broaden a task into unrelated cleanup or refactoring.
+34. Treat every exception message as potentially client-visible because the framework may use it in an HTTP response. Exception messages must contain only the minimum client-safe information and should normally be stable message identifiers in `snake_case`, such as `transaction_already_active`; never include method or class names, paths, queries, configuration values, credentials, or detailed internal state.
+35. Send detailed diagnostics to server-side reporting before throwing the client-safe exception. For example, use `trigger_error("SQL::".__METHOD__.' : a transaction is already active.', EQ_REPORT_ERROR);` followed by `throw new \Exception('transaction_already_active', EQ_ERROR_SQL);`. Do not put the diagnostic directly in the exception, such as `throw new \Exception(__METHOD__.' : a transaction is already active.', EQ_ERROR_SQL);`.
+36. Never expose raw exception contents in user-facing output, API responses, client-visible logs, or notifications. In particular, do not return or append `$e->getMessage()`, for example `$result['logs'][] = "ERR - {$e->getMessage()}"`, because exception details can disclose security-sensitive information. Diagnostic details may be sent to server-side logs with `trigger_error()` or an equivalent server-only logger; return a generic, stable error key or safe message to the user instead.
+37. Do not broaden a task into unrelated cleanup or refactoring.
 
 ## Final response format
 
-36. Final responses must distinguish what changed, what validation ran, and what validation was skipped.
-37. When reporting commands, use the command actually executed. In PowerShell this usually means `php run.php ...`, not the documentation form `./equal.run ...`.
+38. Final responses must distinguish what changed, what validation ran, and what validation was skipped.
+39. When reporting commands, use the command actually executed. In PowerShell this usually means `php run.php ...`, not the documentation form `./equal.run ...`.
