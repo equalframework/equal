@@ -7,6 +7,25 @@
 */
 use core\User;
 use core\Group;
+use core\Assignment;
+
+class InheritedRolesAccessTestModel {
+
+    public static function getRoles() {
+        return [
+            'editor' => [
+                'rights' => EQ_R_UPDATE
+            ],
+            'viewer' => [
+                'rights'     => EQ_R_READ,
+                'implied_by' => ['editor']
+            ]
+        ];
+    }
+}
+
+class InheritedRolesAccessTestChild extends InheritedRolesAccessTestModel {
+}
 
 class ActionPolicyValuesTestModel {
 
@@ -282,6 +301,49 @@ $tests = [
                     $allowed = $access->userCanPerform(1, 'check_values', ActionPolicyValuesTestModel::class, [1], ['allowed' => true]);
                     $denied = $access->userCanPerform(1, 'check_values', ActionPolicyValuesTestModel::class, [1], ['allowed' => false]);
                     return empty($allowed) && isset($denied['values_allowed']);
+                }
+        ],
+
+  '0403' => [
+            'description'       => "Resolve inherited and implied roles, and reject partially assigned collections.",
+            'arrange'           => function() use($providers) {
+                    $object_id = 987654321;
+                    $providers['orm']->create(Assignment::getType(), [
+                        'user_id'      => 2,
+                        'object_class' => InheritedRolesAccessTestChild::class,
+                        'object_id'    => $object_id,
+                        'role'         => 'editor'
+                    ]);
+
+                    return $object_id;
+                },
+            'act'               => function($object_id) use($providers) {
+                    $access = $providers['access'];
+
+                    return [
+                        'objects_ids' => $access->getUserObjectIdsWithRight(
+                            2,
+                            EQ_R_READ,
+                            InheritedRolesAccessTestChild::class
+                        ),
+                        'roles' => $access->getUserRoles(
+                            2,
+                            InheritedRolesAccessTestChild::class,
+                            [$object_id, $object_id + 1]
+                        )
+                    ];
+                },
+            'assert'            => function($result) {
+                    return count($result['objects_ids']) === 1
+                        && (int) $result['objects_ids'][0] === 987654321
+                        && $result['roles'] === [];
+                },
+            'rollback'          => function() use($providers) {
+                    $ids = $providers['orm']->search(Assignment::getType(), [
+                        ['object_class', '=', InheritedRolesAccessTestChild::class],
+                        ['object_id', '=', 987654321]
+                    ]);
+                    $providers['orm']->remove(Assignment::getType(), $ids);
                 }
         ]
 ];

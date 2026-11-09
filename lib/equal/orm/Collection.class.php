@@ -795,39 +795,13 @@ class Collection implements \Iterator, \Countable {
             }
         }
 
-        // 2) adapt domain according to access control type : either with ACL (permission) or Role (assignment)
+        // 2) restrict the domain to objects readable through a role assignment or an object permission
 
-        if($this->orm->hasObjectRoles($this->class)) {
-            $roles = [];
-            // find all roles for which a READ right is granted
-            foreach($this->class::getRoles() as $role => $descriptor) {
-                if(isset($descriptor['rights'])) {
-                    if($descriptor['rights'] & EQ_R_READ) {
-                        $roles[] = $role;
-                    }
-                }
-            }
-            // find the objects for which the user is explicitly assigned to one of these roles
-            $assignments_ids = $this->orm->search('core\Assignment', [ ['user_id', '=', $user_id], ['role', 'in', $roles], ['object_class', '=', $this->class] ]);
-            if(is_array($assignments_ids) && count($assignments_ids)) {
-                $assignments = $this->orm->read('core\Assignment', $assignments_ids, ['object_id']);
-                $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($assignments));
-                // limit search amongst those objects
-                $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
-            }
-        }
-        else {
-            // if user is not granted for READ on full class (nor parent class), neither directly nor indirectly (groups)
-            if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
-                // find the objects for which the user is explicitly granted for READ
-                $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', EQ_R_READ], ['object_class', '=', $this->class] ]);
-                if(is_array($permissions_ids) && count($permissions_ids)) {
-                    $permissions = $this->orm->read('core\Permission', $permissions_ids, ['object_id']);
-                    $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($permissions));
-                    // limit search amongst those objects
-                    $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
-                }
-            }
+        // A class-level READ right, including inherited and group rights, grants access to the full search domain.
+        if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
+            $objects_ids = $this->ac->getUserObjectIdsWithRight($user_id, EQ_R_READ, $this->class);
+            // An empty list intentionally denies access to every object.
+            $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
         }
 
         // 3) perform search
