@@ -47,8 +47,10 @@ The list below shows the details for supported constants and their roles.
 
 | **CONSTANT**                   | **DEFAULT VALUE**               | **DESCRIPTION**                                 |
 | ------------------------------ | ------------------------------- | ----------------------------------------------- |
+| EMAIL_TRANSPORT                | smtp                            | Email transport. SMTP is the only supported value. |
 | EMAIL_SMTP_HOST                | SSL0.PROVIDER.NET               | Email host.                                     |
 | EMAIL_SMTP_PORT                | 587                             | Email port.                                     |
+| EMAIL_SMTP_ENCRYPT             | tls                             | SMTP encryption (`tls` or `ssl`; false for none). |
 | EMAIL_SMTP_ACCOUNT_DISPLAYNAME | Full Name                       | Email display name.                             |
 | EMAIL_SMTP_ACCOUNT_USERNAME    | email.as.username@provider.com  | Email username.                                 |
 | EMAIL_SMTP_ACCOUNT_PASSWORD    | password                        | Email password.                                 |
