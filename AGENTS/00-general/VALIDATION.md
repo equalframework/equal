@@ -1,6 +1,6 @@
 # Validation checklist — General (all tasks)
 
-- [ ] All modified files are within the intended package scope, or within the identified framework subsystem for framework internals tasks.
+- [ ] Every modified package was identified, is necessary for the requested behavior, and no package outside that minimal scope was changed; framework-internals changes remain within the identified subsystem.
 - [ ] The `packages/core` package was not modified unless explicitly requested.
 - [ ] No unrelated files were changed.
 - [ ] Naming conventions match nearby package files.

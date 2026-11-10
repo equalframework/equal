@@ -1,10 +1,10 @@
 1. Code identifiers, variables, and comments must be written in English.
 2. Agents must not merge pull requests.
 3. Agents must not modify the `packages/core` package unless the user explicitly asks for that package.
-4. Agents must work inside the active package only for package tasks; framework internals tasks must stay inside the identified framework subsystem.
-5. Agents must identify the impacted package before editing package files, or the impacted framework subsystem before editing framework files.
+4. Agents must modify as few packages as necessary for package tasks; cross-package changes are allowed only when the requested behavior genuinely requires them. Framework internals tasks must stay inside the identified framework subsystem.
+5. Agents must identify every impacted package and explain why it is required before editing package files, or identify the impacted framework subsystem before editing framework files.
 6. Agents must not assume that changing a class is sufficient.
-7. Agents must always check the impact on `classes/`, `views/`, `i18n/`, `actions/`, and `data/`.
+7. Agents must always check the impact on `classes/`, `views/`, `i18n/`, `actions/`, and `data/` in every impacted package.
 8. Agents must preserve namespace and path consistency.
 9. Agents must avoid inventing framework conventions.
 10. Agents must prefer existing patterns already present in the package.

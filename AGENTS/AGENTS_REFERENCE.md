@@ -16,10 +16,10 @@ This guide is intended for LLM agents assisting developers working on software p
 
 ### Package boundaries
 
-- Agents must operate within a single package.
+- Agents must modify as few packages as necessary. Cross-package changes are allowed when the requested behavior genuinely requires them, and every impacted package must be identified explicitly.
 - The `core` package is off-limits, even if present.
 
-### Allowed Components (within the active package)
+### Allowed Components (within the impacted packages)
 
 | Component         | Folder path    | File extension | Notes                            |
 | ----------------- | -------------- | -------------- | -------------------------------- |

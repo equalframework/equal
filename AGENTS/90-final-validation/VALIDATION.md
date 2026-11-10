@@ -2,7 +2,7 @@
 
 ## Scope and Syntax
 
-- [ ] All modified files are inside the intended package, or inside the identified framework subsystem for framework internals tasks.
+- [ ] Every modified package was identified, is necessary for the requested behavior, and no package outside that minimal scope was changed; framework-internals changes remain within the identified subsystem.
 - [ ] The `packages/core` package was not modified unless explicitly requested.
 - [ ] PHP syntax is valid.
 - [ ] JSON syntax is valid.

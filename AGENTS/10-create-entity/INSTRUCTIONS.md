@@ -1,5 +1,5 @@
-1. Identify the target package.
-2. Confirm the work stays within a single package and does not touch `core`.
+1. Identify every target package.
+2. Confirm the work uses the fewest packages necessary, explain why each impacted package is required, and do not touch `core`.
 3. Identify the target namespace and the exact folder path it implies under `classes/`, `views/`, `actions/`, `data/`, and `i18n/`.
 4. Inspect nearby existing entity classes in the same package and namespace for inheritance, field naming, relation naming, validation, and view conventions.
 5. Determine whether the entity must extend `equal\\orm\\Model` directly or an existing package/core class.
