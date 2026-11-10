@@ -13,8 +13,8 @@ jobs:
     working_directory: ~/repo
     steps:
       # install dependencies
-      - run: apt-get update && apt-get -y install git libzip-dev
-      - run: docker-php-ext-install pdo pdo_mysql mysqli zip
+      - run: apt-get update && apt-get -y install git libzip-dev libpng-dev libonig-dev
+      - run: docker-php-ext-install pdo pdo_mysql mysqli zip gd mbstring
       - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
@@ -48,8 +48,8 @@ jobs:
     working_directory: ~/repo
     steps:
       # install dependencies
-      - run: apt-get update && apt-get -y install git libzip-dev
-      - run: docker-php-ext-install pdo pdo_mysql mysqli zip
+      - run: apt-get update && apt-get -y install git libzip-dev libpng-dev libonig-dev
+      - run: docker-php-ext-install pdo pdo_mysql mysqli zip gd mbstring
       - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
@@ -83,8 +83,8 @@ jobs:
     working_directory: ~/repo
     steps:
       # install dependencies
-      - run: apt-get update && apt-get -y install git libzip-dev
-      - run: docker-php-ext-install pdo pdo_mysql mysqli zip
+      - run: apt-get update && apt-get -y install git libzip-dev libpng-dev libonig-dev
+      - run: docker-php-ext-install pdo pdo_mysql mysqli zip gd mbstring
       - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
@@ -118,8 +118,8 @@ jobs:
     working_directory: ~/repo
     steps:
       # install dependencies
-      - run: apt-get update && apt-get -y install git libzip-dev
-      - run: docker-php-ext-install pdo pdo_mysql mysqli zip
+      - run: apt-get update && apt-get -y install git libzip-dev libpng-dev libonig-dev
+      - run: docker-php-ext-install pdo pdo_mysql mysqli zip gd mbstring
       - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
