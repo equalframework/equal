@@ -29,12 +29,12 @@ If views, models or translation files were modified as part of the field update,
   - See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for procedures and schema ID references.
 
 - [ ] **Model class validation** (if class modified):
-  - Use schema `urn:equal:json-schema:core:model.class`
+  - Use schema `urn:equal:json-schema:core:model`
   - Do not parse the updated `.class.php` file manually.
   - Ask eQual to export the field definitions through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
   - Validate the returned JSON representation with `core_json-validate`:
     - `json` parameter: the JSON representation of the updated model class
-    - `schema_id` parameter: `urn:equal:json-schema:core:model.class`
+    - `schema_id` parameter: `urn:equal:json-schema:core:model`
     - `package` parameter: the package name where the entity is defined
   - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
   - Confirm: no validation errors returned

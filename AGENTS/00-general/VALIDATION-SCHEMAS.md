@@ -35,7 +35,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 ## Schema Reference by Component Type
 
 ### Entities (Model Classes)
-- **Schema ID**: `urn:equal:json-schema:core:model.class`
+- **Schema ID**: `urn:equal:json-schema:core:model`
 - **Usage**: Validate the JSON representation of ORM model class definitions
 - **Required fields**: `name`, `fields`
 - **Export the model schema** with controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
