@@ -230,10 +230,10 @@ class Setting extends Model {
                 continue;
             }
             if($setting['is_sequence']) {
-                static::assert_sequence($setting['package'], $setting['section'], $setting['code'], $setting['value']);
+                static::ensure_sequence($setting['package'], $setting['section'], $setting['code'], $setting['value']);
             }
             else {
-                static::assert_value($setting['package'], $setting['section'], $setting['code'], $setting['value']);
+                static::ensure_value($setting['package'], $setting['section'], $setting['code'], $setting['value']);
             }
         }
     }
@@ -545,7 +545,7 @@ class Setting extends Model {
      * This method is idempotent.
      * @return  void
      */
-    public static function assert_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+    public static function ensure_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
 
         if(!static::setting_exists($package, $section, $code)) {
             $type = str_replace('double', 'float', gettype($default));
@@ -568,12 +568,19 @@ class Setting extends Model {
     }
 
     /**
+     * @deprecated Use ensure_value() instead.
+     */
+    public static function assert_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+        static::ensure_value($package, $section, $code, $default, $selector, $lang);
+    }
+
+    /**
      * Make sure the setting exists, and create it if necessary.
      * If a new sequence is created, its value is set to $default.
      * This method is idempotent.
      * @return  void
      */
-    public static function assert_sequence(string $package, string $section, string $code, $default=1, array $selector=[], string $lang=null) {
+    public static function ensure_sequence(string $package, string $section, string $code, $default=1, array $selector=[], string $lang=null) {
 
         if(!static::setting_exists($package, $section, $code)) {
             $setting_id = static::create_setting($package, $section, $code);
@@ -588,6 +595,13 @@ class Setting extends Model {
         if(!$setting_sequence_id) {
             static::create_sequence($setting_id, $selector, $default);
         }
+    }
+
+    /**
+     * @deprecated Use ensure_sequence() instead.
+     */
+    public static function assert_sequence(string $package, string $section, string $code, $default=1, array $selector=[], string $lang=null) {
+        static::ensure_sequence($package, $section, $code, $default, $selector, $lang);
     }
 
     /**
