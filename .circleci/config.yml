@@ -19,6 +19,9 @@ jobs:
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
+      - run:
+          name: Wait for MySQL
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
       # check ability to connect to the dbms service
       - run: php run.php --do=test_db-connectivity
       # create an empty database
@@ -51,6 +54,9 @@ jobs:
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
+      - run:
+          name: Wait for MySQL
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
       # check ability to connect to the dbms service
       - run: php run.php --do=test_db-connectivity
       # create an empty database
