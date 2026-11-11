@@ -75,23 +75,23 @@ jobs:
           path: /tmp/dumps
   php_8-4:
     docker:
-    - image: php:8.4-apache
+    - image: cimg/php:8.4
+      user: root
     - image: mysql:5.7
       environment:
         MYSQL_ROOT_PASSWORD: test
         MYSQL_DATABASE: equal
     working_directory: ~/repo
     steps:
-      # install dependencies
-      - run: apt-get update && apt-get -y install git libzip-dev libpng-dev libonig-dev
-      - run: docker-php-ext-install pdo pdo_mysql mysqli zip gd mbstring
-      - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
       # assign folders permissions
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
+      - run:
+          name: Wait for MySQL
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
       # check ability to connect to the dbms service
       - run: php run.php --do=test_db-connectivity
       # create an empty database
@@ -110,23 +110,23 @@ jobs:
           path: /tmp/dumps
   php_8-5:
     docker:
-    - image: php:8.5-apache
+    - image: cimg/php:8.5
+      user: root
     - image: mysql:5.7
       environment:
         MYSQL_ROOT_PASSWORD: test
         MYSQL_DATABASE: equal
     working_directory: ~/repo
     steps:
-      # install dependencies
-      - run: apt-get update && apt-get -y install git libzip-dev libpng-dev libonig-dev
-      - run: docker-php-ext-install pdo pdo_mysql mysqli zip gd mbstring
-      - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
       # assign folders permissions
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
+      - run:
+          name: Wait for MySQL
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
       # check ability to connect to the dbms service
       - run: php run.php --do=test_db-connectivity
       # create an empty database
