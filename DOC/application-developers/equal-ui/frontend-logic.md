@@ -27,6 +27,8 @@ A **Layout** is the layout associated with a given view. It is always linked to 
 
 An **Item** is responsible for displaying the value of an object's field (in 'view' or 'edit' mode). It synchronizes its value with the Model to which it is associated via the Layout and the View that is using it.
 
+When an editable item changes, the front end can call `model_onchange` and apply server-provided values, widget configuration, and persistent field errors to the model and layout. See [Handling `model_onchange` Responses](./views/model-onchange-responses.md) for the request and response contract.
+
 Here is an example of the views defined for the `core\User` entity :
 
 | **FILENAME**                        | **ENTITY** | **VIEW TYPE** | **VIEW NAME** | **VIEW ID**    | **Workbench Name**     |

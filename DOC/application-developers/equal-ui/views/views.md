@@ -523,6 +523,8 @@ When a widget emits `_updatedWidget`, the form:
 4. updates returned domains, selections, or field definitions;
 5. triggers `onchangeViewModel()`.
 
+The server can return direct field values or field descriptors that update values, domains, selections, widget properties, and persistent validation errors. See [Handling `model_onchange` Responses](./model-onchange-responses.md) for the complete request and response contract, error semantics, translation behavior, and back-end recommendations.
+
 `required` fields are checked by the layout before saving. For a `many2one`, presence is checked through `object_id`.
 
 ---
