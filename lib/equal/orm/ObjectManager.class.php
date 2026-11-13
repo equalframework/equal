@@ -1818,7 +1818,7 @@ class ObjectManager extends Service {
                         trigger_error("ORM::field `{$field}` of class `{$class}` violates unique constraint with objects (".implode(',', $conflict_ids).")", EQ_REPORT_WARNING);
                         $error_code = EQ_ERROR_CONFLICT_OBJECT;
                         $res[$field] = ['duplicate_index' => 'unique constraint violation'];
-                        break 2;
+                        // break 2;
                     }
                 }
 
