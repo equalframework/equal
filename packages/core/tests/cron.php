@@ -42,9 +42,29 @@ $tests = [
                                             "task.test",
                                             time() +  86400,
                                             'test_test',
-                                            [ 'id' => 1, 'lang' => 'fr' ]
+                                            [ 'id' => 1, 'lang' => 'fr' ],
+                                            recurring: true,
+                                            repeat_axis: 'hour',
+                                            repeat_step: 2,
+                                            is_exclusive: true
                                         );
-                                        return ($res >= 0);
+                                        if($res < 0) {
+                                            return false;
+                                        }
+
+                                        $orm = ObjectManager::getInstance();
+                                        $tasks = $orm->read(
+                                            'core\Task',
+                                            $res,
+                                            ['is_recurring', 'repeat_axis', 'repeat_step', 'is_exclusive']
+                                        );
+                                        $orm->remove('core\Task', [$res]);
+
+                                        return isset($tasks[$res])
+                                            && $tasks[$res]['is_recurring'] === true
+                                            && $tasks[$res]['repeat_axis'] === 'hour'
+                                            && $tasks[$res]['repeat_step'] === 2
+                                            && $tasks[$res]['is_exclusive'] === true;
                                     }
 
         ]

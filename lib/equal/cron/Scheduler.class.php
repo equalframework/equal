@@ -223,8 +223,11 @@ class Scheduler extends Service {
      * @param   string    $controller   Controller to invoke, with package notation.
      * @param   array     $params       The params associative array to relay to the controller.
      * @param   boolean   $recurring    Flag to mark the task as recurring.
+     * @param   string    $repeat_axis  Basis for the repetition steps.
+     * @param   integer   $repeat_step  Number of steps between executions.
+     * @param   boolean   $is_exclusive Flag to prevent concurrent execution with other tasks.
      */
-    public function schedule($name, $moment, $controller, $params, $recurring=false, $repeat_axis='day', $repeat_step='1') {
+    public function schedule($name, $moment, $controller, $params, $recurring=false, $repeat_axis='day', $repeat_step=1, $is_exclusive=false) {
         $orm = $this->container->get('orm');
         trigger_error("PHP::Scheduling job", EQ_REPORT_INFO);
 
@@ -233,7 +236,10 @@ class Scheduler extends Service {
             'moment'        => $moment,
             'controller'    => $controller,
             'params'        => json_encode($params),
-            'is_recurring'  => $recurring
+            'is_recurring'  => $recurring,
+            'repeat_axis'   => $repeat_axis,
+            'repeat_step'   => $repeat_step,
+            'is_exclusive'  => $is_exclusive
         ]);
     }
 
