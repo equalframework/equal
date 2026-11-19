@@ -871,13 +871,13 @@ class FSManipulator {
         $f_pos = 0;
         $list_directoies = array();
         $list_files = array();
-        while ($node = readdir($dir)) {
-            if ($node != '.' && $node != '..') {
-                if (is_dir($dir_name.'/'.$node)) {
+        while($node = readdir($dir)) {
+            if($node != '.' && $node != '..') {
+                if(is_dir($dir_name.'/'.$node)) {
                     $list_directoies[$d_pos] = $node;
                     ++$d_pos;
                 }
-                else{
+                else {
                     $list_files[$f_pos] = $node;
                     ++$f_pos;
                 }
@@ -890,15 +890,15 @@ class FSManipulator {
     }
 
     public static function removeDir($dir_name) {
-        if (file_exists($dir_name)) {
+        if(file_exists($dir_name)) {
             if (!is_dir($dir_name)) {
                 return unlink($dir_name);
             }
-            foreach (scandir($dir_name) as $file) {
-                if (in_array($file, ['.', '..'])) {
+            foreach(scandir($dir_name) as $file) {
+                if(in_array($file, ['.', '..'])) {
                     continue;
                 }
-                if (!self::removeDir($dir_name . DIRECTORY_SEPARATOR . $file)) {
+                if(!self::removeDir($dir_name . DIRECTORY_SEPARATOR . $file)) {
                     return false;
                 }
             }
