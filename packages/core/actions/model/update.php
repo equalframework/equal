@@ -175,9 +175,11 @@ if(count($fields)) {
     }
     */
 
-    $result = $params['entity']::ids($params['ids'])
-        // update with received values (with validation)
-        ->update($fields, $params['lang'])
+    // update with received values (with validation)
+    $params['entity']::ids($params['ids'])
+        ->update($fields, $params['lang']);
+
+    $result = $params['entity']::ids()
         ->read(['id', 'state', 'name', 'modified'])
         ->adapt('json')
         ->get(true);
