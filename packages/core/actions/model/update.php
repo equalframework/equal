@@ -167,19 +167,13 @@ if(count($fields)) {
         }
     }
 
-    // an object can never be set back to 'draft'
-    // #memo - moved back to Collection
-    /*
-    if(isset($fields['state']) && $fields['state'] == 'draft') {
-        $fields['state'] = 'instance';
-    }
-    */
+    // #memo - an object can never be updated / set back to 'draft'
 
     // update with received values (with validation)
     $params['entity']::ids($params['ids'])
         ->update($fields, $params['lang']);
 
-    $result = $params['entity']::ids()
+    $result = $params['entity']::ids($params['ids'])
         ->read(['id', 'state', 'name', 'modified'])
         ->adapt('json')
         ->get(true);
