@@ -15,6 +15,8 @@ jobs:
     steps:
       - checkout:
           path: ~/repo
+      # generate configuration using defaults from config/schema.json
+      - run: php run.php --do=core_config_generate
       # assign folders permissions
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
@@ -50,6 +52,8 @@ jobs:
     steps:
       - checkout:
           path: ~/repo
+      # generate configuration using defaults from config/schema.json
+      - run: php run.php --do=core_config_generate
       # assign folders permissions
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
@@ -85,6 +89,8 @@ jobs:
     steps:
       - checkout:
           path: ~/repo
+      # generate configuration using defaults from config/schema.json
+      - run: php run.php --do=core_config_generate
       # assign folders permissions
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
@@ -120,6 +126,8 @@ jobs:
     steps:
       - checkout:
           path: ~/repo
+      # generate configuration using defaults from config/schema.json
+      - run: php run.php --do=core_config_generate
       # assign folders permissions
       - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
