@@ -1,7 +1,7 @@
 <?php
 [$params, $providers] = eQual::announce([
     'description'   => 'Get list of cities with pictures using teleport API.',
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
