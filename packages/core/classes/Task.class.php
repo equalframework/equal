@@ -77,6 +77,38 @@ class Task extends Model {
                 'visible'           => ['is_recurring', '=', false]
             ],
 
+            'after_failure' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'retry',
+                    'skip',
+                    'disable',
+                    'delete'
+                ],
+                'description'       => 'How to handle the task after an execution failure.',
+                'default'           => 'disable'
+            ],
+
+            'retry_delay' => [
+                'type'              => 'integer',
+                'description'       => 'Delay in seconds before retrying the task after an execution failure.',
+                'default'           => 300,
+                'visible'           => ['after_failure', '=', 'retry']
+            ],
+
+            'max_retries' => [
+                'type'              => 'integer',
+                'description'       => 'Maximum number of retries after an execution failure.',
+                'default'           => 3,
+                'visible'           => ['after_failure', '=', 'retry']
+            ],
+
+            'failure_count' => [
+                'type'              => 'integer',
+                'description'       => 'Number of consecutive execution failures.',
+                'default'           => 0
+            ],
+
             'repeat_axis' => [
                 'type'              => 'string',
                 'selection'         => [

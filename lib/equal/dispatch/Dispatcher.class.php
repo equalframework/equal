@@ -5,8 +5,11 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 namespace equal\dispatch;
 
+use core\Mail;
+use equal\email\EmailMessage;
 use equal\organic\Service;
 use equal\services\Container;
 
@@ -25,8 +28,8 @@ class Dispatcher extends Service {
     }
 
     /**
-     * Run a batch of scheduled tasks.
-     * #memo - Scheduler always operates as root user.
+     * Dispatch alert message from given model
+     * @deprecated use emit() instead
      *
      * @param   string    $message_model    Name of the model the message relates to.
      * @param   string    $object_class     Class name of the entity the message relates to.
@@ -67,6 +70,128 @@ class Dispatcher extends Service {
                     $orm->create('core\alert\Message', $values);
                     // if targeted object has an 'alert' field (computed as convention), reset it
                     $orm->update($object_class, $object_id, ['alert' => null]);
+                }
+            }
+        }
+        else {
+            trigger_error("PHP::Unknown alert MessageModel {$message_model}", E_USER_WARNING);
+        }
+    }
+
+    /**
+     * Dispatch alert message from given model.
+     *
+     * @param string $message_model Name of the model the message relates to.
+     * @param string $object_class Class name of the entity the message relates to.
+     * @param int $object_id Identifier of the entity the message relates to.
+     * @param array{
+     *     severity?: 'notice'|'warning'|'important'|'error',
+     *     controller?: string|null,
+     *     params?: array<string, mixed>,
+     *     links?: list<string>,
+     *     user_id?: int|null,
+     *     group_id?: int|null,
+     *     values?: array<string, mixed>
+     * } $options Alert options:
+     * - `severity`: Defaults to `notice`; available choices are `notice`, `warning`, `important`, and `error`.
+     * - `controller`: Action controller to invoke when the message is dismissed; defaults to `null`.
+     * - `params`: Parameters to pass to the action controller; defaults to an empty array.
+     * - `links`: Markdown links related to the message; defaults to an empty list.
+     * - `user_id`: Identifier of the user targeted by the message; defaults to `null`.
+     * - `group_id`: Identifier of the group targeted by the message; defaults to `null`.
+     * - `values`: Values for variables referenced in the message label and description; defaults to an empty array.
+     * @return void
+     * @throws \Exception
+     */
+    public function emit(string $message_model, string $object_class, int $object_id, array $options = []) {
+        $default_options = [
+            'severity'      => 'notice',
+            'controller'    => null,
+            'params'        => [],
+            'links'         => [],
+            'user_id'       => null,
+            'group_id'      => null,
+            'values'        => []
+        ];
+        foreach($default_options as $key => $default_value) {
+            if(!array_key_exists($key, $options)) {
+                $options[$key] = $default_value;
+            }
+        }
+
+        /** @var \equal\orm\ObjectManager $orm */
+        $orm = $this->container->get('orm');
+        trigger_error("PHP::dispatching message", EQ_REPORT_DEBUG);
+
+        $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
+        if(is_array($message_models_ids) && count($message_models_ids)) {
+            $message_model_id = reset($message_models_ids);
+            // prevent creating duplicates
+            $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]]);
+            if(is_array($messages_ids) && !count($messages_ids)) {
+                $values = [
+                    'message_model_id'  => $message_model_id,
+                    'object_class'      => $object_class,
+                    'object_id'         => $object_id,
+                    'severity'          => $options['severity'],
+                    'controller'        => $options['controller'],
+                    'params'            => json_encode($options['params']),
+                    'links'             => json_encode($options['links']),
+                    'user_id'           => $options['user_id'],
+                    'group_id'          => $options['group_id'],
+                    'values'            => json_encode($options['values'])
+                ];
+
+                if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {
+                    $message_id = $orm->create('core\alert\Message', $values);
+                    // if targeted object has an 'alert' field (computed as convention), reset it
+                    $orm->update($object_class, $object_id, ['alert' => null]);
+
+                    $message_models = $orm->read('core\alert\MessageModel', $message_model_id, ['with_send_email']);
+                    if(is_array($message_models) && count($message_models)) {
+                        $message_model = reset($message_models);
+                        if($message_model['with_send_email']) {
+                            $message = null;
+                            $messages = $orm->read('core\alert\Message', $message_id, ['label', 'description']);
+                            if(is_array($messages) && count($messages)) {
+                                $message = reset($messages);
+                            }
+
+                            $map_email_addresses = [];
+                            if($options['user_id']) {
+                                $users = $orm->read('core\User', $options['user_id'], ['login']);
+                                if(is_array($users) && count($users)) {
+                                    $user = reset($users);
+                                    if(!empty($user['login'])) {
+                                        $map_email_addresses[$user['login']] = true;
+                                    }
+                                }
+                            }
+                            if($options['group_id']) {
+                                $groups = $orm->read('core\Group', $options['group_id'], ['users_ids.login']);
+                                if(is_array($groups) && count($groups)) {
+                                    $group = reset($groups);
+                                    foreach($group['users_ids.login'] ?? [] as $user) {
+                                        if(!empty($user['login'])) {
+                                            $map_email_addresses[$user['login']] = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            $email_addresses = array_keys($map_email_addresses);
+                            foreach($email_addresses as $email_address) {
+                                $email = new EmailMessage();
+                                $email
+                                    ->setTo($email_address)
+                                    ->setSubject($message['label'])
+                                    ->setBody($message['description']);
+
+                                // #todo - create a mailer service to use it here instead of core\Mail
+                                Mail::queue($email, 'core\alert\Message', $message_id);
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -29,6 +29,16 @@
                                             },
                                             {
                                                 "type": "field",
+                                                "value": "with_send_email",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "variables",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
                                                 "value": "description",
                                                 "width": "100%"
                                             }

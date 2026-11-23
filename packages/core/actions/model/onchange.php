@@ -5,8 +5,6 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\orm\Collections;
-
 [$params, $providers] = eQual::announce([
     'description'   => "Transform an object being edited in a view, according to the onchange method of the entity, if any.",
     'response'      => [
@@ -19,6 +17,11 @@ use equal\orm\Collections;
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'type'          => 'string',
             'required'      => true
+        ],
+        'id' =>  [
+            'description'   => 'Unique identifier of the object being edited.',
+            'type'          => 'integer',
+            'default'       => 0
         ],
         'view_id' =>  [
             'description'   => 'The identifier of the view <type.name>.',
@@ -113,6 +116,10 @@ if(method_exists($params['entity'], 'onchange')) {
         }
     }
 
+    // use the current object id so uniqueness validation does not conflict with the object itself
+    $object_id = (int) ($params['id'] ?: ($values['id'] ?? 0));
+    $self = $params['entity']::ids($object_id > 0 ? [$object_id] : [])->lang($params['lang']);
+
     // inject parameters based on the target method signature
 
     /** @var ReflectionMethod */
@@ -139,41 +146,89 @@ if(method_exists($params['entity'], 'onchange')) {
             $args[] = $params['view_id'];
         }
         elseif($param_name == 'self') {
-            // #todo - should we add object id to the params ?
-            $factory = Collections::getInstance();
-            $c = $factory->create($params['entity']);
-            $c->lang($params['lang']);
-            $args[] = $c;
+            $args[] = $self;
         }
     }
 
     $result = $params['entity']::onchange(...$args);
 
-    // adapt resulting values to json
-    foreach($result as $field => $value) {
-        // leave array untouched (not an ORM type)
+    $ui_properties = array_flip(['value', 'domain', 'selection', 'visible', 'readonly', 'required', 'errors']);
+    $isUiDescriptor = static fn($value) => is_array($value) && array_intersect_key($value, $ui_properties);
+
+    // validate only values explicitly returned by onchange; UI-only descriptors without a value are ignored
+    $validation_values = [];
+    foreach($result as $field => $field_result) {
+        $is_descriptor = $isUiDescriptor($field_result);
+        if($is_descriptor && !array_key_exists('value', $field_result)) {
+            continue;
+        }
+
+        $f = $model->getField($field);
+        if(!$f) {
+            continue;
+        }
+        $value = $is_descriptor ? $field_result['value'] : $field_result;
+        $result_type = $f->getDescriptor()['result_type'];
+
+        // ORM validation expects relation identifiers, while onchange may return ORM objects for the UI
+        if($value instanceof \equal\orm\Model) {
+            $value = $value->toArray();
+        }
+        elseif($value instanceof \equal\orm\Collection) {
+            $value = $value->ids();
+        }
+        elseif(is_object($value)) {
+            continue;
+        }
+
+        if($result_type === 'many2one' && is_array($value) && array_key_exists('id', $value)) {
+            $value = $value['id'];
+        }
+
+        // optional empty strings are equivalent to null for ORM validation, but remain unchanged in the UI result
+        if($value === '' && in_array($result_type, ['string', 'text'])) {
+            $value = null;
+        }
+
+        $validation_values[$field] = $value;
+    }
+
+    if($validation_values) {
+        $errors = $orm->validate($params['entity'], $self->ids(), $validation_values, true);
+        foreach(reset($errors) ?: [] as $field => $field_errors) {
+            if(!$isUiDescriptor($result[$field])) {
+                $result[$field] = ['value' => $result[$field]];
+            }
+            $result[$field]['errors'] = (object) array_merge((array) ($result[$field]['errors'] ?? []), $field_errors);
+        }
+    }
+
+    // adapt direct values and descriptor values to json
+    foreach($result as $field => &$field_result) {
+        $is_descriptor = $isUiDescriptor($field_result);
+        if(($is_descriptor && !array_key_exists('value', $field_result)) || (!$is_descriptor && is_array($field_result))) {
+            continue;
+        }
+        $value = $is_descriptor ? $field_result['value'] : $field_result;
         if(is_array($value)) {
             continue;
         }
-        // convert objects to arrays (for supporting values retrieved as sub-objects)
-        if(is_object($value)) {
-            if(is_subclass_of($value, 'equal\orm\Model')) {
-                $result[$field] = $value->toArray();
-            }
-            else {
-                $result[$field] = serialize($value);
-            }
+        if($value instanceof \equal\orm\Model) {
+            $value = $value->toArray();
+        }
+        elseif(is_object($value)) {
+            $value = serialize($value);
+        }
+        elseif($f = $model->getField($field)) {
+            $value = $adapter->adaptOut($value, $f->getUsage());
         }
         else {
-            $f = $model->getField($field);
-            if(!$f) {
-                trigger_error('APP::invalid field '.$field, EQ_REPORT_WARNING);
-                continue;
-            }
-            // adapt received values based on their type (as defined in schema)
-            $result[$field] = $adapter->adaptOut($value, $f->getUsage());
+            trigger_error('APP::invalid field '.$field, EQ_REPORT_WARNING);
         }
+
+        $field_result = $is_descriptor ? array_merge($field_result, ['value' => $value]) : $value;
     }
+    unset($field_result);
 
 }
 

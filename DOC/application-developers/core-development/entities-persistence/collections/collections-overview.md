@@ -9,7 +9,7 @@ In eQual, a collection is a series of partial objects (the ORM loads only reques
 The formal distinction is behavioral:
 
 * `create()`, `read()`, `update()`, `write()` and `delete()` enforce capabilities and ACLs;
-* `read()`, `update()`, `write()` and `delete()` additionally enforce their associated operation policies;
+* `create()`, `read()`, `update()`, `write()` and `delete()` additionally enforce their associated operation policies;
 * these methods invoke the deprecated matching `can...()` entity guard for backward compatibility;
 * `clone()` enforces READ policies on the source and CREATE plus UPDATE policies on the target class;
 * `draft()` and `instantiate()` do not invoke an operation policy or compatibility guard; `remove()` is only available as a privileged `ObjectManager` operation;

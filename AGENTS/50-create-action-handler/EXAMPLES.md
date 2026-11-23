@@ -11,10 +11,22 @@ eQual::run('do', 'sale_booking_Booking_confirm', ['id' => $booking_id]);
 ```php
 'confirm' => [
   'description' => 'Confirm booking.',
-  'policies' => [],
+  'policies' => ['confirmable'],
   'function' => 'doConfirm'
 ]
 ```
+
+The `confirmable` policy must be declared in `getPolicies()` and must validate every predictable prerequisite, such as the current status and the presence and compatibility of required relations. It must complete those checks for the full target collection before the action starts mutating objects.
+
+The action body then contains only the success path:
+
+```php
+protected static function doConfirm($self) {
+    $self->update(['status' => 'confirmed']);
+}
+```
+
+Do not use an empty policy list for a mutating inline action. Do not add functional rejection, `try/catch`, or SQL transaction management to the `do*` method.
 
 - View action reference:
 ```json

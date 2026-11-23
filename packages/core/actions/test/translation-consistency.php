@@ -6,9 +6,6 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 [$params, $providers] = eQual::announce([
-    'type'          => 'do',
-    'name'          => 'test_translation-consistency',
-    'package_name'  => 'core',
     'description'   => 'Validate a model translation file against its JSON schema.',
     'params'        => [
         'entity' =>  [

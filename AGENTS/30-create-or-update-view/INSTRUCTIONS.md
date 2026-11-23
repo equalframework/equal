@@ -1,5 +1,5 @@
-1. Identify the target package.
-2. Confirm the work stays within a single package and does not touch `core`.
+1. Identify every target package.
+2. Confirm the work uses the fewest packages necessary, explain why each impacted package is required, and do not touch `core`.
 3. Identify the target entity, namespace, and the exact folder path it implies under `views/`, `i18n/`, `actions/`, and `data/`.
 4. Inspect nearby existing views in the same package and namespace for naming, layout, widget, filter, action, and translation conventions.
 5. Identify the view type: form, list, chart, dashboard, or another supported view type.

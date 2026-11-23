@@ -578,8 +578,13 @@ class Collection implements \Iterator, \Countable {
     /**
      * Assert that the current collection complies with the operation policies
      * declared by the target Model class.
+     *
+     * @param int        $operation Operation being checked.
+     * @param array      $fields    Fields involved in the operation, when applicable.
+     * @param array      $ids       Object identifiers involved in the operation, when applicable.
+     * @param array|null $values    Values relayed to policy callbacks. Defaults to fields for backward compatibility.
      */
-    private function assertOperationPolicies(int $operation, array $fields=[], array $ids=[]): self {
+    private function assertOperationPolicies(int $operation, array $fields=[], array $ids=[], ?array $values=null): self {
         if(!in_array($operation, [EQ_R_CREATE, EQ_R_READ, EQ_R_UPDATE, EQ_R_DELETE], true)) {
             return $this;
         }
@@ -648,7 +653,13 @@ class Collection implements \Iterator, \Countable {
                     throw new \Exception('invalid_operation_policy_rule', EQ_ERROR_INVALID_CONFIG);
                 }
 
-                $inconsistencies = (array) $this->ac->isCompliant($policy, $this->class, $ids, $user_id);
+                $inconsistencies = (array) $this->ac->isCompliant(
+                    $policy,
+                    $this->class,
+                    $ids,
+                    $user_id,
+                    $values ?? $fields
+                );
                 if(count($inconsistencies)) {
                     throw new \Exception(serialize([$policy => $inconsistencies]), EQ_ERROR_NOT_ALLOWED);
                 }
@@ -784,39 +795,13 @@ class Collection implements \Iterator, \Countable {
             }
         }
 
-        // 2) adapt domain according to access control type : either with ACL (permission) or Role (assignment)
+        // 2) restrict the domain to objects readable through a role assignment or an object permission
 
-        if($this->orm->hasObjectRoles($this->class)) {
-            $roles = [];
-            // find all roles for which a READ right is granted
-            foreach($this->class::getRoles() as $role => $descriptor) {
-                if(isset($descriptor['rights'])) {
-                    if($descriptor['rights'] & EQ_R_READ) {
-                        $roles[] = $role;
-                    }
-                }
-            }
-            // find the objects for which the user is explicitly assigned to one of these roles
-            $assignments_ids = $this->orm->search('core\Assignment', [ ['user_id', '=', $user_id], ['role', 'in', $roles], ['object_class', '=', $this->class] ]);
-            if(is_array($assignments_ids) && count($assignments_ids)) {
-                $assignments = $this->orm->read('core\Assignment', $assignments_ids, ['object_id']);
-                $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($assignments));
-                // limit search amongst those objects
-                $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
-            }
-        }
-        else {
-            // if user is not granted for READ on full class (nor parent class), neither directly nor indirectly (groups)
-            if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
-                // find the objects for which the user is explicitly granted for READ
-                $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', EQ_R_READ], ['object_class', '=', $this->class] ]);
-                if(is_array($permissions_ids) && count($permissions_ids)) {
-                    $permissions = $this->orm->read('core\Permission', $permissions_ids, ['object_id']);
-                    $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($permissions));
-                    // limit search amongst those objects
-                    $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
-                }
-            }
+        // A class-level READ right, including inherited and group rights, grants access to the full search domain.
+        if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
+            $objects_ids = $this->ac->getUserObjectIdsWithRight($user_id, EQ_R_READ, $this->class);
+            // An empty list intentionally denies access to every object.
+            $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
         }
 
         // 3) perform search
@@ -971,7 +956,8 @@ class Collection implements \Iterator, \Countable {
 
         $this
             ->assertCapabilities(EQ_R_CREATE)
-            ->assertAccessControl(EQ_R_CREATE, $fields);
+            ->assertAccessControl(EQ_R_CREATE, $fields)
+            ->assertOperationPolicies(EQ_R_CREATE, $fields, [], $values);
 
         // set current user as creator and modifier
         $values['creator'] = $user_id;
@@ -1337,20 +1323,25 @@ class Collection implements \Iterator, \Countable {
 
 
     /**
-     * Persists the same field values on every selected object through the secured technical-write path.
+     * Persists the same values on every selected object through the secured technical-write path.
      *
-     * This method checks UPDATE capabilities, ACLs, operation policies, and the legacy `canupdate()` guard.
-     * It performs no:
-     *   - data validation
-     *   - entity and field lifecycle callbacks
-     *   - dependent-field invalidation/recomputation
-     *   - automatic workflow transitions
-     *   - lifecycle changes on `state` field
+     * Unlike update(), write() enforces UPDATE capabilities, ACLs, operation policies, and the legacy
+     * `canupdate()` guard, but skips ORM validation and lifecycle processing.
      *
-     * @param   array|null  $values   Associative array mapping fields and values.
+     * Consequences:
+     *   - `readonly` are writable, `required` can be set to null, and `unique` are not checked;
+     *   - entity and field callbacks are not invoked (onupdate..., onbefore..., onafter...);
+     *   - dependent fields are neither invalidated nor recomputed;
+     *   - `state` values are ignored and no workflow transition is triggered.
+     *
+     * Database constraints still apply.
+     *
+     * @param   array       $values   Associative array mapping fields and values.
      * @param   string|null $lang     Language for multilang fields.
      *
      * @return  Collection  Returns the current instance (allowing call chaining).
+     *
+     * @see self::update()
      */
     public function write(array $values, $lang=null) {
         if(count($this->objects) <= 0) {
@@ -1391,7 +1382,7 @@ class Collection implements \Iterator, \Countable {
         $this
             ->assertCapabilities(EQ_R_UPDATE, $fields, $ids)
             ->assertAccessControl(EQ_R_UPDATE, $fields, $ids)
-            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids)
+            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids, $values)
             ->assertOperationGuards(EQ_R_UPDATE, array_diff_key($values, Model::getSpecialColumns()));
 
         // by convention, update operation sets modifier as current user
@@ -1478,7 +1469,7 @@ class Collection implements \Iterator, \Countable {
         $this
             ->assertCapabilities(EQ_R_UPDATE, $fields, $ids)
             ->assertAccessControl(EQ_R_UPDATE, $fields, $ids)
-            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids);
+            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids, $values);
 
         // by convention, update operation sets modifier as current user
         $values['modifier'] = $user_id;
@@ -1618,7 +1609,7 @@ class Collection implements \Iterator, \Countable {
         $ids = $this->ids();
         if(count($ids)) {
             // check if action can be performed
-            $res = $this->ac->canPerform($action, $this->class, $ids);
+            $res = $this->ac->canPerform($action, $this->class, $ids, null, $values);
 
             if(count($res)) {
                 throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);

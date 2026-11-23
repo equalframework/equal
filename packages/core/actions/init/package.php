@@ -415,120 +415,14 @@ else {
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
-    // 5 bis) External binaries dependencies if any
-    // #memo - when inside a containerized environment, restarting the instance will not persist installed binaries, since they are not part of the Docker image.
+    // 5 bis) External binary dependencies, if any
     if(isset($package_manifest['requires_bin']) && is_array($package_manifest['requires_bin'])) {
-
-        $os = strtolower(PHP_OS_FAMILY);
         foreach($package_manifest['requires_bin'] as $bin => $meta) {
             try {
-                $check_cmd = $meta['check'] ?? "$bin --version";
-
-                $output = [];
-                exec($check_cmd . ' 2>&1', $output, $result_code);
-
-                // binary not present yet or returns an error code
-                if($result_code !== 0) {
-
-                    $binary_package_name = $meta['package']['generic'] ?? $bin;
-
-                    $linux_flavour = null;
-                    if($os === 'linux' && file_exists('/etc/os-release')) {
-                        $os_release = file_get_contents('/etc/os-release');
-                        if(preg_match('/^ID=(.+)$/m', $os_release, $m)) {
-                            $linux_flavour = trim(str_replace('"', '', $m[1]));
-                        }
-                    }
-
-                    if($os === 'linux') {
-                        if(isset($meta['package'][$linux_flavour])) {
-                            $binary_package_name = $meta['package'][$linux_flavour];
-                        }
-                        switch($linux_flavour) {
-                            case 'centos':
-                            case 'rhel':
-                            case 'redhat':
-                                $install_cmd = "yum install -y $binary_package_name";
-                                break;
-                            case 'fedora':
-                                $install_cmd = "dnf install -y $binary_package_name";
-                                break;
-                            case 'debian':
-                            case 'ubuntu':
-                                $install_cmd = "apt-get update && apt-get install -y $binary_package_name";
-                                break;
-                            default:
-                                $install_cmd = '';
-                        }
-                    }
-                    elseif($os === 'darwin') {
-                        if(isset($meta['package']['macos'])) {
-                            $binary_package_name = $meta['package']['macos'];
-                        }
-                        $install_cmd = "brew install $binary_package_name";
-                    }
-                    elseif($os === 'windows') {
-                        if(isset($meta['package']['windows'])) {
-                            $binary_package_name = $meta['package']['windows'];
-                        }
-                        $install_cmd = "choco install $binary_package_name -y";
-                    }
-                    else {
-                        throw new Exception('unsupported_os_for_binary', EQ_ERROR_UNKNOWN);
-                    }
-
-                    if(strlen($install_cmd) > 0) {
-                        system($install_cmd, $result_code);
-
-                        if($result_code !== 0) {
-                            throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
-                        }
-                    }
-
-                    $output = [];
-
-                    ob_start();
-                    exec($check_cmd . ' 2>&1', $output, $result_code);
-                    ob_end_clean();
-
-                    if($result_code !== 0) {
-                        throw new Exception('binary_missing_after_install', EQ_ERROR_UNKNOWN);
-                    }
-
-                    // optional - copy binary to `/opt/bin` for persistency, if present
-                    $opt_bin_dir = '/opt/bin';
-                    if(is_dir($opt_bin_dir)) {
-                        $paths = [];
-                        // #todo - force 'PATH=' . escapeshellarg($opt_bin_dir)
-                        exec('command -v ' . escapeshellarg($bin) . ' 2>/dev/null', $paths, $result_code);
-                        if($result_code !== 0 || empty($paths[0])) {
-                            throw new Exception('binary_not_found', EQ_ERROR_UNKNOWN);
-                        }
-
-                        $binary = trim($paths[0]);
-                        $libraries = [];
-                        // #memo - LD_LIBRARY_PATH is expected amongst ENV vars
-                        exec('ldd ' . escapeshellarg($binary) . ' 2>/dev/null', $libraries, $result_code);
-                        foreach($libraries as $library) {
-                            if(preg_match('/=>\s+(\/\S+)/', $library, $matches)) {
-                                $filename = basename($matches[1]);
-                                // exclude system runtime libraries provided by the base image
-                                if(!preg_match('/^lib(?:c|dl|m|pthread|resolv|rt|util)\.so(?:\.|$)/', $filename)) {
-                                    $paths[] = $matches[1];
-                                }
-                            }
-                        }
-
-                        foreach(array_unique($paths) as $path) {
-                            $path = trim($path);
-                            $destination = $opt_bin_dir . '/' . basename($path);
-                            if($path !== $destination && !copy($path, $destination)) {
-                                throw new Exception('unable_to_persist_binary', EQ_ERROR_UNKNOWN);
-                            }
-                            chmod($destination, $path === $binary ? 0755 : 0644);
-                        }
-                    }
-                }
+                eQual::run('do', 'init_package_binary', [
+                    'binary'        => $bin,
+                    'configuration' => $meta
+                ]);
             }
             catch(Exception $e) {
                 // do not interrupt package init, but report error

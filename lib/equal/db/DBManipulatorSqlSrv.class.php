@@ -119,7 +119,20 @@ final class DBManipulatorSqlSrv extends DBManipulator {
                 $member->disconnect();
             }
         }
+        $this->transaction_active = false;
         return true;
+    }
+
+    protected function doBeginTransaction() {
+        return sqlsrv_begin_transaction($this->dbms_handler);
+    }
+
+    protected function doCommitTransaction() {
+        return sqlsrv_commit($this->dbms_handler);
+    }
+
+    protected function doRollbackTransaction() {
+        return sqlsrv_rollback($this->dbms_handler);
     }
 
     public function createDatabase($db_name) {
@@ -538,6 +551,8 @@ final class DBManipulatorSqlSrv extends DBManipulator {
      * That is why we compute the expected result in the first select statement, marked with TABLOCKX to make sure the server locks the table before updating it.
      */
     public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $this->assertNoActiveTransaction(__METHOD__);
+
         $sql = 'BEGIN TRANSACTION;';
         $sql .= "SELECT [{$id_field}], [{$field}] FROM [{$table}] WITH (TABLOCKX) WHERE [{$id_field}] in (".implode(',', (array) $ids).");";
         $sql .= "UPDATE [{$table}] SET [{$field}] = [{$field}] + $increment WHERE [{$id_field}] in (".implode(',', $ids).");";

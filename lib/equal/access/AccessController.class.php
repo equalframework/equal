@@ -121,36 +121,122 @@ class AccessController extends Service {
             foreach($objects_ids as $object_id) {
                 $assignments_ids = $orm->search('core\Assignment', [ ['user_id', '=', $user_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id] ]);
                 if(!is_array($assignments_ids) || !count($assignments_ids)) {
-                    continue;
+                    return [];
                 }
                 $assignments = $orm->read('core\Assignment', (array) $assignments_ids, ['role']);
-                if(is_array($assignments) && count($assignments)) {
-                    $map_assignment_roles = [];
-                    foreach($assignments as $aid => $assignment) {
-                        foreach($getResultingRoles($assignment['role']) as $resulting_role) {
-                            $map_assignment_roles[$resulting_role] = true;
-                        }
-                    }
-                    if($first) {
-                        $map_user_roles = $map_assignment_roles;
-                    }
-                    else {
-                        foreach($map_user_roles as $r => $v) {
-                            if(!isset($map_assignment_roles[$r])) {
-                                unset($map_user_roles[$r]);
-                            }
-                        }
-                        if(!count($map_user_roles)) {
-                            break;
-                        }
-                    }
-                    $first = false;
+                if(!is_array($assignments) || !count($assignments)) {
+                    return [];
                 }
+                $map_assignment_roles = [];
+                foreach($assignments as $aid => $assignment) {
+                    foreach($getResultingRoles($assignment['role']) as $resulting_role) {
+                        $map_assignment_roles[$resulting_role] = true;
+                    }
+                }
+                if($first) {
+                    $map_user_roles = $map_assignment_roles;
+                }
+                else {
+                    foreach($map_user_roles as $r => $v) {
+                        if(!isset($map_assignment_roles[$r])) {
+                            unset($map_user_roles[$r]);
+                        }
+                    }
+                    if(!count($map_user_roles)) {
+                        break;
+                    }
+                }
+                $first = false;
             }
             $roles = array_keys($map_user_roles);
         }
 
         return $roles;
+    }
+
+    /**
+     * Retrieve object identifiers explicitly granted to a user for an operation.
+     * Models defining roles use assignments; other models use instance permissions.
+     * Class-level rights are intentionally not represented by this method.
+     */
+    public function getUserObjectIdsWithRight(int $user_id, int $operation, string $object_class): array {
+        $orm = $this->container->get('orm');
+        $def_roles = $object_class::getRoles();
+
+        if(count($def_roles)) {
+            $roles = [];
+            $roles_implications = $this->getRolesImplications($object_class);
+
+            foreach(array_keys($def_roles) as $role) {
+                $resulting_roles = array_merge([$role], $roles_implications[$role] ?? []);
+                if(($this->getRightsFromRoles($resulting_roles, $object_class) & $operation) === $operation) {
+                    $roles[] = $role;
+                }
+            }
+
+            if(!count($roles)) {
+                return [];
+            }
+
+            $assignments_ids = $orm->search(Assignment::getType(), [
+                ['user_id', '=', $user_id],
+                ['object_class', '=', $object_class],
+                ['role', 'in', $roles]
+            ]);
+            if(!is_array($assignments_ids) || !count($assignments_ids)) {
+                return [];
+            }
+
+            $assignments = $orm->read(Assignment::getType(), $assignments_ids, ['object_id']);
+            if(!is_array($assignments)) {
+                return [];
+            }
+
+            $objects_ids = [];
+            foreach($assignments as $assignment) {
+                if(isset($assignment['object_id'])) {
+                    $objects_ids[] = $assignment['object_id'];
+                }
+            }
+
+            return array_values(array_unique($objects_ids));
+        }
+
+        if(constant('ACCESS_CONTROL_LEVEL') !== 'instance') {
+            return [];
+        }
+
+        $permissions_ids = $orm->search(Permission::getType(), [
+            ['class_name', '=', $object_class],
+            ['user_id', '=', $user_id],
+            ['object_id', 'is not', null]
+        ]);
+        if(!is_array($permissions_ids) || !count($permissions_ids)) {
+            return [];
+        }
+
+        $permissions = $orm->read(Permission::getType(), $permissions_ids, ['object_id', 'rights']);
+        if(!is_array($permissions)) {
+            return [];
+        }
+
+        $map_objects_rights = [];
+        foreach($permissions as $permission) {
+            if(!isset($permission['object_id'])) {
+                continue;
+            }
+            $object_id = $permission['object_id'];
+            $map_objects_rights[$object_id] = ($map_objects_rights[$object_id] ?? 0) | $permission['rights'];
+        }
+
+        $objects_ids = [];
+        foreach($map_objects_rights as $object_id => $rights) {
+            if(($rights & $operation) === $operation) {
+                $objects_ids[] = $object_id;
+            }
+        }
+
+        return $objects_ids;
     }
 
     public function getGroupUsers($group_id) {
@@ -645,7 +731,7 @@ class AccessController extends Service {
         if(count($roles)) {
             $def_roles = $object_class::getRoles();
             foreach($roles as $role) {
-                if(isset($def_roles[$role])) {
+                if(isset($def_roles[$role]['rights'])) {
                     $right = 0;
                     if(is_array($def_roles[$role]['rights'])) {
                         $right = array_reduce(
@@ -723,8 +809,8 @@ class AccessController extends Service {
     /**
      * Same as `isCompliant()`, but with explicit user_id.
      */
-    public function userIsCompliant($user_id, $policy, $object_class, $object_ids) {
-        return $this->isCompliant($policy, $object_class, $object_ids, $user_id);
+    public function userIsCompliant($user_id, $policy, $object_class, $object_ids, $values=[]) {
+        return $this->isCompliant($policy, $object_class, $object_ids, $user_id, $values);
     }
 
     /**
@@ -735,8 +821,9 @@ class AccessController extends Service {
      * @param string        $object_class     Class on which the check must be performed.
      * @param int[]         $object_ids       List of objects identifiers (relating to $object_class) against which the check must be performed.
      * @param integer       $user_id          (optional) The identifier of the user for which the test is requested. If not provided falls back to current user.
+     * @param array         $values           (optional) Values relayed to the policy callback.
      */
-    public function isCompliant($policy, $object_class, $object_ids, $user_id=null) {
+    public function isCompliant($policy, $object_class, $object_ids, $user_id=null, $values=[]) {
         $result = [];
         trigger_error("ORM::checking compliancy for {$policy} on '$object_class'", EQ_REPORT_DEBUG);
 
@@ -792,6 +879,9 @@ class AccessController extends Service {
                         elseif($param === 'user_id') {
                             $args[] = $user_id;
                         }
+                        elseif($param === 'values') {
+                            $args[] = $values;
+                        }
                         elseif($param === 'self') {
                             $args[] = $called_class::ids($object_ids);
                         }
@@ -835,8 +925,8 @@ class AccessController extends Service {
     /**
      * Same as `canPerform()`, but with explicit user_id.
      */
-    public function userCanPerform($user_id, $action, $object_class, $object_ids) {
-        return $this->canPerform($action, $object_class, $object_ids, $user_id);
+    public function userCanPerform($user_id, $action, $object_class, $object_ids, $values=[]) {
+        return $this->canPerform($action, $object_class, $object_ids, $user_id, $values);
     }
 
     /**
@@ -844,7 +934,7 @@ class AccessController extends Service {
      * This relates to the optional `getActions()` method that can be defined on Model classes.
      *
      */
-    public function canPerform($action, $object_class, $object_ids, $user_id=null) {
+    public function canPerform($action, $object_class, $object_ids, $user_id=null, $values=[]) {
         $result = [];
 
         if(is_null($user_id)) {
@@ -856,7 +946,7 @@ class AccessController extends Service {
         $actions = $object_class::getActions();
         if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
             foreach($actions[$action]['policies'] as $policy) {
-                $inconsistencies = (array) $this->isCompliant($policy, $object_class, $object_ids, $user_id);
+                $inconsistencies = (array) $this->isCompliant($policy, $object_class, $object_ids, $user_id, $values);
                 if(count($inconsistencies)) {
                     $result[$policy] = $inconsistencies;
                 }
@@ -1034,7 +1124,7 @@ class AccessController extends Service {
      * var_dump(validate_time_range(1719925622, 'mon@09:00-wed@17:00')); // true
      * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@17:00')); // true
      * var_dump(validate_time_range(1719925622, 'mon@09:00-fri@17:00')); // true
-     * var_dump(validate_time_range(1719925622, 'thi@09:00-fri@17:00')); // false
+     * var_dump(validate_time_range(1719925622, 'thu@09:00-fri@17:00')); // false
      * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@11:00')); // false
      * var_dump(validate_time_range(1719925622, 'mon@09:00-mon@11:00')); // false
      * var_dump(validate_time_range(1719925622, 'tue@13:00-tue@14:00')); // true
@@ -1044,7 +1134,7 @@ class AccessController extends Service {
         $time_of_day = ($hours * 3600) + ($minutes * 60);
 
         // retrieve timezone offset between local timezone and UTC (times in settings use local time)
-        $tz = new \DateTimeZone(Setting::get_value('core', 'locale', 'time_zone', 'Europe/Brussels'));
+        $tz = new \DateTimeZone(Setting::get_value('core', 'locale', 'time.zone', 'Europe/Brussels'));
         // apply timezone offset, in seconds to apply, depending on the date of the given date (based on received timestamp)
         $time_of_day += $tz->getOffset(new \DateTime('@'.$time));
 

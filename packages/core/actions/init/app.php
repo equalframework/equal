@@ -113,7 +113,7 @@ if(file_exists("public/$app")) {
 }
 
 $result = [
-    $params['package'] => [$params['app'] => $is_app_initialized && $params['force'] ? 'updated' : 'initialized']
+    "{$params['package']}.{$params['app']}" => $is_app_initialized && $params['force'] ? 'updated' : 'initialized'
 ];
 
 $context

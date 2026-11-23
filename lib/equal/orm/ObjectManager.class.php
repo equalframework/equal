@@ -936,13 +936,7 @@ class ObjectManager extends Service {
                         }
                     }
                 },
-                'computed'    =>    function($om, $ids, $fields, $computed_lang=null) use ($schema, $class, $table_name, $lang) {
-                    // #memo - here, $lang can be different from the one passed to the load() function
-                    // non-multilang non-stored
-                    $lang = constant('DEFAULT_LANG');
-                    if($computed_lang) {
-                        $lang = $computed_lang;
-                    }
+                'computed'    =>    function($om, $ids, $fields, $target_lang) use ($schema, $class, $table_name) {
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
@@ -951,7 +945,7 @@ class ObjectManager extends Service {
 
                         if(isset($schema[$field]['function'])) {
                             trigger_error("ORM::computing 'function' {$schema[$field]['function']} for '$field' of class '$class'", EQ_REPORT_INFO);
-                            $res = $this->callonce($class, $schema[$field]['function'], $ids, [], $lang);
+                            $res = $this->callonce($class, $schema[$field]['function'], $ids, [], $target_lang);
                             trigger_error("ORM::computed 'function' {$schema[$field]['function']} for '$field' of class '$class', result: ".serialize($res), EQ_REPORT_INFO);
                             if($res > 0) {
                                 foreach($ids as $oid) {
@@ -961,14 +955,14 @@ class ObjectManager extends Service {
                                     else {
                                         $value = null;
                                     }
-                                    $om->cache[$table_name][$oid][$lang][$field] = $value;
+                                    $om->cache[$table_name][$oid][$target_lang][$field] = $value;
                                 }
                             }
                         }
                         elseif(isset($schema[$field]['relation']) && is_array($schema[$field]['relation'])) {
                             try {
                                 trigger_error("ORM::computing 'relation' for '$field' of class '$class'", EQ_REPORT_INFO);
-                                $res = $class::ids($ids)->read($schema[$field]['relation'])->get(true);
+                                $res = $class::ids($ids)->read($schema[$field]['relation'], $target_lang)->get(true);
                                 trigger_error("ORM::computing 'relation' for '$field' of class '$class', result: ".serialize($res), EQ_REPORT_INFO);
                                 foreach($res as $elem) {
                                     $id = $elem['id'];
@@ -976,7 +970,7 @@ class ObjectManager extends Service {
                                     while(is_array($relation)) {
                                         $target = array_key_first($relation);
                                         if(is_numeric($target)) {
-                                            $om->cache[$table_name][$id][$lang][$field] = $elem[$relation[$target]] ?? null;
+                                            $om->cache[$table_name][$id][$target_lang][$field] = $elem[$relation[$target]] ?? null;
                                             break;
                                         }
                                         else {
@@ -1041,7 +1035,15 @@ class ObjectManager extends Service {
             // 2) load fields values, grouping fields by type
             foreach($fields_lists as $type => $list) {
                 if(isset($load_fields[$type])) {
-                    $load_fields[$type]($this, $ids, $list);
+                    if($type === 'computed') {
+                        foreach($list as $field) {
+                            $target_lang = $this->getCacheLang($lang, $schema[$field]['multilang'] ?? false);
+                            $load_fields[$type]($this, $ids, array($field), $target_lang);
+                        }
+                    }
+                    else {
+                        $load_fields[$type]($this, $ids, $list);
+                    }
                 }
             }
 
@@ -1166,7 +1168,7 @@ class ObjectManager extends Service {
                             // state
                             'instance',
                             // deleted
-                            0
+                            $adapter->adaptOut(false, 'boolean')
                         ];
                     }
                 }
@@ -1822,7 +1824,8 @@ class ObjectManager extends Service {
                         trigger_error("ORM::field `{$field}` of class `{$class}` violates unique constraint with objects (".implode(',', $conflict_ids).")", EQ_REPORT_WARNING);
                         $error_code = EQ_ERROR_CONFLICT_OBJECT;
                         $res[$field] = ['duplicate_index' => 'unique constraint violation'];
-                        break 2;
+                        // #memo - fail-fast leads to incomplete errors list in response
+                        // break 2;
                     }
                 }
 
@@ -1976,11 +1979,11 @@ class ObjectManager extends Service {
 
             if(!isset($creation_array['id'])) {
                 if(constant('DRAFT_ENABLED') && $use_draft) {
-                    // list ids of records having creation date older than DRAFT_VALIDITY
+                    // list ids of records having modification date older than DRAFT_VALIDITY
                     $ids = $this->search($class, [
                                 ['state', '=', 'draft'],
                                 // #todo - update search() so that we still use PHP timestamps at this stage
-                                ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]
+                                ['modified', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]
                             ],
                             ['id' => 'asc']
                         );
@@ -2197,7 +2200,7 @@ class ObjectManager extends Service {
     /**
      * Persists the same field values on every selected object as a privileged technical write.
      *
-     * This low-level method performs no:
+     * This low-level method performs NO:
      *   - capabilities, ACL or operation-policy checks
      *   - data validation
      *   - entity and field lifecycle callbacks
@@ -3079,7 +3082,7 @@ class ObjectManager extends Service {
             $auth = $this->container->get('auth');
 
             $db->setRecords($table_name, $ids, [
-                'deleted'  => 1,
+                'deleted'  => $adapter->adaptOut(true, 'boolean'),
                 'modified' => $adapter->adaptOut(time(), 'datetime'),
                 'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
             ]);

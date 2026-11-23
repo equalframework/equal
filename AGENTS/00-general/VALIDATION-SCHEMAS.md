@@ -35,7 +35,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 ## Schema Reference by Component Type
 
 ### Entities (Model Classes)
-- **Schema ID**: `urn:equal:json-schema:core:model.class`
+- **Schema ID**: `urn:equal:json-schema:core:model`
 - **Usage**: Validate the JSON representation of ORM model class definitions
 - **Required fields**: `name`, `fields`
 - **Export the model schema** with controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
@@ -110,7 +110,6 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 ### Action Handlers
 - **Schema ID**: `urn:equal:json-schema:core:controller.action`
 - **Usage**: Validate action handler definitions (JSON representation of PHP action files)
-- **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/actions/{path}/{action}.php`
 - **Get JSON representation**: Use `./equal.run --do={package}_{path}_{action} --announce=true` to have eQual return the action metadata as JSON.
 - **Validate** through `core_json-validate` with the returned metadata and schema ID.
@@ -124,7 +123,6 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 ### Data Providers
 - **Schema ID**: `urn:equal:json-schema:core:controller.action`
 - **Usage**: Same as action handlers; data providers are validated as controller actions
-- **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/data/{path}/{provider}.php`
 - **Get JSON representation**: Use `./equal.run --get={package}_{path}_{provider} --announce=true` to have eQual return the provider metadata as JSON.
 - **Validate** through `core_json-validate` with the returned metadata and schema ID.

@@ -1,0 +1,23 @@
+{
+    "name": "Model",
+    "description": "Interface for model definition classes.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "pipeline_id",
+                "width": "33%"
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "33%"
+            },
+            {
+                "type": "field",
+                "value": "name",
+                "width": "33%"
+            }
+        ]
+    }
+}

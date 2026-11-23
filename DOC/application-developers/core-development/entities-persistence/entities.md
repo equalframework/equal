@@ -461,7 +461,7 @@ EQ_R_UPDATE
 EQ_R_DELETE
 ```
 
-`Collection` evaluates READ, UPDATE and DELETE for their corresponding generic operations. Cloning additionally evaluates READ on the source, then CREATE and UPDATE on the target class. `Collection::create()` does not currently invoke the CREATE policy; `EQ_R_MANAGE` remains an ACL or dedicated-operation concern.
+`Collection` evaluates CREATE, READ, UPDATE and DELETE for their corresponding generic operations. Cloning additionally evaluates READ on the source, then CREATE and UPDATE on the target class. `EQ_R_MANAGE` remains an ACL or dedicated-operation concern.
 
 If an operation is not present in the map, no additional operation policy is checked for that operation.
 
@@ -514,7 +514,7 @@ public static function getOperationPolicies(): array {
 
 In this example:
 
-* cloning into the target class requires `same_organization` for its CREATE step;
+* generic creation and cloning into the target class require `same_organization` for their CREATE step;
 * the generic read operation is allowed only if the `same_organization` policy is satisfied;
 * generic updates inherit the `*` rule and therefore require `same_organization`;
 * updating `name` does not require an additional operation policy beyond capabilities, ACLs and deprecated compatibility guards;
@@ -526,7 +526,7 @@ For `EQ_R_UPDATE`, a field without an explicit rule inherits the `*` rule. If `*
 
 For `EQ_R_CREATE`, `EQ_R_READ` and `EQ_R_DELETE`, a scoped rule map only uses the `*` rule. If `*` is missing, no operation policy is checked.
 
-Each policy name must refer to a policy declared by `getPolicies()`. `Collection` checks policies through `AccessController::isCompliant()` for the target class, target ids and current user. All listed policies must pass. If a policy returns inconsistencies, the operation is rejected.
+Each policy name must refer to a policy declared by `getPolicies()`. `Collection` checks policies through `AccessController::isCompliant()` for the target class, target ids, current user and operation values. During CREATE, target ids are empty and policy callbacks receive the sanitized submitted values. All listed policies must pass. If a policy returns inconsistencies, the operation is rejected.
 
 Operation policies are evaluated after capabilities and ACLs. Deprecated `can...()` guards may still run afterwards for backward compatibility.
 

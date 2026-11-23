@@ -92,7 +92,20 @@ final class DBManipulatorMySQL extends DBManipulator {
                 $member->disconnect();
             }
         }
+        $this->transaction_active = false;
         return true;
+    }
+
+    protected function doBeginTransaction() {
+        return mysqli_begin_transaction($this->dbms_handler);
+    }
+
+    protected function doCommitTransaction() {
+        return mysqli_commit($this->dbms_handler);
+    }
+
+    protected function doRollbackTransaction() {
+        return mysqli_rollback($this->dbms_handler);
     }
 
     public function createDatabase($db_name) {
@@ -536,6 +549,8 @@ final class DBManipulatorMySQL extends DBManipulator {
      * So we use LOCK TABLES and UNLOCK TABLES to make sure no change occurs between update and read.
      */
     public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $this->assertNoActiveTransaction(__METHOD__);
+
         $res = null;
         $this->sendQuery('LOCK TABLES `'.$table.'` WRITE;');
         try {

@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 namespace core\alert;
 
 use equal\orm\Model;
@@ -34,6 +35,20 @@ class MessageModel extends Model {
             'type' => [
                 'type'              => 'string',
                 'description'       => "Short code/string for grouping the models."
+            ],
+
+            'variables' => [
+                'type'              => 'string',
+                'usage'             => 'text/json',
+                'description'       => "JSON array of possibly referenced variables.",
+                'multilang'         => false,
+                'readonly'          => true
+            ],
+
+            'with_send_email' => [
+                'type'              => 'boolean',
+                'description'       => 'Flag indicating that alerts using this model must also be sent by email.',
+                'default'           => false
             ],
 
             'messages_ids' => [

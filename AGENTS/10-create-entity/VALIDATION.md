@@ -14,7 +14,7 @@
 - [ ] **Model class validation**:
   - Do not parse the created `.class.php` file manually.
   - Ask eQual to export the ORM field definitions through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
-  - Validate that JSON representation with schema ID `urn:equal:json-schema:core:model.class` and the package name where the entity was created
+  - Validate that JSON representation with schema ID `urn:equal:json-schema:core:model` and the package name where the entity was created
   - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
   - Confirm: no validation errors returned
 

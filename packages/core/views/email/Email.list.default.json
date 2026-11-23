@@ -1,0 +1,88 @@
+{
+    "name": "Model",
+    "description": "Interface for model definition classes.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "message_id",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "date",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "direction",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "to",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "reply_to",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "cc",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "bcc",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "subject",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "body",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "attachments",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "object_class",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "object_id",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "response_status",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "response",
+                "width": "6%"
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "6%"
+            }
+        ]
+    }
+}

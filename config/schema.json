@@ -218,9 +218,12 @@
     },
     "EMAIL_TRANSPORT": {
         "type": "string",
-        "description": "Transport to use to send email. Possible values are 'smtp' and 'api'.",
+        "description": "Transport to use to send email. The only supported value is 'smtp'.",
         "instant": true,
-        "default": "smtp"
+        "default": "smtp",
+        "examples": [
+            "smtp"
+        ]
     },
     "EMAIL_SMTP_HOST": {
         "type": "string",
@@ -269,27 +272,6 @@
         "description": "",
         "instant": true,
         "default": "abuse@example.com"
-    },
-    "EMAIL_API_PROVIDER": {
-        "type": "string",
-        "description": "HTTP API external service provider.",
-        "help": "Value must match one of the Email Service Provider available in current installation." ,
-        "instant": true,
-        "examples": [
-            "brevo",
-            "mailgun",
-            "sendgrid"
-        ]
-    },
-    "EMAIL_API_URL": {
-        "type": "string",
-        "description": "HTTP API url.",
-        "instant": true
-    },
-    "EMAIL_API_KEY": {
-        "type": "string",
-        "description": "HTTP API authentication key.",
-        "instant": true
     },
     "ENV_MODE": {
         "type": "string",

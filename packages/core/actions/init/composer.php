@@ -53,7 +53,12 @@ if(!file_exists(EQ_BASEDIR.'/composer.phar')) {
     }
 
     // run setup and remove script afterward
-    if(exec(PHP_BINARY . ' composer-setup.php --quiet') === false) {
+    $output = [];
+    $result_code = 0;
+    exec(PHP_BINARY . ' composer-setup.php --quiet 2>&1', $output, $result_code);
+
+    if($result_code !== 0) {
+        trigger_error("PHP::Composer setup failed: ".implode("\n", $output), EQ_REPORT_ERROR);
         throw new Exception('command_failed', EQ_ERROR_UNKNOWN);
     }
 
@@ -79,8 +84,10 @@ if($params['ignore_platform']) {
 $cmd .= ' 2>&1';
 
 $output = [];
+$result_code = 0;
+exec($cmd, $output, $result_code);
 
-if(exec($cmd, $output) === false) {
+if($result_code !== 0) {
     trigger_error("PHP::Composer command failed: ".implode("\n", $output), EQ_REPORT_ERROR);
     throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }

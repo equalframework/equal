@@ -15,6 +15,7 @@ use core\User;
     'params' 		=>	[
         'auth_token' =>  [
             'type'          => 'string',
+            'usage'         => 'text/plain:20248',
             'description'   => 'The temporary token that proves the correct password was given.'
         ],
         'auth_code' => [

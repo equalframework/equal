@@ -39,6 +39,7 @@ final class DBManipulatorPostgreSql extends DBManipulator {
     public function select($db_name) {
         if(isset($this->dbms_handler) && $this->dbms_handler !== false) {
             pg_close($this->dbms_handler);
+            $this->transaction_active = false;
         }
 
         $this->db_name = $db_name;
@@ -94,7 +95,20 @@ final class DBManipulatorPostgreSql extends DBManipulator {
                 $member->disconnect();
             }
         }
+        $this->transaction_active = false;
         return true;
+    }
+
+    protected function doBeginTransaction() {
+        return @pg_query($this->dbms_handler, 'BEGIN');
+    }
+
+    protected function doCommitTransaction() {
+        return @pg_query($this->dbms_handler, 'COMMIT');
+    }
+
+    protected function doRollbackTransaction() {
+        return @pg_query($this->dbms_handler, 'ROLLBACK');
     }
 
     public function createDatabase($db_name) {
@@ -576,6 +590,8 @@ final class DBManipulatorPostgreSql extends DBManipulator {
     }
 
     public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $this->assertNoActiveTransaction(__METHOD__);
+
         $table_name = $this->escapeIdentifier($table);
         $id_column = $this->escapeIdentifier($id_field);
         $field_column = $this->escapeIdentifier($field);

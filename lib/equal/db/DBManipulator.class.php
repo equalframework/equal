@@ -90,6 +90,16 @@ class DBManipulator {
     protected $dbms_handler;
 
     /**
+     * Whether a transaction is currently active on the DBMS connection.
+     *
+     * Only one transaction can be active at a time. Nested transactions are
+     * deliberately not supported.
+     *
+     * @var bool
+     */
+    protected $transaction_active;
+
+    /**
      * Secondary DBMS manipulators used as replication members, if any.
      *
      * @var		DBManipulator[]
@@ -122,8 +132,9 @@ class DBManipulator {
         $this->charset      = $charset;
         $this->collation    = $collation;
 
-        $this->dbms_handler = null;
-        $this->members      = [];
+        $this->dbms_handler       = null;
+        $this->transaction_active = false;
+        $this->members            = [];
     }
 
 
@@ -177,6 +188,137 @@ class DBManipulator {
      * @access public
      */
     public function disconnect() {
+    }
+
+    /**
+     * Start a transaction on the active DBMS connection.
+     *
+     * Only one transaction can be active at a time. DBMS-specific manipulators
+     * implement the actual operation through doBeginTransaction().
+     *
+     * @return mixed Driver-specific transaction status.
+     * @throws \Exception If a transaction is already active or cannot be started.
+     */
+    public final function beginTransaction() {
+        if($this->transaction_active) {
+            trigger_error("SQL::".__METHOD__.' : a transaction is already active.', EQ_REPORT_ERROR);
+            throw new \Exception('transaction_already_active', EQ_ERROR_SQL);
+        }
+
+        $result = $this->doBeginTransaction();
+        if($result === false) {
+            trigger_error("SQL::".__METHOD__.' : unable to start transaction.', EQ_REPORT_ERROR);
+            throw new \Exception('transaction_start_failed', EQ_ERROR_SQL);
+        }
+
+        $this->transaction_active = true;
+        return $result;
+    }
+
+    /**
+     * Commit the active transaction.
+     *
+     * DBMS-specific manipulators implement the actual operation through
+     * doCommitTransaction().
+     *
+     * @return mixed Driver-specific transaction status.
+     * @throws \Exception If no transaction is active or it cannot be committed.
+     */
+    public final function commitTransaction() {
+        if(!$this->transaction_active) {
+            trigger_error("SQL::".__METHOD__.' : no transaction is active.', EQ_REPORT_ERROR);
+            throw new \Exception('no_active_transaction', EQ_ERROR_SQL);
+        }
+
+        $result = $this->doCommitTransaction();
+        if($result === false) {
+            trigger_error("SQL::".__METHOD__.' : unable to commit transaction.', EQ_REPORT_ERROR);
+            throw new \Exception('transaction_commit_failed', EQ_ERROR_SQL);
+        }
+
+        $this->transaction_active = false;
+        return $result;
+    }
+
+    /**
+     * Roll back the active transaction.
+     *
+     * DBMS-specific manipulators implement the actual operation through
+     * doRollbackTransaction().
+     *
+     * @return mixed Driver-specific transaction status.
+     * @throws \Exception If no transaction is active or it cannot be rolled back.
+     */
+    public final function rollbackTransaction() {
+        if(!$this->transaction_active) {
+            trigger_error("SQL::".__METHOD__.' : no transaction is active.', EQ_REPORT_ERROR);
+            throw new \Exception('no_active_transaction', EQ_ERROR_SQL);
+        }
+
+        $result = $this->doRollbackTransaction();
+        if($result === false) {
+            trigger_error("SQL::".__METHOD__.' : unable to roll back transaction.', EQ_REPORT_ERROR);
+            throw new \Exception('transaction_rollback_failed', EQ_ERROR_SQL);
+        }
+
+        $this->transaction_active = false;
+        return $result;
+    }
+
+    /**
+     * Check whether a transaction is active on the DBMS connection.
+     *
+     * @return bool
+     */
+    public final function inTransaction() {
+        return $this->transaction_active;
+    }
+
+    /**
+     * Assert that no transaction is active before performing an incompatible operation.
+     *
+     * @param string $operation Name of the operation being checked.
+     * @return void
+     * @throws \Exception If a transaction is active.
+     */
+    protected final function assertNoActiveTransaction($operation) {
+        if($this->transaction_active) {
+            trigger_error("SQL::{$operation} : operation is not allowed while a transaction is active.", EQ_REPORT_ERROR);
+            throw new \Exception('operation_not_allowed_during_transaction', EQ_ERROR_SQL);
+        }
+    }
+
+    /**
+     * Execute the DBMS-specific operation that starts a transaction.
+     *
+     * @return mixed Driver-specific transaction status.
+     * @throws \Exception Transactions are not implemented by the DBMS manipulator.
+     */
+    protected function doBeginTransaction() {
+        trigger_error("SQL::".__METHOD__.' : transactions are not implemented.', EQ_REPORT_ERROR);
+        throw new \Exception('transaction_not_implemented', EQ_ERROR_SQL);
+    }
+
+    /**
+     * Execute the DBMS-specific operation that commits a transaction.
+     *
+     * @return mixed Driver-specific transaction status.
+     * @throws \Exception Transactions are not implemented by the DBMS manipulator.
+     */
+    protected function doCommitTransaction() {
+        trigger_error("SQL::".__METHOD__.' : transactions are not implemented.', EQ_REPORT_ERROR);
+        throw new \Exception('transaction_not_implemented', EQ_ERROR_SQL);
+    }
+
+    /**
+     * Execute the DBMS-specific operation that rolls a transaction back.
+     *
+     * @return mixed Driver-specific transaction status.
+     * @throws \Exception Transactions are not implemented by the DBMS manipulator.
+     */
+    protected function doRollbackTransaction() {
+        trigger_error("SQL::".__METHOD__.' : transactions are not implemented.', EQ_REPORT_ERROR);
+        throw new \Exception('transaction_not_implemented', EQ_ERROR_SQL);
     }
 
     /**
@@ -379,8 +521,11 @@ class DBManipulator {
      * @param int|float        $increment  Value to add, or to subtract when negative.
      * @param string           $id_field   Name of the identifier field (`id` by default).
      * @return mixed Driver-specific query result containing the values before the increment.
+     * @throws \Exception If a transaction is active.
      */
-    public function incRecords($table, $ids, $field, $increment, $id_field='id') {}
+    public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $this->assertNoActiveTransaction(__METHOD__);
+    }
 
 
     /*

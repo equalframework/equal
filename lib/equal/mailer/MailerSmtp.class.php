@@ -61,7 +61,7 @@ class MailerSmtp extends Mailer {
             $this->from_email = $from_email;
         }
         catch(\Exception $e) {
-            // #todo - log error
+            trigger_error("PHP::missing mandatory SMTP transport library.", EQ_REPORT_ERROR);
         }
     }
 

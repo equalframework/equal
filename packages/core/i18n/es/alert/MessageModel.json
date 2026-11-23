@@ -23,6 +23,16 @@
             "description": "Tipo de mensaje.",
             "help": ""
         },
+        "variables": {
+            "label": "Variables",
+            "description": "Las variables disponibles, que puedes usar como {variable} para incluirlas en el mensaje.",
+            "help": ""
+        },
+        "with_send_email": {
+            "label": "Enviar por correo electrónico",
+            "description": "Indica si las alertas de este modelo también deben enviarse por correo electrónico.",
+            "help": "Activa esta opción para enviar por correo electrónico las alertas importantes."
+        },
         "messages_ids": {
             "label": "Mensajes",
             "description": "",

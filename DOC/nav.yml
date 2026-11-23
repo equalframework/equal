@@ -46,6 +46,7 @@
         - 'Views & UI': 
               - 'Views':
                     - 'Views Overview': 'application-developers/equal-ui/views/views.md'
+                    - 'Onchange Responses': 'application-developers/equal-ui/views/model-onchange-responses.md'
                     - 'Forms' : 'application-developers/equal-ui/views/forms.md'
                     - 'Lists' : 'application-developers/equal-ui/views/lists.md'
                     - 'Charts' : 'application-developers/equal-ui/views/charts.md'

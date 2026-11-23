@@ -261,6 +261,8 @@ if(isset($view['extends'])) {
             $updateNode($parent_view['layout'], $id, $node);
         }
     }
+    // inherit parent properties while keeping child properties as overrides
+    $view = array_replace($parent_view, $view);
     $view['layout'] = $parent_view['layout'];
 }
 

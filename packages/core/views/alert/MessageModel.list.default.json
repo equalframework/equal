@@ -6,22 +6,27 @@
             {
                 "type": "field",
                 "value": "name",
-                "width": "25%"
+                "width": "20%"
             },
             {
                 "type": "field",
                 "value": "label",
-                "width": "25%"
+                "width": "20%"
             },
             {
                 "type": "field",
                 "value": "type",
-                "width": "25%"
+                "width": "15%"
+            },
+            {
+                "type": "field",
+                "value": "with_send_email",
+                "width": "15%"
             },
             {
                 "type": "field",
                 "value": "description",
-                "width": "50%"
+                "width": "30%"
             }
         ]
     }

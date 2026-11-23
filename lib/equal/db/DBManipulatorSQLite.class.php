@@ -93,7 +93,20 @@ final class DBManipulatorSQLite extends DBManipulator {
             $this->dbms_handler->close();
             $this->dbms_handler = null;
         }
+        $this->transaction_active = false;
         return true;
+    }
+
+    protected function doBeginTransaction() {
+        return $this->dbms_handler->exec('BEGIN TRANSACTION');
+    }
+
+    protected function doCommitTransaction() {
+        return $this->dbms_handler->exec('COMMIT');
+    }
+
+    protected function doRollbackTransaction() {
+        return $this->dbms_handler->exec('ROLLBACK');
     }
 
     public function createDatabase($db_name) {
@@ -548,6 +561,8 @@ final class DBManipulatorSQLite extends DBManipulator {
      *
      */
     public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $this->assertNoActiveTransaction(__METHOD__);
+
         $sql = 'BEGIN EXCLUSIVE TRANSACTION;';
         $sql .= "UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', (array) $ids).");";
         $sql .= "SELECT `{$id_field}`, (`{$field}` - $increment) as `$field` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");";
