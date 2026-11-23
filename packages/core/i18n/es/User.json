@@ -68,6 +68,11 @@
           "description": "Valores de configuración específicos del usuario.",
           "help": "Esta lista contiene las preferencias y configuraciones asignadas al usuario."
        },
+       "passkeys_ids": {
+          "label": "Claves de acceso",
+          "description": "Claves de acceso registradas por el usuario.",
+          "help": "Esta lista contiene las claves de acceso asociadas al usuario."
+       },
        "status": {
           "label": "Estado",
           "description": "El estado del usuario.",
@@ -78,6 +83,16 @@
              "confirmed": "Confirmada",
              "suspended": "Suspendida"
           }
+       },
+       "allow_auth": {
+          "label": "Permitir autenticación",
+          "description": "Permite la autenticación por contraseña, clave o correo.",
+          "help": "Desactive esta opción para permitir el acceso solo mediante tokens de acceso generados manualmente."
+       },
+       "access_tokens_ids": {
+          "label": "Tokens de acceso",
+          "description": "Tokens de acceso pertenecientes al usuario.",
+          "help": "Esta lista contiene los tokens de acceso emitidos para el usuario."
        }
     },
     "view": {
