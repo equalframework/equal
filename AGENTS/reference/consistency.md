@@ -59,6 +59,14 @@ Example:
 "help": "Le taux est normalement déterminé à partir du prix sélectionné."
 ```
 
+#### I18 - Missing translation for field 'xxx' referenced in file packages/xxx/i18n/{lang}/xxx.json
+
+Add the missing field translation with the needed attributes.
+
+Guidelines:
+
+- Try to keep the order of fields given in the class `getColumns` method
+
 #### ORM - Value for attribute 'xxx' should start with uppercase for field 'xxx' referenced in file packages/xxx/classes/xxx.class.php
 
 Modify the first character to uppercase.
@@ -71,6 +79,10 @@ Guidelines:
 #### ORM - Value for attribute 'description' should not exceed 65 chars for field 'origin_object_id' referenced in file packages/finance/classes/accounting/AccountingEntry.class.php
 
 Reduce the description length, make it concise. Use the help field for more information.
+
+### ORM - Class xxx\\xxx: Computed field name function 'calcXxx' is not protected (packages/xxx/classes/xxx.class.php)
+
+Modify the function from public or private to protected
 
 ### Errors
 

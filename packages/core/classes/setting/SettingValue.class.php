@@ -69,7 +69,7 @@ class SettingValue extends Model {
         ];
     }
 
-    public function getUnique() {
+    public function getUniques(): array {
         return [
             ['setting_id', 'user_id']
         ];

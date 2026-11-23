@@ -60,7 +60,7 @@ class SettingSection extends Model {
 
     }
 
-    public function getUnique() {
+    public function getUniques(): array {
         return [
             ['code']
         ];
