@@ -6,17 +6,17 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Tries to dismiss a message. Should be invoked as a user request for removing the message. If the situation is still occurring an identical alert will be re-created.",
     'params'        => [
-        'id' =>  [
-            'description'   => 'Identifier of the alert to dismiss.',
+        'id' => [
             'type'          => 'integer',
+            'description'   => 'Identifier of the alert to dismiss.',
             'required'      => true
         ]
     ],
-    'access' => [
-        'visibility'        => 'protected'
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
@@ -27,9 +27,9 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context $context
- * @var \equal\auth\AuthenticationManager $auth
- * @var \equal\dispatch\Dispatcher $dispatch
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ * @var \equal\dispatch\Dispatcher          $dispatch
  */
 ['context' => $context, 'auth' => $auth, 'dispatch' => $dispatch] = $providers;
 
@@ -39,5 +39,6 @@ $user_id = $auth->userId();
 // If the alert is not found, the call is ignored. If a controller is mentioned in the alert it is called.
 $dispatch->dismiss($params['id']);
 
-$context->httpResponse()
-        ->send();
+$context
+    ->httpResponse()
+    ->send();

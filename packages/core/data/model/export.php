@@ -6,32 +6,32 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Retrieve the list of all objects of a given model, and output it as a JSON collection suitable for import.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to use (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to use (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'lang' =>  [
-            'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
+        'lang' => [
             'type'          => 'string',
+            'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'default'       => []
         ],
         'system' => [
-            'description'   => 'Include values of system fields in the export (`creator`, `created`, `state`, ...).',
             'type'          => 'boolean',
+            'description'   => 'Include values of system fields in the export (`creator`, `created`, `state`, ...).',
             'default'       => false
         ],
         'relations' => [
-            'description'   => 'Kind of relational fields to consider for export.',
             'type'          => 'string',
+            'description'   => 'Kind of relational fields to consider for export.',
             'selection'     => [
                 'none',
                 'many2one',
@@ -41,21 +41,20 @@ list($params, $providers) = eQual::announce([
             'default'       => 'many2one'
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth']
+    'constants'     => ['DEFAULT_LANG'],
+    'providers'     => ['context', 'orm']
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
- * @var \equal\auth\AuthenticationManager   $auth
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-['context' => $context, 'orm' => $orm, 'auth' => $auth] = $providers;
+['context' => $context, 'orm' => $orm] = $providers;
 
 $entity = $params['entity'];
 
@@ -119,6 +118,7 @@ foreach($values as $object) {
 
 $output[] = $series;
 
-$context->httpResponse()
-        ->body($output)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($output)
+    ->send();

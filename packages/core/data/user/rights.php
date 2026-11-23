@@ -5,32 +5,37 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\User;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Retrieve current permission that a user has on a given entity.',
+    'params'        => [
+        'user' => [
+            'type'          => 'string',
+            'description'   => 'login (email address) or ID of targeted user.',
+            'required'      => true
+        ],
+        'entity' => [
+            'type'          => 'string',
+            'description'   => 'Entity on which operation is to be granted.',
+            'default'       => '*'
+        ]
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
     'constants'     => ['DEFAULT_RIGHTS'],
-    'params'        => [
-        'user' =>  [
-            'description'   => 'login (email address) or ID of targeted user.',
-            'type'          => 'string',
-            'required'      => true
-        ],
-        'entity' =>  [
-            'description'   => 'Entity on which operation is to be granted.',
-            'type'          => 'string',
-            'default'       => '*'
-        ]
-    ],
     'providers'     => ['context', 'access']
 ]);
 
-list($context, $access) = [ $providers['context'], $providers['access'] ];
+/**
+ * @var \equal\php\Context              $context
+ * @var \equal\access\AccessController  $access
+ */
+['context' => $context, 'access' => $access] = $providers;
 
 // retrieve targeted user
 if(is_numeric($params['user'])) {
@@ -42,7 +47,7 @@ else {
 }
 
 if(!count($ids)) {
-    throw new Exception("unknown_user", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("unknown_user", EQ_ERROR_UNKNOWN_OBJECT);
 }
 
 $user_id = array_shift($ids);
@@ -51,11 +56,11 @@ $rights = $access->getUserRights($user_id, $params['entity']);
 // convert ACL value to human string
 $rights_txt = [];
 $operations = [
-    QN_R_CREATE => 'create',
-    QN_R_READ   => 'read',
-    QN_R_WRITE  => 'update',
-    QN_R_DELETE => 'delete',
-    QN_R_MANAGE => 'manage'
+    EQ_R_CREATE => 'create',
+    EQ_R_READ   => 'read',
+    EQ_R_WRITE  => 'update',
+    EQ_R_DELETE => 'delete',
+    EQ_R_MANAGE => 'manage'
 ];
 
 foreach($operations as $op => $name) {
@@ -71,7 +76,8 @@ $result = [
     'rights_txt'    => $rights_txt
 ];
 
-$context->httpResponse()
-        ->status(200)
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(200)
+    ->body($result)
+    ->send();

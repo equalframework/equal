@@ -7,33 +7,32 @@
 
 use core\User;
 
-list($params, $providers) = eQual::announce([
-    'description'	=>	"Attempts to log a user in with a nonce token.",
-    'params' 		=>	[
-        'nonce' =>  [
-            'description'   => "Nonce token to be used for authentication.",
+[$params, $providers] = eQual::announce([
+    'description'   => "Attempts to log a user in with a nonce token.",
+    'params'        => [
+        'nonce' => [
             'type'          => 'string',
+            'description'   => "Nonce token to be used for authentication.",
             'required'      => true
         ]
     ],
-    'access' => [
-        'visibility'        => 'public'
+    'access'        => [
+        'visibility'    => 'public'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'auth', 'orm'],
-    'constants'     => ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
+    'constants'     => ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
+    'providers'     => ['context', 'auth']
 ]);
 
 /**
  * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
  * @var \equal\auth\AuthenticationManager   $auth
  */
-['context' => $context, 'orm' => $orm, 'auth' => $auth] = $providers;
+['context' => $context, 'auth' => $auth] = $providers;
 
 $jwt = $params['nonce'];
 
@@ -73,11 +72,12 @@ $auth_method = [
 
 $access_token = $auth->issueAccessToken($user['id'], $auth_method);
 
-$context->httpResponse()
-        ->cookie('access_token',  $access_token, [
+$context
+    ->httpResponse()
+    ->cookie('access_token',  $access_token, [
             'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
             'httponly'  => true,
             'secure'    => constant('AUTH_TOKEN_HTTPS')
         ])
-        ->status(204)
-        ->send();
+    ->status(204)
+    ->send();

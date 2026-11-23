@@ -7,35 +7,35 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Anonymize objects using json configuration files in "{package}/init/anonymize/".',
     'params'        => [
-        'package' =>  [
-            'description'   => 'Name of the package to anonymize.',
+        'package' => [
             'type'          => 'string',
             'usage'         => 'orm/package',
+            'description'   => 'Name of the package to anonymize.',
             'required'      => true
         ],
         'config_file' => [
+            'type'          => 'string',
             'description'   => 'Name of the configuration file to use to anonymize objects.',
             'help'          => 'Configuration file must match the format "{package}/init/anonymize/{config_file}.json".'
-                                . ' If no config file specified, then all files of anonymize folder are used.',
-            'type'          => 'string'
+                                . ' If no config file specified, then all files of anonymize folder are used.'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access'        => [
-        'visibility'    => 'protected'
-    ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 
@@ -72,6 +72,7 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
     }
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

@@ -8,15 +8,10 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => 'This is the core_config_delete-package controller created with core_config_create-controller.',
-    'response'      => [
-        'content-type'  => 'text/plain',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
-        'package' =>  [
-            'description'   => 'Name of the package to be deleted.',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Name of the package to be deleted.',
             'required'      => true
         ],
         /*
@@ -31,32 +26,39 @@
         'visibility'    => 'protected',
         'groups'        => ['users']
     ],
-    'providers'         => ['context']
+    'response'      => [
+        'content-type'  => 'text/plain',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'providers'     => ['context']
 ]);
+
 /**
- * @var \equal\php\context  Context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 if(strcmp($params['package'],"core") === 0) {
-    throw new Exception('core_is_undeletable', QN_ERROR_INVALID_PARAM);
+    throw new Exception('core_is_undeletable', EQ_ERROR_INVALID_PARAM);
 }
 
-$dir = QN_BASEDIR.'/packages/'.$params['package'];
+$dir = EQ_BASEDIR.'/packages/'.$params['package'];
 
 
 // controller logic goes here
 if(!is_dir($dir)) {
-    throw new Exception('package_does_not_exists', QN_ERROR_INVALID_PARAM);
+    throw new Exception('package_does_not_exists', EQ_ERROR_INVALID_PARAM);
 }
 
 if(!delTree($dir)) {
-    throw new Exception('io_error', QN_ERROR_INVALID_PARAM);
+    throw new Exception('io_error', EQ_ERROR_INVALID_PARAM);
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->send();
 
 
 function delTree($dir) {

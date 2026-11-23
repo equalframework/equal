@@ -6,40 +6,39 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use core\User;
 use core\setting\Setting;
+use core\User;
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
     'description'   => "Starts impersonation for the current user.",
     'params'        => [
-        'id'   => [
-            'description'   => 'Identifier of the user to impersonate.',
+        'id' => [
             'type'          => 'integer',
+            'description'   => 'Identifier of the user to impersonate.',
             'required'      => true
         ],
-        'duration'  => [
-            'description'   => 'Impersonation duration in seconds.',
+        'duration' => [
             'type'          => 'integer',
+            'description'   => 'Impersonation duration in seconds.',
             'default'       => 3600
         ]
     ],
     'access'        => [
-        'visibility' => 'protected'
+        'visibility'    => 'protected'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8'
     ],
-    'providers'     => ['context', 'auth', 'access']
+    'providers'     => ['context', 'auth']
 ]);
 
 /**
- * @var equal\php\Context                   $context
- * @var equal\auth\AuthenticationManager    $auth
- * @var equal\access\AccessController       $access
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
-['context' => $context, 'auth' => $auth, 'access' => $access] = $providers;
+['context' => $context, 'auth' => $auth] = $providers;
 
 $authenticated_user_id = $auth->authenticatedUserId();
 
@@ -105,7 +104,8 @@ Setting::set_value(
     ['user_id' => $authenticated_user_id]
 );
 
-$context->httpResponse()
-        ->status(302)
-        ->header('Location', '/')
-        ->send();
+$context
+    ->httpResponse()
+    ->status(302)
+    ->header('Location', '/')
+    ->send();

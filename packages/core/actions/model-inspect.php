@@ -10,28 +10,28 @@
     'description'   => 'Check that every database table associated with a configured ORM model and each of its records define a model discriminator.',
     'params'        => [
         'exit_on_error' => [
-            'description'   => 'Exit with a non-zero status code when inconsistencies are found.',
             'type'          => 'boolean',
+            'description'   => 'Exit with a non-zero status code when inconsistencies are found.',
             'default'       => true
         ]
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'db'],
-    'access'        => [
-        'visibility'    => 'protected',
-        'groups'        => ['admins']
-    ]
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'providers'     => ['context', 'orm', 'db']
 ]);
 
 /**
- * @var \equal\php\Context       $context
- * @var \equal\orm\ObjectManager $orm
- * @var \equal\db\DBConnector    $dbConnector
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\db\DBConnector       $dbConnector
  */
 ['context' => $context, 'orm' => $orm, 'db' => $dbConnector] = $providers;
 
@@ -174,7 +174,8 @@ foreach($model_tables as $table => $unused) {
 
 $valid = $tables_without_model_column === 0 && $records_without_model_value === 0;
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->status(200)
     ->body([
         'valid'                       => $valid,

@@ -483,6 +483,10 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
     }
 
     $parameter_items = $splitArrayItems(substr($item, $open_position + 1, $close_position - $open_position - 1));
+    if(!$parameter_items) {
+        return substr($item, 0, $open_position + 1).']'.trim(substr($item, $close_position + 1));
+    }
+
     $descriptors = [];
     $maximum_key_length = 0;
     $metadata_order = [
@@ -624,6 +628,7 @@ $formatAnnouncement = static function(string $source) use(
     $items = $alignItems($items, 4);
 
     $announcement = "\n".implode(",\n", $items)."\n";
+    // Rewrite physical line breaks inside a single string literal only; existing concatenated fragments stay unchanged.
     $announcement = preg_replace_callback(
         '/^([ ]*[\'\"][^\'\"\r\n]+[\'\"]\s+=>\s+)"((?:[^"\\\\]|\\\\.)*\R(?:[^"\\\\]|\\\\.)*)"(,?)/m',
         static function(array $matches): string {
@@ -651,9 +656,19 @@ $formatAnnouncement = static function(string $source) use(
         $announcement
     );
 
+    $tail = substr($source, $close_position);
+    if(preg_match('/^\]\s*\);/', $tail, $closing_matches)) {
+        $closing = $closing_matches[0];
+        $after = substr($tail, strlen($closing));
+        if(trim($after) !== '' && !preg_match('/^(?:[ \t]*\n){2}/', $after)) {
+            $after = preg_replace('/^[ \t]*(?:\n[ \t]*)?/', "\n\n", $after, 1);
+        }
+        $tail = $closing.$after;
+    }
+
     return substr($source, 0, $open_position + 1)
         .$announcement
-        .substr($source, $close_position);
+        .$tail;
 };
 
 $formatProviders = static function(string $source, array &$errors): string {
@@ -821,7 +836,7 @@ $formatProviders = static function(string $source, array &$errors): string {
     $declarations = [];
     $maximum_type_length = 0;
     foreach($kept_mappings as $provider => $variable) {
-        $type = $existing_types[$variable] ?? ($provider_types[$provider] ?? null);
+        $type = $provider_types[$provider] ?? ($existing_types[$variable] ?? null);
         if($type === null) {
             $errors[] = "unknown_provider_type:{$provider}";
             continue;

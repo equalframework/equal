@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\db\DBConnector;
 
 $params = eQual::announce([

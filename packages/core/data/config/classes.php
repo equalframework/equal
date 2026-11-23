@@ -5,30 +5,31 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns the list of classes defined in specified package.',
     'params'        => [
         'package' => [
-            'description'   => 'Name of the package for which the list is requested.',
             'type'          => 'string',
+            'description'   => 'Name of the package for which the list is requested.',
             'default'       => '*'
         ],
         'path' => [
-            'description'   => 'Path within the package to which limiting the result.',
             'type'          => 'string',
+            'description'   => 'Path within the package to which limiting the result.',
             'default'       => ''
         ]
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 
@@ -64,7 +65,7 @@ if(!function_exists('get_classes')) {
 	function get_classes($package, $path='') {
 		$data = [];
         $path = trim($path, '/');
-		$package_dir = QN_BASEDIR.'/packages/'.$package.'/classes';
+		$package_dir = EQ_BASEDIR.'/packages/'.$package.'/classes';
         if(strlen($path)) {
             $package_dir .= '/'.$path;
         }
@@ -97,6 +98,7 @@ else {
 }
 
 
-$context->httpResponse()
-        ->body($data)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($data)
+    ->send();

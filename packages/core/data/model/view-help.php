@@ -5,37 +5,38 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => "Returns the MD formatted help relating to a given entity (class model), given a view ID (<type.name>).",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'view_id' =>  [
-            'description'   => 'The identifier of the view <type.name>.',
+        'view_id' => [
             'type'          => 'string',
+            'description'   => 'The identifier of the view <type.name>.',
             'default'       => 'list'
         ],
-        'lang' =>  [
-            'description'   => 'Language for which values are requested (iso639 code expected).',
+        'lang' => [
             'type'          => 'string',
-            'default' 		=> constant('DEFAULT_LANG')
+            'description'   => 'Language for which values are requested (iso639 code expected).',
+            'default'       => constant('DEFAULT_LANG')
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm']
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
 ['context' => $context, 'orm' => $orm] = $providers;
 
@@ -96,6 +97,7 @@ if(!is_null($file) && file_exists($file)) {
     }
 }
 
-$context->httpResponse()
-        ->body(['result' => $result])
-        ->send();
+$context
+    ->httpResponse()
+    ->body(['result' => $result])
+    ->send();

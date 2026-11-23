@@ -11,28 +11,28 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'   =>  'Test PHP classes and ORM model definitions for a package.',
-    'params'        =>  [
-        'package'   =>  [
-            'description'   => 'Package to validate.',
+    'description'   => 'Test PHP classes and ORM model definitions for a package.',
+    'params'        => [
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Package to validate.',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
         ],
-        'level' =>  [
-            'description'   => 'Level of notification to limit the output to.',
+        'level' => [
             'type'          => 'string',
+            'description'   => 'Level of notification to limit the output to.',
             'selection'     => ['*', 'warn', 'error'],
             'default'       => '*'
         ],
-        'strict'    =>  [
-            'description'   => 'Flag to enable strict mode.',
+        'strict' => [
             'type'          => 'boolean',
+            'description'   => 'Flag to enable strict mode.',
             'default'       => false
         ],
         'exit_on_error' => [
-            'description'   => 'Exit with a non-zero status code when consistency errors are found.',
             'type'          => 'boolean',
+            'description'   => 'Exit with a non-zero status code when consistency errors are found.',
             'default'       => true
         ]
     ],
@@ -47,7 +47,7 @@ $packages = eQual::run('get', 'config_packages');
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-[$context, $orm] = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 $filter_result = function(array $result, string $level): array {
     foreach($result as $index => $line) {
@@ -245,13 +245,13 @@ foreach($classes as $class) {
     $class_filename = str_replace('\\', '/', "packages/{$params['package']}/classes/{$class}".'.class.php');
     // check file existence
     if(!file_exists($class_filename)) {
-        throw new Exception("FATAL - class definition file missing for '{$class_name}' ", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("FATAL - class definition file missing for '{$class_name}' ", EQ_ERROR_UNKNOWN_OBJECT);
     }
 
     // check PHP syntax
     $output = shell_exec(sprintf('php -l %s 2>&1', escapeshellarg($class_filename)));
     if(!preg_match('!No syntax errors detected!', $output)) {
-        throw new Exception("FATAL - syntax error found in '{$class_name}' class definition file: {$output} ", QN_ERROR_UNKNOWN);
+        throw new Exception("FATAL - syntax error found in '{$class_name}' class definition file: {$output} ", EQ_ERROR_UNKNOWN);
     }
 
     if(!class_exists($class_name, false)) {
@@ -302,7 +302,7 @@ foreach($classes as $class) {
     }
 
     if(!$root_parent ) {
-        throw new Exception("FATAL - ORM - Class $class_name does not inherit from `equal\orm\Model` root class.", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("FATAL - ORM - Class $class_name does not inherit from `equal\orm\Model` root class.", EQ_ERROR_UNKNOWN_OBJECT);
     }
 
     foreach(array_reverse($stack_classes) as $item) {
@@ -647,13 +647,14 @@ if(!count($result)) {
 }
 
 // send json result
-$context->httpResponse()
-        ->body([
+$context
+    ->httpResponse()
+    ->body([
             'result'   => $result,
             'errors'   => $counts['errors'],
             'warnings' => $counts['warnings']
         ])
-        ->send();
+    ->send();
 
 // in case of error(s), force exiting with an error code
 if($counts['errors'] && $params['exit_on_error']) {

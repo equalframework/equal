@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 $params = eQual::announce([
     'description'   => 'Outputs plain text version of PHP current configuration (from `phpinfo`).',
     'help'          => 'This controller might reveal details about current PHP config. It is therefore marked as private and is meant to be used in CLI only.',

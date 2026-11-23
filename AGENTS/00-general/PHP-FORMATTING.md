@@ -88,6 +88,20 @@ The same result is required when the legacy code already calls `eQual::announce(
 
 The formatter accepts both `list($params, $providers)` and `[$params, $providers]` as announcement destructuring input. The canonical output always uses short array destructuring.
 
+### Controller announcement separation
+
+Leave at least one empty line after the closing `]);` of the `eQual::announce()` block and before the provider docblock or subsequent executable code.
+
+```php
+[$params, $providers] = eQual::announce([
+    // ...
+]);
+
+/**
+ * @var \equal\php\Context $context
+ */
+```
+
 ### Top-level announcement key order
 
 When present, order these keys as follows:
@@ -146,7 +160,7 @@ The access and response metadata use the same alignment style:
 
 ### Multiline metadata strings
 
-Do not embed a source-code line break and its indentation directly inside an announcement metadata string. End the preceding fragment with an explicit `\n`, concatenate the next fragment with `.`, and align the continuation `.` with the owning metadata key's `=>` column.
+Do not embed a source-code line break and its indentation inside a single announcement metadata string literal. When a line break is part of one quoted string, replace that physical line break with an explicit `\n`, split the value into concatenated fragments, and align the continuation `.` with the owning metadata key's `=>` column. This preserves the existing runtime line break without retaining source indentation in the value.
 
 ```php
 // Incorrect
@@ -156,6 +170,14 @@ Do not embed a source-code line break and its indentation directly inside an ann
 // Correct
 'help'          => "First line.\n"
                     ."Second line.",
+```
+
+Do not add `\n` merely because an existing value uses concatenated fragments on separate source lines. Those line breaks format the PHP source and are not part of the runtime string. The following is valid and must remain without added `\n` characters:
+
+```php
+'help'          => "First fragment."
+                    ."Second fragment."
+                    ."Third fragment.",
 ```
 
 Use the same alignment for every additional concatenated line.
@@ -263,6 +285,14 @@ Use a single space between `=>` and an opening array bracket. This applies to ev
 // Correct
 'view_id' => [
 ```
+
+Keep empty arrays compact. In particular, an announcement without parameters uses:
+
+```php
+'params'        => [],
+```
+
+Do not expand an empty array with spaces or blank lines, such as `[    ]` or a multiline empty pair of brackets.
 
 ### Provider destructuring
 

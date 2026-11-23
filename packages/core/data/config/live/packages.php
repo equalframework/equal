@@ -5,7 +5,8 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Provide a map with the descriptors of initialized packages.",
     'help'          => "Info is retrieved from log file `log/packages.json`. This is necessary because status of packages without apps cannot be deduced from `installed-apps`.",
     'access'        => [
@@ -25,9 +26,9 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context      $context
+ * @var \equal\php\Context $context
  */
-list($context) = [$providers['context']];
+['context' => $context] = $providers;
 
 $map_packages = [];
 
@@ -35,6 +36,7 @@ if(file_exists("public/app") && file_exists("log/packages.json")) {
     $map_packages = json_decode(file_get_contents("log/packages.json"), true);
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body(array_keys($map_packages))
     ->send();

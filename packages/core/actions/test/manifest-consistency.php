@@ -5,12 +5,13 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => 'Validate a package manifest file against its JSON schema.',
     'params'        => [
-        'package' =>  [
-            'description'   => 'Full name of the package for which the manifest must be tested.',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Full name of the package for which the manifest must be tested.',
             'required'      => true
         ]
     ],
@@ -22,9 +23,9 @@
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $schema_id = 'urn:equal:json-schema:core:package.manifest';
 $manifest_filename = EQ_BASEDIR . '/packages/' . $params['package'] . '/manifest.json';
@@ -49,7 +50,8 @@ if(!($validation['result'] ?? false)) {
     throw new Exception('invalid_view_json', EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();
 

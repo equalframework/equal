@@ -14,7 +14,7 @@ use lbuchs\WebAuthn\WebAuthn;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Authenticate a user using a passkey.',
-    'deprecated'	=>	"Use user_auth_passkey instead.",
+    'deprecated'    => "Use user_auth_passkey instead.",
     'params'        => [
         'auth_token' => [
             'type'          => 'string',
@@ -52,13 +52,13 @@ use lbuchs\WebAuthn\WebAuthn;
             'help'          => 'In WebAuthn, the user_handle allows the authenticator to link a specific passkey to the correct user during authentication, without exposing sensitive or human-readable information (e.g. login or username).'
         ]
     ],
+    'access'        => [
+        'visibility'    => 'public'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'public'
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL', 'AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']
@@ -188,11 +188,12 @@ else {
     $access_token = $auth->token($passkey['user_id']['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
 }
 
-$context->httpResponse()
-        ->cookie('access_token',  $access_token, [
+$context
+    ->httpResponse()
+    ->cookie('access_token',  $access_token, [
             'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
             'httponly'  => true,
             'secure'    => constant('AUTH_TOKEN_HTTPS')
         ])
-        ->status(204)
-        ->send();
+    ->status(204)
+    ->send();

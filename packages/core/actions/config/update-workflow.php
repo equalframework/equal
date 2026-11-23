@@ -5,20 +5,21 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder};
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Translate a workflow definition of a given entity to a PHP method and store it in related file.",
     'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
     'params'        => [
-        'entity'    => [
-            'description'   => 'Name of the entity (class).',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Name of the entity (class).',
             'required'      => true
         ],
-        'payload' =>  [
-            'description'   => 'Workflow definition.',
+        'payload' => [
             'type'          => 'array',
+            'description'   => 'Workflow definition.',
             'required'      => true
         ]
     ],
@@ -34,18 +35,18 @@ list($params, $providers) = eQual::announce([
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // force class autoload
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 $class = new ReflectionClass($entity::getType());
 
 if(!$class->hasMethod('getWorkflow')) {
-    throw new Exception('missing_workflow', QN_ERROR_UNKNOWN);
+    throw new Exception('missing_workflow', EQ_ERROR_UNKNOWN);
 }
 
 $getWorkflow = new ReflectionMethod($params['entity'], 'getWorkflow');
@@ -85,12 +86,13 @@ foreach($lines as $index => $line) {
 
 // write back the code to the source file
 if(file_put_contents($file, rtrim($result)."\n") === false) {
-    throw new Exception('io_error', QN_ERROR_UNKNOWN);
+    throw new Exception('io_error', EQ_ERROR_UNKNOWN);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();
 
 /**
  * Use var_export() native function and apply a few regex replacements to improve the syntax.

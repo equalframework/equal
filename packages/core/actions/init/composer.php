@@ -5,26 +5,30 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\http\HttpRequest;
 use equal\http\HttpResponse;
 
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Downloads `composer.phar` and runs it for installing dependencies found in `composer.json`.",
     'help'          => "This controller relies on the PHP binary (`/usr/bin/php`). In order to make them work, sure the PHP binary is present in the PATH. If no `composer.json` is found, an error is returned.",
     'params'        => [
         'ignore_platform' => [
-            'description' => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
-            'type'        => 'boolean',
-            'default'     => false
+            'type'          => 'boolean',
+            'description'   => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
+            'default'       => false
         ]
     ],
     'access'        => [
         'visibility'    => 'private'
     ],
-    'providers'     => ['context'],
+    'providers'     => ['context']
 ]);
 
+/**
+ * @var \equal\php\Context $context
+ */
 ['context' => $context] = $providers;
 
 // stop if composer.json is missing
@@ -92,6 +96,7 @@ if($result_code !== 0) {
     throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

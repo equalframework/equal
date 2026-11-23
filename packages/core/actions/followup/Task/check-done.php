@@ -10,20 +10,17 @@ use core\followup\Task;
 [$params, $providers] = eQual::announce([
     'description'   => "Dismisses an alert related to given task if it is done.",
     'params'        => [
-
         'id' => [
             'type'              => 'many2one',
             'foreign_object'    => 'core\followup\Task',
             'description'       => "Identifier of the task that needs a check.",
             'required'          => true
         ],
-
         'message_model' => [
             'type'              => 'string',
             'description'       => "The name of the message model to use for the alert.",
             'default'           => 'core.followup.task.reminder'
         ],
-
         'severity' => [
             'type'              => 'string',
             'description'       => "Severity of the created alerts.",
@@ -35,15 +32,14 @@ use core\followup\Task;
             ],
             'default'           => 'warning'
         ]
-
     ],
     'access'        => [
-        'visibility'        => 'protected'
+        'visibility'    => 'protected'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context', 'dispatch']
 ]);
@@ -73,6 +69,7 @@ else {
     ]);
 }
 
-$context->httpResponse()
-        ->status(200)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(200)
+    ->send();

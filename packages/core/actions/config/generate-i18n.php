@@ -8,25 +8,21 @@
 [$params, $providers] = eQual::announce([
     'description'   => "Creates a new i18n translation file, for a given entity.",
     'params'        => [
-
         'entity' => [
             'type'          => 'string',
             'description'   => "Name of the entity.",
             'required'      => true
         ],
-
         'lang' => [
             'type'          => 'string',
             'description'   => "Code of the desired lang.",
             'required'      => true
         ],
-
         'overwrite' => [
             'type'          => 'boolean',
             'description'   => "If true the file will be overwritten if it already exists.",
             'default'       => false
         ]
-
     ],
     'access'        => [
         'visibility'    => 'protected',
@@ -157,7 +153,8 @@ if(!file_put_contents($file, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESC
     throw new Exception("file_access_denied", EQ_ERROR_UNKNOWN);
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->body($result)
+    ->send();

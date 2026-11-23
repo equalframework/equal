@@ -5,17 +5,18 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => 'Validate a menu definition against its JSON schema.',
     'params'        => [
-        'package' =>  [
-            'description'   => 'Name of the package the menu relates to (e.g. \'core\').',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Name of the package the menu relates to (e.g. \'core\').',
             'required'      => true
         ],
-        'menu_id' =>  [
-            'description'   => 'The identifier of the menu <name>.',
+        'menu_id' => [
             'type'          => 'string',
+            'description'   => 'The identifier of the menu <name>.',
             'default'       => 'list'
         ]
     ],
@@ -27,9 +28,9 @@
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 if(!preg_match('/^[a-z0-9_-]+$/i', $params['package'])) {
     throw new Exception('invalid_package', EQ_ERROR_INVALID_PARAM);
@@ -60,6 +61,7 @@ if(!($validation['result'] ?? false)) {
     throw new Exception('invalid_menu_json', EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

@@ -9,29 +9,29 @@
 [$params, $providers] = eQual::announce([
     'description'   => "Add an empty actions to the given class by creating a `getActions()` method (if not defined yet).",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
     ],
     'response'      => [
         'content-type'  => 'text',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
     'providers'     => ['context', 'orm']
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // force class autoload
 $entity = $orm->getModel($params['entity']);
@@ -71,6 +71,7 @@ if(file_put_contents($file, rtrim($result)."\n") === false) {
     throw new Exception('io_error', EQ_ERROR_UNKNOWN);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

@@ -6,43 +6,45 @@
 */
 
 [$params, $providers] = eQual::announce([
-    'description' => 'Update or create translation file for an entity',
-    'params' => [
+    'description'   => 'Update or create translation file for an entity',
+    'params'        => [
         'package' => [
-            'type'        => 'string',
-            'required'    => true,
-            'description' => 'Name of the package.'
+            'type'          => 'string',
+            'description'   => 'Name of the package.',
+            'required'      => true
         ],
         'entity' => [
-            'type'        => 'string',
-            'required'    => true,
-            'description' => 'Entity name (class or identifier).'
+            'type'          => 'string',
+            'description'   => 'Entity name (class or identifier).',
+            'required'      => true
         ],
         'lang' => [
-            'type'        => 'string',
-            'required'    => true,
-            'description' => 'Language code (e.g., en, fr, en_US).'
+            'type'          => 'string',
+            'description'   => 'Language code (e.g., en, fr, en_US).',
+            'required'      => true
         ],
         'payload' => [
-            'type'        => 'string',
-            'usage'       => 'text/json',
-            'default'     => '{}',
-            'description' => 'JSON string with translation data.'
+            'type'          => 'string',
+            'usage'         => 'text/json',
+            'description'   => 'JSON string with translation data.',
+            'default'       => '{}'
         ],
         'create_lang' => [
-            'type'        => 'boolean',
-            'default'     => false,
-            'description' => 'Create language directory if missing.'
+            'type'          => 'boolean',
+            'description'   => 'Create language directory if missing.',
+            'default'       => false
         ]
     ],
-    'access' => [
-        'visibility' => 'protected',
-        'groups' => ['users']
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['users']
     ],
-    'providers' => ['context']
+    'providers'     => ['context']
 ]);
 
-/** @var \equal\php\context $context */
+/**
+ * @var \equal\php\Context $context
+ */
 ['context' => $context] = $providers;
 
 $package = $params['package'];
@@ -110,6 +112,7 @@ if (file_put_contents($target_file, $output) === false) {
     throw new Exception('cannot_write_translation_file', EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($output)
     ->send();

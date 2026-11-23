@@ -5,41 +5,45 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\test\Tester;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Check presence of test units for given package and run them, if any.',
     'params'        => [
-        'package'   => [
-            'description'   => "Name of the package on which to perform test units",
+        'package' => [
             'type'          => 'string',
             'usage'         => 'orm/package',
+            'description'   => "Name of the package on which to perform test units",
             'default'       => '*'
         ],
-        'test'   => [
-            'description'   => "ID of the specific test to perform (by default all tests are performed).",
+        'test' => [
             'type'          => 'integer',
+            'description'   => "ID of the specific test to perform (by default all tests are performed).",
             'default'       => 0
         ],
-        'set'   => [
-            'description'   => "ID of the specific test to perform (by default all tests are performed).",
+        'set' => [
             'type'          => 'string',
+            'description'   => "ID of the specific test to perform (by default all tests are performed).",
             'default'       => null
         ],
-        'logs'      => [
-            'description'   => "Embed logs in result",
+        'logs' => [
             'type'          => 'boolean',
+            'description'   => "Embed logs in result",
             'default'       => false
         ]
     ],
-    'providers'     => ['context'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
-    ]
+    ],
+    'providers'     => ['context']
 ]);
 
+/**
+ * @var \equal\php\Context $context
+ */
 ['context' => $context] = $providers;
 
 $result = [];
@@ -68,9 +72,10 @@ if($params['logs']) {
     $result['logs'] = file_get_contents(EQ_LOG_STORAGE_DIR.'/equal.log');
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();
 
 // if at least one test failed, force non-zero exit code
 if($failed) {

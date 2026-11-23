@@ -6,56 +6,57 @@
     Original Author: Lucas Laurent
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\data\DataGenerator;
 use equal\orm\Domain;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Generate a new object with random data and given values.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
         'qty' => [
-            'description'   => 'The quantity of objects to generate. Supports both integer notation and array notation.',
             'type'          => 'string',
+            'description'   => 'The quantity of objects to generate. Supports both integer notation and array notation.',
             'default'       => '1'
         ],
-        'fields' =>  [
-            'description'   => 'Associative array mapping fields to their related values.',
+        'fields' => [
             'type'          => 'array',
+            'description'   => 'Associative array mapping fields to their related values.',
             'default'       => []
         ],
         'relations' => [
-            'description'   => 'Relational fields descriptor, telling how to handle the object relations (many2one, one2many and many2many).',
             'type'          => 'array',
+            'description'   => 'Relational fields descriptor, telling how to handle the object relations (many2one, one2many and many2many).',
             'default'       => []
         ],
         'set_object_data' => [
+            'type'          => 'array',
             'description'   => 'Associative array of the generated object data to add to the object.',
             'help'          => 'The object is accessible in domain like this "object.{field}"',
-            'type'          => 'array',
             'default'       => []
         ],
         'object_data' => [
-            'description'   => 'Current object data (carry).',
             'type'          => 'array',
+            'description'   => 'Current object data (carry).',
             'default'       => []
         ],
         'lang' => [
-            'description '  => 'Specific language for multilang field.',
             'type'          => 'string',
+            'description'   => 'Specific language for multilang field.',
             'default'       => constant('DEFAULT_LANG')
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'protected'
     ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm']
@@ -377,7 +378,8 @@ for($i = 0; $i < $qty; $i++) {
     ];
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->body($results)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->body($results)
+    ->send();

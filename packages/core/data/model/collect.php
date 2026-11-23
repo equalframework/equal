@@ -5,81 +5,82 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\orm\Domain;
 use equal\orm\DomainCondition;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name of the entity to collect.',
-            'help'          => "The entity is either a class or a controller, given with its full namespace (including the package).
-                                Classes are given with backslash separators (e.g. 'core\\User'),
-                                while controllers are given with underscore separators (e.g. 'core_model_collect').
-                                If a controller is given, it is expected to be a data handler (GET).",
+        'entity' => [
             'type'          => 'string',
             'usage'         => 'orm/entity',
+            'description'   => 'Full name of the entity to collect.',
+            'help'          => "The entity is either a class or a controller, given with its full namespace (including the package).\n"
+                            ."Classes are given with backslash separators (e.g. 'core\\User'),\n"
+                            ."while controllers are given with underscore separators (e.g. 'core_model_collect').\n"
+                            ."If a controller is given, it is expected to be a data handler (GET).",
             'required'      => true
         ],
-        'fields' =>  [
-            'description'   => 'Requested fields. If not specified, only \'id\' and \'name\' fields are returned.',
+        'fields' => [
             'type'          => 'array',
+            'description'   => 'Requested fields. If not specified, only \'id\' and \'name\' fields are returned.',
             'default'       => ['id', 'name']
         ],
-        'lang' =>  [
-            'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
+        'lang' => [
             'type'          => 'string',
+            'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
             'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'default'       => []
         ],
         'order' => [
-            'description'   => 'Column(s) to use for sorting results.',
             'type'          => 'string',
+            'description'   => 'Column(s) to use for sorting results.',
             'default'       => 'id'
         ],
         'sort' => [
-            'description'   => 'The direction  (i.e. \'asc\' or \'desc\').',
             'type'          => 'string',
+            'description'   => 'The direction  (i.e. \'asc\' or \'desc\').',
             'default'       => 'asc'
         ],
         'start' => [
-            'description'   => 'The row from which results have to start.',
             'type'          => 'integer',
+            'description'   => 'The row from which results have to start.',
             'default'       => 0
         ],
         'limit' => [
-            'description'   => 'The maximum number of results.',
             'type'          => 'integer',
+            'description'   => 'The maximum number of results.',
             'min'           => 1,
             'max'           => 2500,
             'default'       => 25
         ],
         'nolimit' => [
+            'type'          => 'boolean',
             'description'   => 'Explicit request for ignoring limit and return all matching objects.',
             'help'          => 'When activated start and limit parameters are ignored.',
-            'type'          => 'boolean',
             'default'       => false
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected'
-    ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => [ 'context', 'orm' ]
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
 ['context' => $context, 'orm' => $orm] = $providers;
 
@@ -134,10 +135,11 @@ if(ctype_lower(substr($file, 0, 1))) {
         $object[$field] = $value;
     }
     // send single-item collection as response
-    $context->httpResponse()
-            ->header('X-Total-Count', 1)
-            ->body([$object])
-            ->send();
+    $context
+        ->httpResponse()
+        ->header('X-Total-Count', 1)
+        ->body([$object])
+        ->send();
     exit(0);
 }
 
@@ -244,7 +246,8 @@ $result = $collection
         ->adapt('json')
         ->get(true);
 
-$context->httpResponse()
-        ->header('X-Total-Count', $total)
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->header('X-Total-Count', $total)
+    ->body($result)
+    ->send();

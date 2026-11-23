@@ -8,33 +8,33 @@
 
 use core\pipeline\Pipeline;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Run the given pipeline.',
     'params'        => [
         'pipeline_id' => [
-            'description' => 'Pipeline\'s id',
-            'type'        => 'integer'
+            'type'          => 'integer',
+            'description'   => 'Pipeline\'s id'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*',
-        'schema' => [
+        'schema'        => [
             'type' => '',
             'qty'  => ''
         ]
-    ],
-    'access' => [
-        'visibility'    => 'protected'
     ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context               $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 eQual::run("get", "core_check-pipeline", $params, true);
 
@@ -72,14 +72,15 @@ foreach ($pipeline_nodes as $node) {
                 $count++;
             } catch (Exception $e) {
                 // Retourner les résultats partiels et l'erreur
-                $context->httpResponse()
-                        ->status(500)
-                        ->body([
+                $context
+                    ->httpResponse()
+                    ->status(500)
+                    ->body([
                             'error' => 'Pipeline execution failed at node: ' . $node['name'],
                             'message' => $e->getMessage(),
                             'partial_results' => $result_map
                         ])
-                        ->send();
+                    ->send();
                 return;
             }
         }
@@ -107,14 +108,15 @@ while ($count != count($result_map)) {
                     $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
                     $count++;
                 } catch (Exception $e) {
-                    $context->httpResponse()
-                            ->status(200)
-                            ->body([
+                    $context
+                        ->httpResponse()
+                        ->status(200)
+                        ->body([
              -                   'error' => 'Pipeline execution failed at node: ' . $node['name'],
                                 'message' => $e->getMessage(),
                                 'partial_results' => $result_map
                             ])
-                            ->send();
+                        ->send();
                     return;
                 }
             }
@@ -128,6 +130,7 @@ foreach ($name_map as $key => $value) {
     $res[$value] = $result_map[$key];
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($res)
     ->send();

@@ -5,18 +5,19 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Recursively retrieves the full map of translation values relating to a specified entity.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look for (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to look for (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'lang' =>  [
-            'description'   => 'Language for which values are requested (iso639 code expected).',
+        'lang' => [
             'type'          => 'string',
-            'default' 		=> constant('DEFAULT_LANG')
+            'description'   => 'Language for which values are requested (iso639 code expected).',
+            'default'       => constant('DEFAULT_LANG')
         ]
     ],
     'response'      => [
@@ -25,10 +26,13 @@ list($params, $providers) = eQual::announce([
         'accept-origin' => '*'
     ],
     'constants'     => ['DEFAULT_LANG'],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
-['context' => $context, 'orm' => $orm] = $providers;
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 $entity = $params['entity'];
 $parents = [];
@@ -62,11 +66,11 @@ foreach($parents as $entity) {
 
     $class_dir = implode('/', $parts);
 
-    $files = [QN_BASEDIR."/packages/$package/i18n/{$params['lang']}/$class_dir.json"];
+    $files = [EQ_BASEDIR."/packages/$package/i18n/{$params['lang']}/$class_dir.json"];
     if(strpos($params['lang'], '_') !== false) {
         // fallback on language only
         $language = explode('_', $params['lang'])[0];
-        array_unshift($files, QN_BASEDIR."/packages/$package/i18n/$language/$class_dir.json");
+        array_unshift($files, EQ_BASEDIR."/packages/$package/i18n/$language/$class_dir.json");
     }
 
     foreach($files as $file) {
@@ -75,7 +79,7 @@ foreach($parents as $entity) {
         }
 
         if(($schema = json_decode(@file_get_contents($file), true)) === null) {
-            throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
+            throw new Exception("malformed_json", EQ_ERROR_INVALID_CONFIG);
         }
 
         if(empty($result)) {
@@ -87,6 +91,7 @@ foreach($parents as $entity) {
     }
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

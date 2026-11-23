@@ -5,54 +5,59 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 use core\setting\Setting;
-use equal\orm\Domain;
 use equal\orm\DateReference;
+use equal\orm\Domain;
 
 use core\User;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Returns a view populated with a collection of objects, and outputs it as an XLS spreadsheet.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'view_id' =>  [
-            'description'   => 'The identifier of the view <type.name>.',
+        'view_id' => [
             'type'          => 'string',
+            'description'   => 'The identifier of the view <type.name>.',
             'default'       => 'list'
         ],
-        'domain' =>  [
-            'description'   => 'Domain for filtering objects to include in the export.',
+        'domain' => [
             'type'          => 'array',
+            'description'   => 'Domain for filtering objects to include in the export.',
             'default'       => []
         ],
-        'lang' =>  [
-            'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
+        'lang' => [
             'type'          => 'string',
+            'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'default'       => constant('DEFAULT_LANG')
         ],
         'params' => [
-            'description'   => 'Additional params to relay to the data controller.',
             'type'          => 'array',
+            'description'   => 'Additional params to relay to the data controller.',
             'default'       => []
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth']
+    'constants'     => ['DEFAULT_LANG'],
+    'providers'     => ['context', 'auth']
 ]);
 
 // we expect the controller to be core_model_chart
 
-list($context, $orm, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ */
+['context' => $context, 'auth' => $auth] = $providers;
 
 
 // retrieve view schema
@@ -74,7 +79,7 @@ if(isset($data['errors'])) {
 $view_schema = $data;
 
 if(!isset($view_schema['layout'])) {
-    throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('invalid_view', EQ_ERROR_INVALID_CONFIG);
 }
 
 $controller = isset($view_schema['controller'])?$view_schema['controller']:'core_model_chart';
@@ -246,8 +251,9 @@ ob_start();
 $writer->save('php://output');
 $output = ob_get_clean();
 
-$context->httpResponse()
-        ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        ->header('Content-Disposition', 'inline; filename="export.xlsx"')
-        ->body($output)
-        ->send();
+$context
+    ->httpResponse()
+    ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    ->header('Content-Disposition', 'inline; filename="export.xlsx"')
+    ->body($output)
+    ->send();

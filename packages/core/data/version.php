@@ -4,15 +4,18 @@ use equal\http\HttpRequest;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Provide the declared version of eQual with optional enrichment from git or GitHub.",
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'params'    => [],
-    'providers' => ['context']
+    'providers'     => ['context']
 ]);
 
-$context = $providers['context'];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 $source = 'version';
 $version_file = EQ_BASEDIR . '/VERSION';
