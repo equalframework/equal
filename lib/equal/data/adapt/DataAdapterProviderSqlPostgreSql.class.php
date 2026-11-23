@@ -33,6 +33,9 @@ class DataAdapterProviderSqlPostgreSql implements AdapterProvider {
         'password' => [
             'default' => 'equal\data\adapt\adapters\sql\postgresql\DataAdapterSqlTextPostgreSql'
         ],
+        'secret' => [
+            'default' => 'equal\data\adapt\adapters\sql\postgresql\DataAdapterSqlTextPostgreSql'
+        ],
         'time' => [
             'default' => 'equal\data\adapt\adapters\sql\DataAdapterSqlTime'
         ],

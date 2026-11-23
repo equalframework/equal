@@ -31,6 +31,9 @@ class DataAdapterProviderTxt implements AdapterProvider {
         'email' => [
             'default'       => 'equal\data\adapt\adapters\txt\DataAdapterTxtText'
         ],
+        'secret' => [
+            'default'       => 'equal\data\adapt\adapters\txt\DataAdapterTxtText'
+        ],
         'time' => [
             'default'       => 'equal\data\adapt\adapters\txt\DataAdapterTxtTime'
         ],

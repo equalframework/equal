@@ -38,6 +38,7 @@ use equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv;
 use equal\data\adapt\adapters\txt\DataAdapterTxtText;
 use equal\data\DataFormatter;
 use equal\orm\UsageFactory;
+use equal\orm\usages\UsageSecret;
 
 global $test;
 
@@ -845,6 +846,167 @@ $tests = [
                         'User.Name+tag@Example.com',
                         null
                     ]);
+                }
+        ],
+    '4122' => [
+            'description'   =>  'Usage Factory: supported secret subtypes',
+            'act'           =>  function () {
+                    $usages = [
+                        'secret',
+                        'secret/password',
+                        'secret/token',
+                        'secret/api-key',
+                        'secret/private-key'
+                    ];
+                    foreach($usages as $usage_name) {
+                        $usage = UsageFactory::create($usage_name);
+                        if(!($usage instanceof UsageSecret) || $usage->getType() !== 'secret') {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4123' => [
+            'description'   =>  'Usage Secret: string and clear-value length constraints without password complexity',
+            'act'           =>  function () {
+                    $usage = UsageFactory::create('secret/password:8');
+                    $constraints = $usage->getConstraints();
+                    return [
+                        $constraints['invalid_secret_type']['function']('weak'),
+                        $constraints['invalid_secret_type']['function'](1234),
+                        $constraints['size_exceeded']['function']('12345678'),
+                        $constraints['size_exceeded']['function']('123456789')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [true, false, true, false]);
+                }
+        ],
+    '4124' => [
+            'description'   =>  'DataAdapter providers: secret usages use text adapters',
+            'act'           =>  function () {
+                    $providers = [
+                        [new DataAdapterProviderJson(), DataAdapterJsonText::class],
+                        [new DataAdapterProviderTxt(), DataAdapterTxtText::class],
+                        [new DataAdapterProviderSqlMySql(), DataAdapterSqlTextMySql::class],
+                        [new DataAdapterProviderSqlPostgreSql(), DataAdapterSqlTextPostgreSql::class],
+                        [new DataAdapterProviderSqlSqlite(), DataAdapterSqlText::class],
+                        [new DataAdapterProviderSqlSqlSrv(), DataAdapterSqlTextSqlSrv::class]
+                    ];
+                    foreach($providers as [$provider, $expected_class]) {
+                        if(!($provider->get('secret/private-key') instanceof $expected_class)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4125' => [
+            'description'   =>  'Secret adapters: JSON and TXT inputs stay strings and outputs are redacted',
+            'act'           =>  function () {
+                    $json_adapter = new DataAdapterJson();
+                    $txt_adapter = new DataAdapterTxt();
+                    return [
+                        $json_adapter->adaptIn(' clear value ', 'secret/token'),
+                        $txt_adapter->adaptIn(' clear value ', 'secret/api-key'),
+                        $json_adapter->adaptOut('clear value', 'secret/token'),
+                        $txt_adapter->adaptOut('clear value', 'secret/api-key')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === [' clear value ', ' clear value ', null, null]);
+                }
+        ],
+    '4126' => [
+            'description'   =>  'SQL secret adapter: authenticated non-deterministic round trip',
+            'act'           =>  function () {
+                    if(
+                        !function_exists('sodium_crypto_secretbox')
+                        || !defined('CIPHER_KEY')
+                        || strlen((string) constant('CIPHER_KEY')) === 0
+                    ) {
+                        return true;
+                    }
+                    $adapter = new DataAdapterSqlText();
+                    $first = $adapter->adaptOut('clear value', 'secret/api-key');
+                    $second = $adapter->adaptOut('clear value', 'secret/api-key');
+                    return $first !== $second
+                        && strpos($first, 'eqsecret:v1:') === 0
+                        && $adapter->adaptIn($first, 'secret/api-key') === 'clear value'
+                        && $adapter->adaptIn($second, 'secret/api-key') === 'clear value';
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4127' => [
+            'description'   =>  'SQL secret adapter: plaintext storage payload is rejected',
+            'act'           =>  function () {
+                    if(
+                        !function_exists('sodium_crypto_secretbox')
+                        || !defined('CIPHER_KEY')
+                        || strlen((string) constant('CIPHER_KEY')) === 0
+                    ) {
+                        return true;
+                    }
+                    try {
+                        (new DataAdapterSqlText())->adaptIn('clear value', 'secret');
+                    }
+                    catch(\Exception $e) {
+                        return $e->getMessage() === 'invalid_secret_payload';
+                    }
+                    return false;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4128' => [
+            'description'   =>  'SQL secret adapter: authenticated payload tampering is rejected',
+            'act'           =>  function () {
+                    if(
+                        !function_exists('sodium_crypto_secretbox')
+                        || !defined('CIPHER_KEY')
+                        || strlen((string) constant('CIPHER_KEY')) === 0
+                    ) {
+                        return true;
+                    }
+                    $adapter = new DataAdapterSqlText();
+                    $payload = $adapter->adaptOut('clear value', 'secret/private-key');
+                    $offset = strlen('eqsecret:v1:');
+                    $payload[$offset] = $payload[$offset] === 'A' ? 'B' : 'A';
+                    try {
+                        $adapter->adaptIn($payload, 'secret/private-key');
+                    }
+                    catch(\Exception $e) {
+                        return $e->getMessage() === 'secret_decryption_failed';
+                    }
+                    return false;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4129' => [
+            'description'   =>  'SQL secret storage: providers select unbounded text column types',
+            'act'           =>  function () {
+                    $usage = UsageFactory::create('secret/private-key');
+                    return [
+                        (new DataAdapterSqlTextMySql())->castOutType($usage),
+                        (new DataAdapterSqlTextPostgreSql())->castOutType($usage),
+                        (new DataAdapterSqlText())->castOutType($usage),
+                        (new DataAdapterSqlTextSqlSrv())->castOutType($usage)
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result === ['LONGTEXT', 'TEXT', 'TEXT', 'nvarchar(max)']);
                 }
         ]
 ];

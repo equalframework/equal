@@ -13,6 +13,8 @@ use equal\orm\usages\Usage;
 
 class DataAdapterSqlText implements DataAdapter {
 
+    private const SECRET_PREFIX = 'eqsecret:v1:';
+
     public function getType() {
         return 'sql/text';
     }
@@ -38,6 +40,12 @@ class DataAdapterSqlText implements DataAdapter {
         $result = null;
         if(!is_null($value)) {
             $result = (string) $value;
+            if(!($usage instanceof Usage)) {
+                $usage = UsageFactory::create((string) $usage);
+            }
+            if($usage->getType() === 'secret') {
+                $result = $this->decryptSecret($result);
+            }
         }
         return $result;
     }
@@ -65,8 +73,66 @@ class DataAdapterSqlText implements DataAdapter {
                     $result = password_hash($result, PASSWORD_BCRYPT);
                 }
                 break;
+            case 'secret':
+                $result = $this->encryptSecret($result);
+                break;
         }
         return $result;
+    }
+
+    private function encryptSecret(string $value): string {
+        $key = $this->getSecretKey();
+        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $payload = $nonce . sodium_crypto_secretbox($value, $nonce, $key);
+        return self::SECRET_PREFIX . base64_encode($payload);
+    }
+
+    private function decryptSecret(string $value): string {
+        $key = $this->getSecretKey();
+
+        if(strncmp($value, self::SECRET_PREFIX, strlen(self::SECRET_PREFIX)) !== 0) {
+            trigger_error('ORM::secret - Invalid secret payload format.', EQ_REPORT_ERROR);
+            throw new \Exception('invalid_secret_payload', EQ_ERROR_INVALID_PARAM);
+        }
+
+        $encoded_payload = substr($value, strlen(self::SECRET_PREFIX));
+        $payload = base64_decode($encoded_payload, true);
+        $minimum_length = SODIUM_CRYPTO_SECRETBOX_NONCEBYTES + SODIUM_CRYPTO_SECRETBOX_MACBYTES;
+
+        if(
+            $payload === false
+            || strlen($payload) < $minimum_length
+            || base64_encode($payload) !== $encoded_payload
+        ) {
+            trigger_error('ORM::secret - Invalid encoded secret payload.', EQ_REPORT_ERROR);
+            throw new \Exception('invalid_secret_payload', EQ_ERROR_INVALID_PARAM);
+        }
+
+        $nonce = substr($payload, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $ciphertext = substr($payload, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $result = sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
+
+        if($result === false) {
+            trigger_error('ORM::secret - Secret payload authentication failed.', EQ_REPORT_ERROR);
+            throw new \Exception('secret_decryption_failed', EQ_ERROR_INVALID_PARAM);
+        }
+
+        return $result;
+    }
+
+    private function getSecretKey(): string {
+        if(!defined('CIPHER_KEY')) {
+            trigger_error('ORM::secret - CIPHER_KEY is not defined.', EQ_REPORT_ERROR);
+            throw new \Exception('secret_key_unavailable', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        $secret_key = \constant('CIPHER_KEY');
+        if(!is_scalar($secret_key) || strlen((string) $secret_key) === 0) {
+            trigger_error('ORM::secret - CIPHER_KEY is empty or invalid.', EQ_REPORT_ERROR);
+            throw new \Exception('secret_key_unavailable', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        return hash('sha256', (string) $secret_key, true);
     }
 
 }

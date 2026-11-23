@@ -66,6 +66,12 @@ class DataAdapterJsonText implements DataAdapter {
         if(is_null($value)) {
             return null;
         }
+        if(!($usage instanceof Usage)) {
+            $usage = UsageFactory::create((string) $usage);
+        }
+        if($usage->getType() === 'secret') {
+            return null;
+        }
         return (string) $value;
     }
 

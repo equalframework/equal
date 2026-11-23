@@ -20,6 +20,9 @@ class DataAdapterSqlTextPostgreSql extends DataAdapterSqlText {
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
+        if($usage->getType() === 'secret') {
+            return 'TEXT';
+        }
 
         $length = $usage->getLength();
         if($length > 0 && $length <= 10485760) {

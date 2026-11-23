@@ -20,6 +20,7 @@ use equal\orm\usages\{
         UsageLocale,
         UsageNumber,
         UsagePassword,
+        UsageSecret,
         UsagePhone,
         UsageText,
         UsageUri,
@@ -114,6 +115,9 @@ class UsageFactory {
                 break;
             case 'password':
                 $usageInstance = new UsagePassword($str_usage);
+                break;
+            case 'secret':
+                $usageInstance = new UsageSecret($str_usage);
                 break;
             case 'phone':
                 $usageInstance = new UsagePhone($str_usage);

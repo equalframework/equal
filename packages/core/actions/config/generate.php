@@ -92,13 +92,14 @@ $config = [
     'DB_CHARSET'                    => $dbms_options[$params['dbms']]['charset'],
     'DB_COLLATION'                  => $dbms_options[$params['dbms']]['collation'],
     'AUTH_SECRET_KEY'               => bin2hex(random_bytes(32)),
+    'CIPHER_KEY'                    => bin2hex(random_bytes(32)),
     'AUTH_ACCESS_TOKEN_VALIDITY'    => "1d",
     'USER_ACCOUNT_DISPLAYNAME'      => "nickname",
-    'BACKEND_URL'                   => $params['scheme'].'://'.$params['domain_name'],
-    'REST_API_URL'                  => $params['scheme'].'://'.$params['domain_name'].'/'
+    'BACKEND_URL'                   => $params['scheme'] . '://'.$params['domain_name'],
+    'REST_API_URL'                  => $params['scheme'] . '://'.$params['domain_name'] . '/'
 ];
 
-$filepath = EQ_BASEDIR.'/config/config.json';
+$filepath = EQ_BASEDIR . '/config/config.json';
 
 if(!is_writable(dirname($filepath))) {
     throw new Exception("non_writable_config", EQ_ERROR_INVALID_CONFIG);

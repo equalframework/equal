@@ -1694,10 +1694,14 @@ class ObjectManager extends Service {
 
         // get constraints defined in the model (schema)
         $constraints = $model->getConstraints();
+        $secret_fields = [];
         // pass-1: append constraints implied by type and usage
         foreach($values as $field => $value) {
             /** @var Field */
             $f = $model->getField($field);
+            if($f->getUsage()->getType() === 'secret') {
+                $secret_fields[$field] = true;
+            }
             foreach($f->getConstraints() as $error_id => $constraint) {
                 if(!isset($constraint['function'])) {
                     continue;
@@ -1725,7 +1729,11 @@ class ObjectManager extends Service {
                 // null values bypass field constraints; required fields are checked separately when requested
                 continue;
             }
-            $excerpt = mb_strimwidth(json_encode($value, JSON_UNESCAPED_UNICODE), 0, 100, '...');
+            $is_secret = isset($secret_fields[$field]);
+            $reported_value = $is_secret ? '[redacted]' : $value;
+            $excerpt = $is_secret
+                ? '[redacted]'
+                : mb_strimwidth(json_encode($value, JSON_UNESCAPED_UNICODE), 0, 100, '...');
             foreach($constraints[$field] as $error_id => $constraint) {
                 if(!isset($constraint['function']) ) {
                     continue;
@@ -1736,7 +1744,7 @@ class ObjectManager extends Service {
                     if(!isset($constraint['message'])) {
                         $constraint['message'] = 'Invalid field.';
                     }
-                    trigger_error("ORM::given value (`$value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']} [{$excerpt}]", EQ_REPORT_WARNING);
+                    trigger_error("ORM::given value (`$reported_value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']} [{$excerpt}]", EQ_REPORT_WARNING);
                     $error_code = EQ_ERROR_INVALID_PARAM;
                     if(!isset($res[$field])) {
                         $res[$field] = [];
@@ -3531,6 +3539,15 @@ class ObjectManager extends Service {
                         if(!in_array($operator, self::$valid_operators[$type])) {
                             // "invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'"
                             throw new Exception('invalid_domain_unknown_operator', EQ_ERROR_INVALID_PARAM);
+                        }
+
+                        if(isset($schema[$field]['usage'])) {
+                            $field_usage = (new Field($schema[$field], $field))->getUsage();
+                            $is_null_check = in_array($operator, ['is', 'is not'], true)
+                                && (is_null($value) || $value === 'null');
+                            if($field_usage->getType() === 'secret' && !$is_null_check) {
+                                throw new Exception('secret_field_search_not_supported', EQ_ERROR_INVALID_PARAM);
+                            }
                         }
 
                         // remember special fields involved in the domain (by removing them from the special_fields list)

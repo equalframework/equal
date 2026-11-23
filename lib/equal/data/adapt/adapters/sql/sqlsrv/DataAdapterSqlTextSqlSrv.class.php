@@ -28,6 +28,9 @@ class DataAdapterSqlTextSqlSrv extends DataAdapterSqlText {
             if(!($usage instanceof Usage)) {
                 $usage = UsageFactory::create($usage);
             }
+            if($usage->getType() === 'secret') {
+                return 'nvarchar(max)';
+            }
             $length = $usage->getLength();
             if($length > 255) {
                 // up to 1GB

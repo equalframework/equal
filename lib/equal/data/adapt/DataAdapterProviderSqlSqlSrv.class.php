@@ -34,6 +34,9 @@ class DataAdapterProviderSqlSqlSrv implements AdapterProvider {
         'password' => [
             'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
         ],
+        'secret' => [
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
+        ],
         'time' => [
             'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTimeSqlSrv'
         ],

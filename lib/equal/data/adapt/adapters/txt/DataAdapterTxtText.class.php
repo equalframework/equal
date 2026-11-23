@@ -68,7 +68,10 @@ class DataAdapterTxtText implements DataAdapter {
         $result = null;
         if(!is_null($value)) {
             if(!($usage instanceof Usage)) {
-                $usage = UsageFactory::create($usage);
+                $usage = UsageFactory::create((string) $usage);
+            }
+            if($usage->getType() === 'secret') {
+                return null;
             }
             if($usage->getType() === 'phone') {
                 return DataFormatter::format((string) $value, 'phone');
