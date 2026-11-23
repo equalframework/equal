@@ -583,7 +583,7 @@ class Model implements \ArrayAccess, \Iterator {
      *
      * The "*" scope defines the default rule for the whole operation.
      *
-     * For UPDATE operations, field names may be used as scopes.
+     * For READ and UPDATE operations, field names may be used as scopes.
      * Field-scoped rules apply only when the related field is involved in the operation.
      *
      * A scope rule can be:
@@ -734,6 +734,13 @@ class Model implements \ArrayAccess, \Iterator {
         return 0;
     }
 
+    /**
+     * Returns the structural operation capabilities exposed by the entity.
+     *
+     * @deprecated Do not introduce new overrides. Declare new CREATE, READ, UPDATE, and DELETE rules through
+     *             getOperationPolicies() and named policies through getPolicies(). Existing overrides must remain
+     *             until every capability caller, including draft and instantiate flows, supports operation policies.
+     */
     public static function getCapabilities(): array {
         $capabilities = [
             EQ_R_CREATE => true,

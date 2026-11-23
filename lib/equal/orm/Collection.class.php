@@ -520,6 +520,9 @@ class Collection implements \Iterator, \Countable {
      *
      * If no lifecycle hook is mapped for the given operation, the assertion fails.
      *
+     * @deprecated Compatibility bridge for legacy can...() guards. Declare new operation rules through
+     *             Model::getOperationPolicies() and named policies through Model::getPolicies().
+     *
      * @param int   $operation Operation being checked.
      * @param array $values    Associative array mapping fields names with values, to provide to the lifecycle hook.
      *
