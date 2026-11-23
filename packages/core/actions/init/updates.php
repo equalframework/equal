@@ -8,7 +8,7 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Execute pending package update scripts from packages/{package}/init/updates.',
-    'help'          => 'If no package given, then list the pending updates of each packages.',
+    'help'          => 'If no package is given, list pending updates for all packages. A package must be initialized before its updates can be executed.',
     'params'        => [
         'package' => [
             'description'   => 'Package whose pending update scripts must be executed.',
@@ -47,7 +47,7 @@ foreach($packages as $package) {
         continue;
     }
 
-    $updates_folder = EQ_BASEDIR . "/packages/{$package}/updates";
+    $updates_folder = EQ_BASEDIR . "/packages/{$package}/init/updates";
     $updates_log_file = EQ_BASEDIR . '/log/updates.json';
     $packages_log_file = EQ_BASEDIR . '/log/packages.json';
     $map_updates = [];
@@ -101,6 +101,7 @@ foreach($packages as $package) {
             if(is_string($map_packages[$package])) {
                 $package_init_date = $map_packages[$package];
             }
+            // #memo - Legacy packages.json entries stored initialization dates under `first` and `last` keys.
             elseif(is_array($map_packages[$package]) && isset($map_packages[$package]['first']) && is_string($map_packages[$package]['first'])) {
                 $package_init_date = $map_packages[$package]['first'];
             }
@@ -114,6 +115,10 @@ foreach($packages as $package) {
 
             $package_initialized_datetime = $matches[1] . $matches[2] . $matches[3] . $matches[4] . $matches[5] . $matches[6];
         }
+    }
+
+    if($action === 'execute' && $package_initialized_datetime === null) {
+        throw new Exception('package_not_initialized', EQ_ERROR_CONFLICT_OBJECT);
     }
 
     if($action === 'execute') {

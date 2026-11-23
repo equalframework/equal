@@ -50,7 +50,7 @@ The generated file name starts with a `YmdHis` timestamp, followed by `_` and th
 packages/myPackage/init/updates/20260722121916_my-update.php
 ```
 
-During package initialization, files from `packages/{package}/init/updates/` are copied to `packages/{package}/updates/`. On an already initialized instance, make sure the generated script is present in `packages/{package}/updates/` before running the updates controller.
+Update scripts remain in `packages/{package}/init/updates/` and are executed directly from that directory. A package must be initialized with `init_package` before its update scripts can be executed.
 
 To execute pending update scripts for an initialized package, run:
 
@@ -58,9 +58,9 @@ To execute pending update scripts for an initialized package, run:
 | --------------- | ----------------------------------------------------------------------- |
 | **URL**         | `?do=init_updates&package=myPackage`                                    |
 | **CLI**         | `$ ./equal.run --do=init_updates --package=myPackage`                   |
-| **DESCRIPTION** | Execute pending PHP update scripts from `packages/{package}/updates/`. |
+| **DESCRIPTION** | Execute pending PHP update scripts from `packages/{package}/init/updates/`. |
 
-`init_updates` only considers PHP files whose first filename segment, split on `_` or `-`, is a `YmdHis` timestamp. The timestamp must be greater than the package initialization timestamp recorded in `log/packages.json`. Executed scripts are recorded in `log/updates.json`, so the same script is not executed again.
+`init_updates` refuses to execute scripts when the package has not been initialized. It only considers PHP files whose first filename segment, split on `_` or `-`, is a `YmdHis` timestamp. The timestamp must be greater than the package initialization timestamp recorded in `log/packages.json`. Executed scripts are recorded in `log/updates.json`, so the same script is not executed again.
 
 Update execution relies on two log files in `./log`:
 
