@@ -177,13 +177,20 @@ Parameter names use one space on each side of `=>` and no column padding:
 
 ### Parameter descriptor key order
 
-The repository's dominant parameter descriptor sequences start with `type`, followed by `description`. When present, order known parameter metadata keys as follows:
+Parameter descriptor metadata is grouped in this order:
+
+1. Data identity: `type`, `usage`, `foreign_object`.
+2. Documentation: `description`, `help`.
+3. Constraints: `selection`, `domain`, `min`, `max`, `pattern`, `in`.
+4. Behavior: `required`, `visible`, `default`.
+
+Within those groups, order known parameter metadata keys as follows:
 
 1. `type`
-2. `description`
-3. `help`
-4. `usage`
-5. `foreign_object`
+2. `usage`
+3. `foreign_object`
+4. `description`
+5. `help`
 6. `selection`
 7. `domain`
 8. `min`

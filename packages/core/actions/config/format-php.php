@@ -487,10 +487,10 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
     $maximum_key_length = 0;
     $metadata_order = [
         'type',
-        'description',
-        'help',
         'usage',
         'foreign_object',
+        'description',
+        'help',
         'selection',
         'domain',
         'min',
