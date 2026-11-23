@@ -621,7 +621,7 @@ class Collection implements \Iterator, \Countable {
         if(array_values($operation_rule) === $operation_rule) {
             $policy_rules[] = $operation_rule;
         }
-        elseif($operation === EQ_R_UPDATE) {
+        elseif(in_array($operation, [EQ_R_READ, EQ_R_UPDATE], true)) {
             $default_rule = $operation_rule['*'] ?? true;
 
             foreach($fields as $field) {
