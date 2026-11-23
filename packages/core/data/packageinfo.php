@@ -25,6 +25,7 @@
     ],
     'providers'     => ['context']
 ]);
+
 /**
  * @var \equal\php\Context $context
  */

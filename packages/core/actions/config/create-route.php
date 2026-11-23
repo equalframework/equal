@@ -34,6 +34,7 @@ $packages = eQual::run('get', 'config_packages');
     ],
     'providers'     => ['context']
 ]);
+
 /**
  * @var \equal\php\Context $context
  */

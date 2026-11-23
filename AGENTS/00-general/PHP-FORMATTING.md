@@ -88,6 +88,20 @@ The same result is required when the legacy code already calls `eQual::announce(
 
 The formatter accepts both `list($params, $providers)` and `[$params, $providers]` as announcement destructuring input. The canonical output always uses short array destructuring.
 
+### Controller announcement separation
+
+Leave at least one empty line after the closing `]);` of the `eQual::announce()` block and before the provider docblock or subsequent executable code.
+
+```php
+[$params, $providers] = eQual::announce([
+    // ...
+]);
+
+/**
+ * @var \equal\php\Context $context
+ */
+```
+
 ### Top-level announcement key order
 
 When present, order these keys as follows:

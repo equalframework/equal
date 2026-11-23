@@ -651,9 +651,19 @@ $formatAnnouncement = static function(string $source) use(
         $announcement
     );
 
+    $tail = substr($source, $close_position);
+    if(preg_match('/^\]\s*\);/', $tail, $closing_matches)) {
+        $closing = $closing_matches[0];
+        $after = substr($tail, strlen($closing));
+        if(trim($after) !== '' && !preg_match('/^(?:[ \t]*\n){2}/', $after)) {
+            $after = preg_replace('/^[ \t]*(?:\n[ \t]*)?/', "\n\n", $after, 1);
+        }
+        $tail = $closing.$after;
+    }
+
     return substr($source, 0, $open_position + 1)
         .$announcement
-        .substr($source, $close_position);
+        .$tail;
 };
 
 $formatProviders = static function(string $source, array &$errors): string {

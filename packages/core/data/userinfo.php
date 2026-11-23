@@ -18,6 +18,7 @@ use core\User;
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'BACKEND_URL'],
     'providers'     => ['context', 'auth']
 ]);
+
 // use equal\orm\ObjectManager
 
 /**
