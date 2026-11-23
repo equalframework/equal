@@ -937,8 +937,13 @@ $tests = [
                     $adapter = new DataAdapterSqlText();
                     $first = $adapter->adaptOut('clear value', 'secret/api-key');
                     $second = $adapter->adaptOut('clear value', 'secret/api-key');
+                    $payload = base64_decode(substr($first, strlen('eqsecret:v1:')), true);
+                    $nonce = substr($payload, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                    $ciphertext = substr($payload, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                    $key = hex2bin(constant('CIPHER_KEY'));
                     return $first !== $second
                         && strpos($first, 'eqsecret:v1:') === 0
+                        && sodium_crypto_secretbox_open($ciphertext, $nonce, $key) === 'clear value'
                         && $adapter->adaptIn($first, 'secret/api-key') === 'clear value'
                         && $adapter->adaptIn($second, 'secret/api-key') === 'clear value';
                 },
@@ -1007,6 +1012,65 @@ $tests = [
                 },
             'assert'        =>  function($result) {
                     return ($result === ['LONGTEXT', 'TEXT', 'TEXT', 'nvarchar(max)']);
+                }
+        ],
+    '4130' => [
+            'description'   =>  'Cipher key: value is a 32-byte hexadecimal representation',
+            'act'           =>  function () {
+                    if(!defined('CIPHER_KEY')) {
+                        return false;
+                    }
+                    $secret_key = constant('CIPHER_KEY');
+                    if(
+                        !is_string($secret_key)
+                        || strlen($secret_key) !== 64
+                        || !ctype_xdigit($secret_key)
+                    ) {
+                        return false;
+                    }
+                    $key = hex2bin($secret_key);
+                    return $key !== false && strlen($key) === 32;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
+                }
+        ],
+    '4131' => [
+            'description'   =>  'SQL secret adapter: invalid cipher key representations are rejected',
+            'act'           =>  function () {
+                    $adapter = new DataAdapterSqlText();
+                    $decode_secret_key = new \ReflectionMethod($adapter, 'decodeSecretKey');
+                    $decode_secret_key->setAccessible(true);
+
+                    foreach([
+                        '',
+                        str_repeat('a', 63),
+                        str_repeat('a', 65),
+                        str_repeat('g', 64),
+                        1234,
+                        null
+                    ] as $secret_key) {
+                        try {
+                            $decode_secret_key->invoke($adapter, $secret_key);
+                            return false;
+                        }
+                        catch(\Exception $e) {
+                            if(
+                                $e->getMessage() !== 'secret_key_unavailable'
+                                || $e->getCode() !== EQ_ERROR_INVALID_CONFIG
+                            ) {
+                                return false;
+                            }
+                        }
+                    }
+
+                    $lowercase_key = $decode_secret_key->invoke($adapter, str_repeat('ab', 32));
+                    $uppercase_key = $decode_secret_key->invoke($adapter, str_repeat('AB', 32));
+                    return strlen($lowercase_key) === 32
+                        && strlen($uppercase_key) === 32;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === true);
                 }
         ]
 ];

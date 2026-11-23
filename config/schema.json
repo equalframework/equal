@@ -61,7 +61,7 @@
         "instant": true,
         "environment": "EQ_CIPHER_KEY",
         "examples": [
-            "this is a secret key"
+            "26a06a404dbb93a86475544ab7746188e8c397447e7e1104f03ad33cb4a0161e"
         ]
     },
     "DB_REPLICATION": {

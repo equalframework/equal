@@ -126,13 +126,26 @@ class DataAdapterSqlText implements DataAdapter {
             throw new \Exception('secret_key_unavailable', EQ_ERROR_INVALID_CONFIG);
         }
 
-        $secret_key = \constant('CIPHER_KEY');
-        if(!is_scalar($secret_key) || strlen((string) $secret_key) === 0) {
-            trigger_error('ORM::secret - CIPHER_KEY is empty or invalid.', EQ_REPORT_ERROR);
+        return $this->decodeSecretKey(\constant('CIPHER_KEY'));
+    }
+
+    private function decodeSecretKey($secret_key): string {
+        if(
+            !is_string($secret_key)
+            || strlen($secret_key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES * 2
+            || !ctype_xdigit($secret_key)
+        ) {
+            trigger_error('ORM::secret - CIPHER_KEY must be a 32-byte hexadecimal representation.', EQ_REPORT_ERROR);
             throw new \Exception('secret_key_unavailable', EQ_ERROR_INVALID_CONFIG);
         }
 
-        return hash('sha256', (string) $secret_key, true);
+        $key = hex2bin($secret_key);
+        if($key === false || strlen($key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+            trigger_error('ORM::secret - CIPHER_KEY must decode to exactly 32 bytes.', EQ_REPORT_ERROR);
+            throw new \Exception('secret_key_unavailable', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        return $key;
     }
 
 }

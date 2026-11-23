@@ -358,6 +358,9 @@ namespace config {
         $output = false;
         if(\defined('CIPHER_KEY')) {
             $secret_key = \constant('CIPHER_KEY');
+            if(!is_string($secret_key) || strlen($secret_key) !== 64 || !ctype_xdigit($secret_key)) {
+                return false;
+            }
             if($legacy) {
                 $cipher_algo = "AES-256-CBC";
                 $key = hash('sha256', $secret_key);
@@ -366,7 +369,7 @@ namespace config {
                 $output = base64_encode($output);
             }
             else {
-                $key = hash('sha256', $secret_key, true);
+                $key = hex2bin($secret_key);
                 $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
                 $output = base64_encode($nonce . sodium_crypto_secretbox($string, $nonce, $key));
             }
@@ -378,6 +381,9 @@ namespace config {
         $output = false;
         if(\defined('CIPHER_KEY')) {
             $secret_key = \constant('CIPHER_KEY');
+            if(!is_string($secret_key) || strlen($secret_key) !== 64 || !ctype_xdigit($secret_key)) {
+                return false;
+            }
             if($legacy) {
                 $cipher_algo = "AES-256-CBC";
                 $key = hash('sha256', $secret_key);
@@ -387,7 +393,7 @@ namespace config {
             else {
                 $payload = base64_decode($string, true);
                 if($payload !== false && strlen($payload) >= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES + SODIUM_CRYPTO_SECRETBOX_MACBYTES) {
-                    $key = hash('sha256', $secret_key, true);
+                    $key = hex2bin($secret_key);
                     $nonce = substr($payload, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
                     $ciphertext = substr($payload, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
                     $output = sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
