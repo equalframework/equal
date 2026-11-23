@@ -118,7 +118,7 @@ $config = [
     'AUTH_SECRET_KEY'               => bin2hex(random_bytes(32)),
     'CIPHER_KEY'                    => bin2hex(random_bytes(32)),
     'AUTH_ACCESS_TOKEN_VALIDITY'    => "1d",
-    'USER_ACCOUNT_DISPLAYNAME'      => "nickname",
+    'USER_ACCOUNT_DISPLAYNAME'      => $config_schema['USER_ACCOUNT_DISPLAYNAME']['default'],
     'BACKEND_URL'                   => $params['scheme'] . '://'.$params['domain_name'],
     'REST_API_URL'                  => $params['scheme'] . '://'.$params['domain_name'] . '/'
 ];
