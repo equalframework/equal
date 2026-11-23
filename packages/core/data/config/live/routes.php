@@ -9,7 +9,7 @@
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns currently active routes with priority based on the number.',
     'help'          => 'Only one descriptor is return for each route. In case two identical routes co-exist, the one described in the file with highest priority will overwrite the previous.',
-    'params'        => [    ],
+    'params'        => [],
     'access'        => [
         'visibility'    => 'protected'
     ],

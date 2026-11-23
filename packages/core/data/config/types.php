@@ -8,7 +8,7 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns schema of available types and related possible attributes.',
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

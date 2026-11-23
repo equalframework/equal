@@ -43,7 +43,7 @@
 ]);
 
 /**
- * @var \equal\php\context $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 

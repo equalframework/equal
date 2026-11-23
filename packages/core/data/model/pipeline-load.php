@@ -1,7 +1,6 @@
 <?php
 namespace core\pipeline;
 use equal;
-use equal\php\Context;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Load a full pipeline with its nodes, metadata, links and parameters.",
@@ -21,7 +20,7 @@ use equal\php\Context;
 ]);
 
 /**
- * @var \Context $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 

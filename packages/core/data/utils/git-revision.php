@@ -10,7 +10,7 @@
     'description'   => "Provide a unique identifier of the current git revision.\n" .
                        "This script assumes the current installation is versioned using git\n" .
                        "and that a `.git` folder is present at the root of the installation.",
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'

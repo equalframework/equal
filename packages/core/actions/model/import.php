@@ -7,11 +7,7 @@
 */
 
 use core\setting\Setting;
-use equal\data\adapt\DataAdapterProvider;
-use equal\error\Reporter;
 use equal\orm\Field;
-use equal\orm\ObjectManager;
-use equal\php\Context;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Import eQual objects from a given data payload (export-formatted).',
@@ -47,10 +43,10 @@ use equal\php\Context;
 ]);
 
 /**
- * @var \Context                $context
- * @var \ObjectManager          $orm
- * @var \DataAdapterProvider    $dap
- * @var \Reporter               $reporter
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
+ * @var \equal\error\Reporter                   $reporter
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'report' => $reporter] = $providers;
 

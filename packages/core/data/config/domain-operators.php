@@ -10,7 +10,7 @@ use equal\orm\ObjectManager;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns schema of available operators and for each type',
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

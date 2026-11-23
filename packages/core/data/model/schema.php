@@ -32,13 +32,13 @@ use equal\orm\ObjectManager;
 ]);
 
 /**
- * @var \equal\php\Context              $context
- * @var \equal\orm\ObjectManager        $orm
- * @var \equal\data\DataAdapterProvider $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('json');
 
 

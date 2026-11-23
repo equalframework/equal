@@ -8,7 +8,7 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns an associative array mapping orm types with possible usages and their descriptors.',
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

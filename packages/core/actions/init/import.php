@@ -64,8 +64,8 @@ use equal\db\DBManipulator;
 ]);
 
 /**
- * @var \equal\php\Context              $context
- * @var \equal\data\DataAdapterProvider $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['context' => $context, 'adapt' => $dap] = $providers;
 
@@ -252,7 +252,7 @@ $createNewItemFromOld = function(array $config, DBManipulator $old_db_connection
     return $item;
 };
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('sql');
 
 $import_config = $getImportConfig(

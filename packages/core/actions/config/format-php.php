@@ -836,7 +836,7 @@ $formatProviders = static function(string $source, array &$errors): string {
     $declarations = [];
     $maximum_type_length = 0;
     foreach($kept_mappings as $provider => $variable) {
-        $type = $existing_types[$variable] ?? ($provider_types[$provider] ?? null);
+        $type = $provider_types[$provider] ?? ($existing_types[$variable] ?? null);
         if($type === null) {
             $errors[] = "unknown_provider_type:{$provider}";
             continue;

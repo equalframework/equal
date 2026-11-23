@@ -8,9 +8,6 @@
 
 use core\import\DataTransformer;
 use core\import\EntityMapping;
-use equal\data\adapt\DataAdapterProvider;
-use equal\orm\ObjectManager;
-use equal\php\Context;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Import eQual model data from external source using EntityMapping.',
@@ -41,9 +38,9 @@ use equal\php\Context;
 ]);
 
 /**
- * @var \Context                $context
- * @var \ObjectManager          $orm
- * @var \DataAdapterProvider    $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 

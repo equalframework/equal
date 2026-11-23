@@ -9,7 +9,7 @@
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns an associative array mapping orm types with possible widget types.',
     'help'          => 'Widget types allow variations on the way the widget is displayed, without impacting the underlying value (whose type depends on the type and usage from the related field).',
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

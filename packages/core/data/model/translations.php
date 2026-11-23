@@ -42,9 +42,9 @@ use equal\orm\ObjectManager;
 ]);
 
 /**
- * @var \equal\php\Context              $context
- * @var \equal\orm\ObjectManager        $orm
- * @var \equal\data\DataAdapterProvider $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
@@ -86,7 +86,7 @@ if(!$object) {
 $result = [];
 
 if(count($multilang_fields)) {
-    /** @var \equal\data\adapt\DataAdapter */
+    /** @var \equal\data\adapt\DataAdapter $adapter */
     $adapter = $dap->get('json');
 
     $map_field_usages = [];

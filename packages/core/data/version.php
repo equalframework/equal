@@ -4,7 +4,7 @@ use equal\http\HttpRequest;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Provide the declared version of eQual with optional enrichment from git or GitHub.",
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'

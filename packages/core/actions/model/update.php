@@ -63,14 +63,14 @@
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
- * @var \equal\data\DataAdapterProvider     $dap
- * @var \equal\auth\AuthenticationManager   $auth
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
+ * @var \equal\auth\AuthenticationManager       $auth
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'auth' => $auth] = $providers;
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('json');
 
 $result = [];

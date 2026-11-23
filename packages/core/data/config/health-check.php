@@ -8,7 +8,7 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Verify major checkpoints to ensure current installation is healthy.',
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

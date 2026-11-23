@@ -29,8 +29,8 @@ use equal\orm\Field;
 ]);
 
 /**
- * @var \equal\orm\ObjectManager        $orm
- * @var \equal\data\DataAdapterProvider $dap
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['orm' => $orm, 'adapt' => $dap] = $providers;
 
@@ -83,7 +83,7 @@ if(empty($data)) {
     throw new Exception('missing_data', EQ_ERROR_INVALID_PARAM);
 }
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('json');
 
 foreach($data as $class) {

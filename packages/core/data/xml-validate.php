@@ -6,8 +6,6 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use equal\php\Context;
-
 [$params, $providers] = eQual::announce([
     'description'   => 'Stand alone XML validator through XSD schema.',
     'params'        => [
@@ -46,7 +44,7 @@ use equal\php\Context;
 ]);
 
 /**
- * @var \Context $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 

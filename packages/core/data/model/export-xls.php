@@ -60,14 +60,14 @@ use core\User;
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
- * @var \equal\auth\AuthenticationManager   $auth
- * @var \equal\data\DataAdapterProvider     $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\auth\AuthenticationManager       $auth
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['context' => $context, 'orm' => $orm, 'auth' => $auth, 'adapt' => $dap] = $providers;
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('json');
 
 $is_controller_entity = false;
