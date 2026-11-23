@@ -9,7 +9,7 @@ namespace core\security\factor;
 
 use core\security\AuthenticationFactor;
 
-class PasswordCredential extends AuthenticationFactor {
+class Password extends AuthenticationFactor {
 
     public static function getDescription(): string {
         return 'A password credential that allows a user to authenticate with a memorized secret.';
