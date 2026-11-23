@@ -518,7 +518,14 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
         $metadata_items = $splitArrayItems(
             substr($parameter_item, $descriptor_open + 1, $descriptor_close - $descriptor_open - 1)
         );
+        $metadata_comments = [];
         foreach($metadata_items as $metadata_index => $metadata_item) {
+            if(preg_match('/((?:\R[ \t]*(?:\/\/|#)[^\r\n]*)+)[ \t]*$/', $metadata_item, $comment_matches, PREG_OFFSET_CAPTURE)) {
+                $comment_position = $comment_matches[1][1];
+                $metadata_item = rtrim(substr($metadata_item, 0, $comment_position));
+                $metadata_comments[] = trim($comment_matches[1][0]);
+                $metadata_items[$metadata_index] = $metadata_item;
+            }
             if(preg_match('/^\s*([\'\"])([^\'\"\r\n]+)\1\s*=>/', $metadata_item, $metadata_matches)) {
                 $metadata_key = trim($metadata_matches[2]);
                 if($metadata_key === 'require') {
@@ -536,9 +543,10 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
 
         $metadata_items = $reorderKnownItems($metadata_items, $metadata_order);
         $descriptors[] = [
-            'name'     => $parameter_matches[2],
-            'items'    => $metadata_items,
-            'suffix'   => trim(substr($parameter_item, $descriptor_close + 1))
+            'name'      => $parameter_matches[2],
+            'items'     => $metadata_items,
+            'comments'  => $metadata_comments,
+            'suffix'    => trim(substr($parameter_item, $descriptor_close + 1))
         ];
     }
 
@@ -550,8 +558,12 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
         }
 
         $metadata_items = $alignItems($descriptor['items'], 12, $maximum_key_length);
+        $metadata = implode(",\n", $metadata_items);
+        foreach($descriptor['comments'] as $comment) {
+            $metadata .= "\n".preg_replace('/^[ \t]*/m', str_repeat(' ', 12), $comment);
+        }
         $formatted_parameters[] = "        '{$descriptor['name']}' => [\n"
-            .implode(",\n", $metadata_items)
+            .$metadata
             ."\n        ]{$descriptor['suffix']}";
     }
 
