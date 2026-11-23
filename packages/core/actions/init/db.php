@@ -11,7 +11,7 @@ use equal\db\DBConnector;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Create a database according to the configuration',
-    'params'        => [    ],
+    'params'        => [],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS', 'DB_CHARSET'],
     'providers'     => []
 ]);

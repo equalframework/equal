@@ -11,7 +11,7 @@ use core\Mail;
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
     'description'   => "Send emails that are currently in spool queue.",
-    'params'        => [    ],
+    'params'        => [],
     'access'        => [
         'visibility'    => 'private'
     ],

@@ -12,7 +12,7 @@ use core\setting\Setting;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Prunes log items based on the retention duration defined in the auto-vacuum setting.',
-    'params'        => [    ],
+    'params'        => [],
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['admins']

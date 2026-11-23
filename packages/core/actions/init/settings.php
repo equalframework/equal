@@ -14,7 +14,7 @@ use core\setting\SettingValue;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Create core setting sections, settings, translations, and choices that are missing from the current installation.',
-    'params'        => [    ],
+    'params'        => [],
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['admins']

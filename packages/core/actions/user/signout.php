@@ -10,7 +10,7 @@ use core\setting\Setting;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Sign a user out.",
-    'params'        => [    ],
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

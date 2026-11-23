@@ -8,8 +8,8 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Install an external binary dependency and persist its runtime files in a dedicated bundle.',
-    'help'          => "The binary and its shared libraries are persisted under `/opt/bin/.equal-packages/{binary}`.\n"
-                    ."`configuration.persist.paths` copies required absolute files or directories to the same path under `/opt/bin/.equal-packages/{binary}/rootfs`.\n"
+    'help'          => "The binary and its shared libraries are persisted under `/opt/bin/.equal-packages/{binary}`."
+                    ."`configuration.persist.paths` copies required absolute files or directories to the same path under `/opt/bin/.equal-packages/{binary}/rootfs`."
                     ."`configuration.persist.environment` maps environment variables to absolute paths to replicate under `/opt/bin/.equal-packages/{binary}/rootfs`.",
     'params'        => [
         'binary' => [

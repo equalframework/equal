@@ -14,7 +14,7 @@ use core\email\Email;
                     ."If a failing email already has an associated alert, it is preserved. If not, a new alert is created.\n\n"
                     ."Alerts that no longer correspond to any failing email are automatically removed.\n\n"
                     ."This controller is intended to be executed periodically (cron job) as part of the email delivery monitoring process.",
-    'params'        => [    ],
+    'params'        => [],
     'access'        => [
         'visibility'    => 'protected'
     ],

@@ -483,6 +483,10 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
     }
 
     $parameter_items = $splitArrayItems(substr($item, $open_position + 1, $close_position - $open_position - 1));
+    if(!$parameter_items) {
+        return substr($item, 0, $open_position + 1).']'.trim(substr($item, $close_position + 1));
+    }
+
     $descriptors = [];
     $maximum_key_length = 0;
     $metadata_order = [
@@ -624,6 +628,7 @@ $formatAnnouncement = static function(string $source) use(
     $items = $alignItems($items, 4);
 
     $announcement = "\n".implode(",\n", $items)."\n";
+    // Rewrite physical line breaks inside a single string literal only; existing concatenated fragments stay unchanged.
     $announcement = preg_replace_callback(
         '/^([ ]*[\'\"][^\'\"\r\n]+[\'\"]\s+=>\s+)"((?:[^"\\\\]|\\\\.)*\R(?:[^"\\\\]|\\\\.)*)"(,?)/m',
         static function(array $matches): string {

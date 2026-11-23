@@ -15,7 +15,7 @@ use equal\html\HtmlTemplate;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Creates and sends an email OTP challenge for the current user.',
-    'params'        => [    ],
+    'params'        => [],
     'access'        => [
         'visibility'    => 'protected'
     ],
