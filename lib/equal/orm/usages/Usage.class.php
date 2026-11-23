@@ -196,13 +196,13 @@ class Usage {
             // store original usage string
             $this->usage_str = $usage_str;
             // assign parts to dedicated members
-            $this->type = isset($matches[1])?$matches[1] : '';
+            $this->type = isset($matches[1]) ? $matches[1] : '';
             $this->is_array = isset($matches[2]) && strlen($matches[2]);
             $this->size = (isset($matches[3]) && strlen($matches[3])) ? intval($matches[3]) : 0;
             $this->subtype = isset($matches[4])?$matches[4] : '';
             $tree = isset($matches[6]) ? $matches[6] : '';
             if(strlen($tree) > 0) {
-                $this->subtype .= '.'.$tree;
+                $this->subtype .= '.' . $tree;
             }
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5.3'), or {shortcut} (ex. 'medium'))
             $this->length_str = (isset($matches[8]) && strlen($matches[8])) ? $matches[8] : '';
