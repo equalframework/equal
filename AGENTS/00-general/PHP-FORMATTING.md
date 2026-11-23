@@ -86,6 +86,8 @@ list($params, $providers) = announce([
 
 The same result is required when the legacy code already calls `eQual::announce()` but still uses `list()`.
 
+The formatter accepts both `list($params, $providers)` and `[$params, $providers]` as announcement destructuring input. The canonical output always uses short array destructuring.
+
 ### Top-level announcement key order
 
 When present, order these keys as follows:
@@ -269,6 +271,26 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 
 Preserve every provider-to-variable mapping when converting a declaration, including aliases such as `'adapt' => $adapter` or `'report' => $reporter`.
 
+The formatter also converts keyed legacy `list()` destructuring from the complete providers array:
+
+```php
+// Before
+list('context' => $context, 'auth' => $auth) = $providers;
+
+// After
+['context' => $context, 'auth' => $auth] = $providers;
+```
+
+Positional legacy extraction remains supported and is converted to the same canonical mapping:
+
+```php
+// Before
+list($context, $auth) = [$providers['context'], $providers['auth']];
+
+// After
+['context' => $context, 'auth' => $auth] = $providers;
+```
+
 ### Provider type declarations
 
 Every variable extracted from the providers array must have a fully qualified type declaration in the provider docblock.
@@ -277,6 +299,20 @@ Every variable extracted from the providers array must have a fully qualified ty
 /**
  * @var \equal\php\Context $context
  */
+```
+
+The formatter accepts a single-line provider type declaration as legacy input and expands it to the canonical multiline docblock:
+
+```php
+// Before
+/** @var \equal\php\Context $context */
+['context' => $context] = $providers;
+
+// After
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 ```
 
 Use the fully qualified type even when the corresponding class is imported.
@@ -323,3 +359,5 @@ $context
 ```
 
 Apply the same chain layout when methods such as `body()` or `header()` are present.
+
+The formatter accepts both single-line and multiline response chains as input. It formats each `$context->httpResponse()...->send();` statement independently and does not alter object operators nested inside method arguments.

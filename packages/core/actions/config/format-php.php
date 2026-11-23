@@ -262,6 +262,136 @@ $splitArrayItems = static function(string $source): array {
     return $items;
 };
 
+$formatHttpResponseChains = static function(string $source): string {
+    $offset = 0;
+    while(preg_match(
+        '/^([ \t]*)\$context\s*->\s*httpResponse\s*\(\s*\)/m',
+        $source,
+        $matches,
+        PREG_OFFSET_CAPTURE,
+        $offset
+    )) {
+        $statement_start = $matches[0][1];
+        $indent = $matches[1][0];
+        $expression_start = $statement_start + strlen($indent);
+        $length = strlen($source);
+        $depths = ['(' => 0, '[' => 0, '{' => 0];
+        $quote = null;
+        $line_comment = false;
+        $block_comment = false;
+        $operators = [];
+        $statement_end = null;
+
+        for($position = $expression_start; $position < $length; ++$position) {
+            $char = $source[$position];
+            $next = $position + 1 < $length ? $source[$position + 1] : '';
+
+            if($line_comment) {
+                if($char === "\n") {
+                    $line_comment = false;
+                }
+                continue;
+            }
+            if($block_comment) {
+                if($char === '*' && $next === '/') {
+                    $block_comment = false;
+                    ++$position;
+                }
+                continue;
+            }
+            if($quote !== null) {
+                if($char === '\\') {
+                    ++$position;
+                    continue;
+                }
+                if($char === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+            if($char === '/' && $next === '/') {
+                $line_comment = true;
+                ++$position;
+                continue;
+            }
+            if($char === '#') {
+                $line_comment = true;
+                continue;
+            }
+            if($char === '/' && $next === '*') {
+                $block_comment = true;
+                ++$position;
+                continue;
+            }
+            if($char === "'" || $char === '"') {
+                $quote = $char;
+                continue;
+            }
+            if(isset($depths[$char])) {
+                ++$depths[$char];
+                continue;
+            }
+            if($char === ')') {
+                --$depths['('];
+                continue;
+            }
+            if($char === ']') {
+                --$depths['['];
+                continue;
+            }
+            if($char === '}') {
+                --$depths['{'];
+                continue;
+            }
+            if(array_sum($depths) === 0 && $char === '-' && $next === '>') {
+                $operators[] = $position;
+                ++$position;
+                continue;
+            }
+            if(array_sum($depths) === 0 && $char === ';') {
+                $statement_end = $position + 1;
+                break;
+            }
+        }
+
+        if($statement_end === null || !$operators) {
+            $offset = $matches[0][1] + strlen($matches[0][0]);
+            continue;
+        }
+
+        $segments = [substr($source, $expression_start, $operators[0] - $expression_start)];
+        foreach($operators as $index => $operator_position) {
+            $segment_start = $operator_position + 2;
+            $segment_end = $operators[$index + 1] ?? $statement_end;
+            $segments[] = substr($source, $segment_start, $segment_end - $segment_start);
+        }
+
+        if(
+            trim($segments[0]) !== '$context'
+            || !preg_match('/^httpResponse\s*\(\s*\)$/s', trim($segments[1] ?? ''))
+            || !preg_match('/^send\s*\(.*\)\s*;$/s', trim($segments[count($segments) - 1]))
+        ) {
+            $offset = $statement_end;
+            continue;
+        }
+
+        $formatted = $indent.'$context';
+        foreach(array_slice($segments, 1) as $segment) {
+            $formatted .= "\n".$indent.'    ->'.trim($segment);
+        }
+
+        $source = substr_replace(
+            $source,
+            $formatted,
+            $statement_start,
+            $statement_end - $statement_start
+        );
+        $offset = $statement_start + strlen($formatted);
+    }
+
+    return $source;
+};
+
 $itemKey = static function(string $item): ?string {
     if(preg_match('/^\s*([\'\"])([^\'\"\r\n]+)\1\s*=>/', $item, $matches)) {
         return $matches[2];
@@ -516,6 +646,24 @@ $formatAnnouncement = static function(string $source) use(
 
 $formatProviders = static function(string $source, array &$errors): string {
     $source = preg_replace_callback(
+        '/list\s*\(\s*((?:[\'\"][^\'\"]+[\'\"]\s*=>\s*\$[A-Za-z_][A-Za-z0-9_]*\s*,?\s*)+)\)\s*=\s*\$providers\s*;/',
+        static function(array $matches): string {
+            preg_match_all(
+                '/[\'\"]([^\'\"]+)[\'\"]\s*=>\s*(\$[A-Za-z_][A-Za-z0-9_]*)/',
+                $matches[1],
+                $mapping_matches,
+                PREG_SET_ORDER
+            );
+            $mappings = [];
+            foreach($mapping_matches as $mapping_match) {
+                $mappings[] = "'{$mapping_match[1]}' => {$mapping_match[2]}";
+            }
+            return '['.implode(', ', $mappings).'] = $providers;';
+        },
+        $source
+    );
+
+    $source = preg_replace_callback(
         '/(?:list\s*\(([^)]*)\)|\[([^]]*)\])\s*=\s*\[\s*((?:\$providers\s*\[\s*[\'\"][^\'\"]+[\'\"]\s*\]\s*,?\s*)+)\]\s*;/',
         static function(array $matches): string {
             $variables_source = $matches[1] !== '' ? $matches[1] : $matches[2];
@@ -611,7 +759,7 @@ $formatProviders = static function(string $source, array &$errors): string {
 
     if($docblock !== null) {
         $docblock_content = preg_replace('/^\/\*\*|\*\/\s*$/s', '', $docblock);
-        $docblock_content = preg_replace('/^\s*\*\s*@var[^\r\n]*$/m', '', $docblock_content);
+        $docblock_content = preg_replace('/^\s*\*?\s*@var[^\r\n]*$/m', '', $docblock_content);
         $docblock_content = preg_replace('/[\s*]/', '', $docblock_content);
         if($docblock_content !== '') {
             $errors[] = 'provider_docblock_contains_other_content';
@@ -701,7 +849,11 @@ $formatProviders = static function(string $source, array &$errors): string {
     return $source;
 };
 
-$formatSource = static function(string $source, string $copyright, array &$errors) use($formatAnnouncement, $formatProviders): string {
+$formatSource = static function(string $source, string $copyright, array &$errors) use(
+    $formatAnnouncement,
+    $formatHttpResponseChains,
+    $formatProviders
+): string {
     $newline = str_contains($source, "\r\n") ? "\r\n" : "\n";
     $source = str_replace("\r\n", "\n", $source);
 
@@ -760,15 +912,7 @@ $formatSource = static function(string $source, string $copyright, array &$error
 
     $source = $formatAnnouncement($source);
     $source = $formatProviders($source, $errors);
-    $source = preg_replace_callback(
-        '/^([ \t]*)\$context->httpResponse\(\)(.*?^[ \t]*->send\([^;\r\n]*\);)/ms',
-        static function(array $matches): string {
-            $indent = $matches[1];
-            $chain = '$context'."\n".$indent.'    ->httpResponse()'.$matches[2];
-            return preg_replace('/^[ \t]*->/m', $indent.'    ->', $chain);
-        },
-        $source
-    );
+    $source = $formatHttpResponseChains($source);
 
     if($newline === "\r\n") {
         $source = str_replace("\n", "\r\n", $source);
