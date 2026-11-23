@@ -7,14 +7,22 @@
 */
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Decrypts given cipher using private cipher key.",
     'params' 		=>	[
         'value' =>  [
             'description'   => 'Cipher to decrypt.',
             'type'          => 'string',
             'required'      => true
+        ],
+        'legacy' => [
+            'description'   => 'Use the legacy OpenSSL decryption scheme.',
+            'type'          => 'boolean',
+            'default'       => false
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'private'
     ],
     'response'      => [
         'content-type'      => 'application/json',
@@ -26,9 +34,9 @@ list($params, $providers) = eQual::announce([
 
 
 // initalise local vars with inputs
-list($context) = [ $providers['context'] ];
+['context' => $context] = $providers;
 
-$result = config\decrypt($params['value']);
+$result = config\decrypt($params['value'], $params['legacy']);
 
 $context->httpResponse()
         ->body(['result' => $result])

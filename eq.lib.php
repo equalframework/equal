@@ -354,27 +354,45 @@ namespace config {
      */
 
 
-    function encrypt($string) {
+    function encrypt($string, $legacy=false) {
         $output = false;
         if(\defined('CIPHER_KEY')) {
-            $cipher_algo = "AES-256-CBC";
             $secret_key = \constant('CIPHER_KEY');
-            $key = hash('sha256', $secret_key);
-            $iv = substr(implode('', range(0, 12)), 0, openssl_cipher_iv_length($cipher_algo));
-            $output = openssl_encrypt($string, $cipher_algo, $key, 0, $iv);
-            $output = base64_encode($output);
+            if($legacy) {
+                $cipher_algo = "AES-256-CBC";
+                $key = hash('sha256', $secret_key);
+                $iv = substr(implode('', range(0, 12)), 0, openssl_cipher_iv_length($cipher_algo));
+                $output = openssl_encrypt($string, $cipher_algo, $key, 0, $iv);
+                $output = base64_encode($output);
+            }
+            else {
+                $key = hash('sha256', $secret_key, true);
+                $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                $output = base64_encode($nonce . sodium_crypto_secretbox($string, $nonce, $key));
+            }
         }
         return $output;
     }
 
-    function decrypt($string) {
+    function decrypt($string, $legacy=false) {
         $output = false;
         if(\defined('CIPHER_KEY')) {
-            $cipher_algo = "AES-256-CBC";
             $secret_key = \constant('CIPHER_KEY');
-            $key = hash('sha256', $secret_key);
-            $iv = substr(implode('', range(0, 12)), 0, openssl_cipher_iv_length($cipher_algo));
-            $output = openssl_decrypt(base64_decode($string), $cipher_algo, $key, 0, $iv);
+            if($legacy) {
+                $cipher_algo = "AES-256-CBC";
+                $key = hash('sha256', $secret_key);
+                $iv = substr(implode('', range(0, 12)), 0, openssl_cipher_iv_length($cipher_algo));
+                $output = openssl_decrypt(base64_decode($string), $cipher_algo, $key, 0, $iv);
+            }
+            else {
+                $payload = base64_decode($string, true);
+                if($payload !== false && strlen($payload) >= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES + SODIUM_CRYPTO_SECRETBOX_MACBYTES) {
+                    $key = hash('sha256', $secret_key, true);
+                    $nonce = substr($payload, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                    $ciphertext = substr($payload, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+                    $output = sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
+                }
+            }
         }
         return $output;
     }
