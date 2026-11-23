@@ -5,6 +5,7 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\setting\Setting;
 use core\setting\SettingChoice;
 use core\setting\SettingSection;
@@ -12,18 +13,18 @@ use core\setting\SettingSequence;
 use core\setting\SettingValue;
 
 [$params, $providers] = eQual::announce([
-    'description' => 'Create core setting sections, settings, translations, and choices that are missing from the current installation.',
-    'params'      => [],
-    'response'    => [
+    'description'   => 'Create core setting sections, settings, translations, and choices that are missing from the current installation.',
+    'params'        => [    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ],
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access'      => [
-        'visibility' => 'protected',
-        'groups'     => ['admins']
-    ],
-    'providers'   => ['context']
+    'providers'     => ['context']
 ]);
 
 /**

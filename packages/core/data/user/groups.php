@@ -5,41 +5,46 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use core\User;
-use core\Group;
 
-list($params, $providers) = eQual::announce([
+use core\Group;
+use core\User;
+
+[$params, $providers] = eQual::announce([
     'description'   => 'List all groups of a given user.',
+    'params'        => [
+        'user' => [
+            'type'          => 'string',
+            'description'   => 'Login (email address) or ID of targeted user.',
+            'required'      => true
+        ]
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params'        => [
-        'user' =>  [
-            'description'   => 'Login (email address) or ID of targeted user.',
-            'type'          => 'string',
-            'required'      => true
-        ]
-    ],
-    'providers'     => ['context', 'auth', 'access']
+    'providers'     => ['context', 'access']
 ]);
 
-list($context, $am, $ac) = [ $providers['context'], $providers['auth'], $providers['access'] ];
+/**
+ * @var \equal\php\Context              $context
+ * @var \equal\access\AccessController  $ac
+ */
+['context' => $context, 'access' => $ac] = $providers;
 
 
 // retrieve targeted user
 if(is_numeric($params['user'])) {
     $ids = User::search(['id', '=', $params['user']])->ids();
     if(!count($ids)) {
-        throw new \Exception("unknown_user_id", QN_ERROR_UNKNOWN_OBJECT);
+        throw new \Exception("unknown_user_id", EQ_ERROR_UNKNOWN_OBJECT);
     }
 }
 else {
     // retrieve by login
     $ids = User::search(['login', '=', $params['user']])->ids();
     if(!count($ids)) {
-        throw new \Exception("unknown_username", QN_ERROR_UNKNOWN_OBJECT);
+        throw new \Exception("unknown_username", EQ_ERROR_UNKNOWN_OBJECT);
     }
 }
 
@@ -51,7 +56,8 @@ $groups = Group::ids($groups_ids)->read(['id', 'name'])->get();
 
 $groups_names = array_map(function($a) {return $a['name'];}, $groups);
 
-$context->httpResponse()
-        ->status(200)
-        ->body($groups_names)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(200)
+    ->body($groups_names)
+    ->send();

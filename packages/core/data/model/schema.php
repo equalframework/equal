@@ -9,17 +9,17 @@
 use equal\orm\Field;
 use equal\orm\ObjectManager;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Returns the schema of given class (model) in JSON",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'default'       => []
         ]
     ],
@@ -32,11 +32,11 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
- * @var \equal\data\DataAdapterProvider  $dap
+ * @var \equal\php\Context              $context
+ * @var \equal\orm\ObjectManager        $orm
+ * @var \equal\data\DataAdapterProvider $dap
  */
-list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
+['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
@@ -133,6 +133,7 @@ if(!count($data)) {
 }
 
 
-$context->httpResponse()
-        ->body($data)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($data)
+    ->send();

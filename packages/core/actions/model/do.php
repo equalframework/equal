@@ -5,40 +5,41 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Attempts to perform an action on an object or a collection of a given class.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'id' =>  [
-            'description'   => 'Unique identifier of the object to remove.',
+        'id' => [
             'type'          => 'integer',
+            'description'   => 'Unique identifier of the object to remove.',
             'default'       => 0
         ],
-        'ids' =>  [
-            'description'   => 'List of Unique identifiers of the objects to update.',
+        'ids' => [
             'type'          => 'array',
+            'description'   => 'List of Unique identifiers of the objects to update.',
             'default'       => []
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
-            'default'       => [],
-            'visible'       => false
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
+            'visible'       => false,
+            'default'       => []
         ],
-        'action' =>  [
-            'description'   => 'Name of the action to attempt to perform on the objects.',
+        'action' => [
             'type'          => 'string',
+            'description'   => 'Name of the action to attempt to perform on the objects.',
             'required'      => true
         ],
-        'success_status' =>  [
-            'description'   => 'HTTP status code to return in case of success.',
+        'success_status' => [
             'type'          => 'integer',
-            'default'       => 204,
-            'visible'       => false
+            'description'   => 'HTTP status code to return in case of success.',
+            'visible'       => false,
+            'default'       => 204
         ],
         'params' => [
             'type'          => 'array',
@@ -46,22 +47,22 @@ list($params, $providers) = eQual::announce([
             'default'       => []
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected'
-    ],
     'providers'     => ['context', 'orm']
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
@@ -79,6 +80,7 @@ if(empty($params['ids'])) {
 
 $entity::ids($params['ids'])->do($params['action'], $params['params']);
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->status($params['success_status'])
     ->send();

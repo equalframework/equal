@@ -10,16 +10,16 @@ use core\setting\Setting;
 use core\User;
 
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Attempts to log a user in.",
-    'params' 		=>	[
-        'login'		=>	[
-            'description'   => "The user name, username or login.",
+    'description'   => "Attempts to log a user in.",
+    'params'        => [
+        'login' => [
             'type'          => 'string',
+            'description'   => "The user name, username or login.",
             'required'      => true
         ],
-        'password' =>  [
-            'description'   => "The user login.",
+        'password' => [
             'type'          => 'string',
+            'description'   => "The user login.",
             'required'      => true
         ]
     ],
@@ -36,8 +36,8 @@ use core\User;
 ]);
 
 /**
- * @var equal\php\Context                   $context
- * @var equal\auth\AuthenticationManager    $auth
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 

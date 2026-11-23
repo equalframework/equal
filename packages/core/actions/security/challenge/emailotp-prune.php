@@ -13,14 +13,14 @@ use core\setting\Setting;
     'description'   => 'Prunes email OTP challenges that have exceeded the configured retention duration.',
     'params'        => [
         'user_id' => [
-            'type'        => 'integer',
-            'description' => 'Optional user identifier to limit the purge to a single user.',
-            'min'         => 0,
-            'default'     => 0
+            'type'          => 'integer',
+            'description'   => 'Optional user identifier to limit the purge to a single user.',
+            'min'           => 0,
+            'default'       => 0
         ]
     ],
     'access'        => [
-        'visibility' => 'private'
+        'visibility'    => 'private'
     ],
     'response'      => [
         'content-type'  => 'application/json',
@@ -31,7 +31,7 @@ use core\setting\Setting;
 ]);
 
 /**
- * @var equal\php\Context $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 

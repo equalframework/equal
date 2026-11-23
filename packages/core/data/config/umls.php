@@ -5,42 +5,42 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the list of UML files defined in a given package.',
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
-    ],
     'params'        => [
-        'type'      => [
-            'description'   => 'Type of the UML data',
+        'type' => [
             'type'          => 'string',
+            'description'   => 'Type of the UML data',
             'selection'     => ['erd']
         ],
-        'package'   => [
-            'description'   => 'The specific package to retrieve UML files from',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'The specific package to retrieve UML files from',
             'required'      => true
         ]
     ],
-    'providers'     => ['context', 'orm']
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 $package = $params['package'];
-$umlPath = QN_BASEDIR . "/packages/{$package}/uml";
+$umlPath = EQ_BASEDIR . "/packages/{$package}/uml";
 
 $result = recurse_dir($umlPath, "json", $params['type']);
 
-$context->httpResponse()
-        ->body(json_encode([$package => $result]))
-        ->send();
+$context
+    ->httpResponse()
+    ->body(json_encode([$package => $result]))
+    ->send();
 
 function has_sub_items($directory, $extension) {
     $files = glob($directory . '/*.' . $extension);

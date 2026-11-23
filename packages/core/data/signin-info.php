@@ -15,19 +15,19 @@ use core\User;
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns user sign in information.',
     'params'        => [
-        'login' =>	[
-            'description'   => 'User username or login (email).',
+        'login' => [
             'type'          => 'string',
+            'description'   => 'User username or login (email).',
             'required'      => true
-        ],
+        ]
+    ],
+    'access'        => [
+        'visibility'    => 'public'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'public'
     ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'auth']

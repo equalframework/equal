@@ -6,37 +6,41 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\Mail;
+use core\User;
 use equal\email\EmailMessage;
 use equal\html\HtmlTemplate;
-use core\User;
-use core\Mail;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
-    'description'	=>	"Send username to current user.",
-    'params' 		=>	[
-        'email' =>  [
-            'description'   => 'Email address for username recovery.',
+[$params, $providers] = eQual::announce([
+    'description'   => "Send username to current user.",
+    'params'        => [
+        'email' => [
             'type'          => 'string',
             'usage'         => 'email',
+            'description'   => 'Email address for username recovery.',
             'required'      => true
         ]
     ],
-    'access'      => [
-        'visibility' => 'public'
+    'access'        => [
+        'visibility'    => 'public'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'constants'     => ['BACKEND_URL', 'EMAIL_SMTP_ABUSE_EMAIL', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
-    'providers'     => ['context', 'orm', 'auth']
+    'providers'     => ['context', 'auth']
 ]);
 
 
 // initialize local vars with inputs
-list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ */
+['context' => $context, 'auth' => $auth] = $providers;
 
 try {
     // we need root privilege
@@ -46,7 +50,7 @@ try {
     $ids = User::search(['login', '=', $params['email']])->ids();
 
     if(!count($ids)) {
-        throw new Exception("user_not_found", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("user_not_found", EQ_ERROR_UNKNOWN_OBJECT);
     }
 
     $user_id = array_shift($ids);
@@ -57,11 +61,11 @@ try {
             ->first(true);
 
     if(!$user || !$user['validated']) {
-        throw new Exception("not_allowed", QN_ERROR_NOT_ALLOWED);
+        throw new Exception("not_allowed", EQ_ERROR_NOT_ALLOWED);
     }
 
     if(empty($user['username'])) {
-        throw new Exception("username_not_defined", QN_ERROR_NOT_ALLOWED);
+        throw new Exception("username_not_defined", EQ_ERROR_NOT_ALLOWED);
     }
 
 
@@ -70,7 +74,7 @@ try {
     // read template according to user requested language
     $file = "packages/core/i18n/{$user['language']}/mail_user_username_recover.html";
     if(!($html = @file_get_contents($file))) {
-        throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("missing_template", EQ_ERROR_INVALID_CONFIG);
     }
 
     // define template `var` nodes parsing callbacks
@@ -113,9 +117,10 @@ try {
 }
 catch(Exception $e) {
     // for security reasons, in case of error no details are relayed to client
-    trigger_error("ORM::{$e->getMessage()}", QN_REPORT_ERROR);
+    trigger_error("ORM::{$e->getMessage()}", EQ_REPORT_ERROR);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

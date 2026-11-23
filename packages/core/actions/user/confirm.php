@@ -5,37 +5,43 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\User;
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Validate a user subscription. This controller is meant to be requested through a link sent by email.",
-    'params' 		=>	[
+    'description'   => "Validate a user subscription. This controller is meant to be requested through a link sent by email.",
+    'params'        => [
         'code' => [
-            'description'   => 'Code for authenticating user.',
             'type'          => 'string',
+            'description'   => 'Code for authenticating user.',
             'required'      => true
         ],
         'redirect' => [
-            'description'   => 'Relative URL to redirect user to, after successful authentication. A reset token is appended to it.',
             'type'          => 'string',
             'usage'         => 'url',
+            'description'   => 'Relative URL to redirect user to, after successful authentication. A reset token is appended to it.',
             'default'       => 'auth/#/reset'
         ]
     ],
-    'constants'     => ['BACKEND_URL', 'AUTH_SECRET_KEY', 'DEFAULT_LANG'],
     'access'        => [
-        'visibility'        => 'public'
+        'visibility'    => 'public'
     ],
     'response'      => [
-        'content-type'      => 'text/html',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'text/html',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
+    'constants'     => ['BACKEND_URL', 'AUTH_SECRET_KEY', 'DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
 // initialize local vars with inputs
+/**
+ * @var \equal\orm\ObjectManager            $orm
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ */
 ['orm' => $orm, 'context' => $context, 'auth' => $auth] = $providers;
 
 $showInvalidLinkPage = static function(?string $language = null) use ($context) {
@@ -46,11 +52,12 @@ $showInvalidLinkPage = static function(?string $language = null) use ($context) 
         throw new Exception("missing_template", EQ_ERROR_INVALID_CONFIG);
     }
 
-    $context->httpResponse()
-            ->status(400)
-            ->header('Content-Type', 'text/html; charset=utf-8')
-            ->body($html)
-            ->send();
+    $context
+        ->httpResponse()
+        ->status(400)
+        ->header('Content-Type', 'text/html; charset=utf-8')
+        ->body($html)
+        ->send();
     exit();
 };
 
@@ -115,6 +122,7 @@ if(strlen($params['redirect'])) {
     exit();
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

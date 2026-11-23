@@ -14,18 +14,18 @@ use core\User;
     'description'   => 'Create a new totp key for a user.',
     'params'        => [
         'auth_token' => [
-            'type'              => 'string',
-            'description'       => 'Temporary token that certifies that the user\'s credentials were recently given.',
-            'help'              => 'Only needed if the authentication using totpkey is required for the user.'
+            'type'          => 'string',
+            'description'   => 'Temporary token that certifies that the user\'s credentials were recently given.',
+            'help'          => 'Only needed if the authentication using totpkey is required for the user.'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'public' // #memo - allow access with temporary auth_token when MFA is required
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'public' // #memo - allow access with temporary auth_token when MFA is required
     ],
     'providers'     => ['context', 'auth']
 ]);

@@ -5,17 +5,18 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\db\DBConnector;
 
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Create a database according to the configuration',
-    'params'        => [],
-    'providers'     => ['context', 'orm'],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS', 'DB_CHARSET']
+    'params'        => [    ],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS', 'DB_CHARSET'],
+    'providers'     => []
 ]);
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+
 
 eQual::run('do', 'test_db-connectivity');
 

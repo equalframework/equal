@@ -5,26 +5,26 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns currently active routes with priority based on the number.',
     'help'          => 'Only one descriptor is return for each route. In case two identical routes co-exist, the one described in the file with highest priority will overwrite the previous.',
-    'access' => [
-        'visibility'        => 'protected'
+    'params'        => [    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
-    'params'        => [],
-    'providers'     => ['context', 'route']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context      $context
- * @var \equal\route\Router     $router
+ * @var \equal\php\Context $context
  */
-list($context, $router) = [$providers['context'], $providers['route']];
+['context' => $context] = $providers;
 
 // get all json routes descriptors sorted by filename in DESC order
 $files = array_reverse(glob(EQ_BASEDIR.'/config/routing/*.json'));
@@ -40,6 +40,7 @@ foreach($files as $filepath) {
     }
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result)
     ->send();

@@ -5,17 +5,18 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => 'Validate an API route definition file against its JSON schema.',
     'params'        => [
-        'package' =>  [
-            'description'   => 'Name of the package the route file relates to (e.g. \'core\').',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Name of the package the route file relates to (e.g. \'core\').',
             'required'      => true
         ],
-        'file' =>  [
-            'description'   => 'Route file name in the package init/routes directory.',
+        'file' => [
             'type'          => 'string',
+            'description'   => 'Route file name in the package init/routes directory.',
             'required'      => true
         ]
     ],
@@ -27,9 +28,9 @@
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 if(!preg_match('/^[a-z0-9_-]+$/i', $params['package'])) {
     throw new Exception('invalid_package', EQ_ERROR_INVALID_PARAM);
@@ -60,6 +61,7 @@ if(!($validation['result'] ?? false)) {
     throw new Exception('invalid_route_json', EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

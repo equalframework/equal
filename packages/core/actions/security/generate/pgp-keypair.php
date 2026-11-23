@@ -9,35 +9,35 @@
 use equal\fs\FSManipulator;
 
 [$params, $providers] = eQual::announce([
-    'description' => 'Generates an ASCII-armored OpenPGP key pair and its passphrase.',
-    'params'      => [
+    'description'   => 'Generates an ASCII-armored OpenPGP key pair and its passphrase.',
+    'params'        => [
         'name' => [
-            'type'        => 'string',
-            'description' => 'Name associated with the OpenPGP identity.',
-            'required'    => true
+            'type'          => 'string',
+            'description'   => 'Name associated with the OpenPGP identity.',
+            'required'      => true
         ],
         'email' => [
-            'type'        => 'string',
-            'usage'       => 'email',
-            'description' => 'Email address associated with the OpenPGP identity.',
-            'help'        => 'This is the `recipient` used by OpenPGP to identify the public key to use for decryption.',
-            'required'    => true
+            'type'          => 'string',
+            'usage'         => 'email',
+            'description'   => 'Email address associated with the OpenPGP identity.',
+            'help'          => 'This is the `recipient` used by OpenPGP to identify the public key to use for decryption.',
+            'required'      => true
         ],
         'expiry_date' => [
-            'type'        => 'string',
-            'description' => 'Key expiry accepted by GnuPG, such as 0, 1y, or 2028-12-31.',
-            'default'     => '0'
+            'type'          => 'string',
+            'description'   => 'Key expiry accepted by GnuPG, such as 0, 1y, or 2028-12-31.',
+            'default'       => '0'
         ]
     ],
-    'access'      => [
-        'visibility' => 'private'
+    'access'        => [
+        'visibility'    => 'private'
     ],
-    'response'    => [
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'   => ['context']
+    'providers'     => ['context']
 ]);
 
 /**

@@ -5,37 +5,43 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\http\HttpRequest;
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Attempt to auth a user from an external social network.",
-    'params' 		=>	[
-        'network_name'  =>  [
-            'description'   => 'name of the social network to address oauth request.',
+    'description'   => "Attempt to auth a user from an external social network.",
+    'params'        => [
+        'network_name' => [
             'type'          => 'string',
+            'description'   => 'name of the social network to address oauth request.',
             'required'      => true
         ],
-        'network_token' =>  [
-            'description'   => 'valid acess token for oauth.',
+        'network_token' => [
             'type'          => 'string',
+            'description'   => 'valid acess token for oauth.',
             'required'      => true
         ]
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY'],
     'access'        => [
         'visibility'    => 'public'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY'],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
 // initialize local vars with inputs
-[$orm, $context, $auth] = [ $providers['orm'], $providers['context'], $providers['auth'] ];
+/**
+ * @var \equal\orm\ObjectManager            $orm
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ */
+['orm' => $orm, 'context' => $context, 'auth' => $auth] = $providers;
 
 [$result, $error_message_ids] = [true, []];
 

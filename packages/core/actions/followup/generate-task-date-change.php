@@ -12,22 +12,20 @@ use core\followup\TaskModel;
     'description'   => "Generate task models' tasks when the date changes.",
     'help'          => "This controller is intended for scheduled runs. It scans the target entity for task models triggered by date fields, and creates or refreshes the corresponding follow-up tasks when the trigger date plus its offset falls on the current day.",
     'params'        => [
-
         'entity' => [
-            'type'              => 'string',
-            'description'       => "Full name (including namespace) of the specific class to handle.",
-            'usage'             => 'orm/entity',
-            'required'          => true
+            'type'          => 'string',
+            'usage'         => 'orm/entity',
+            'description'   => "Full name (including namespace) of the specific class to handle.",
+            'required'      => true
         ]
-
     ],
     'access'        => [
-        'visibility'        => 'protected'
+        'visibility'    => 'protected'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
@@ -129,6 +127,7 @@ if(!empty($task_models)) {
     }
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

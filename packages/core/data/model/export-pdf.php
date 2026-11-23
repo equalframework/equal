@@ -5,68 +5,68 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use core\setting\Setting;
 use Dompdf\Dompdf;
 use Dompdf\Options as DompdfOptions;
-use core\setting\Setting;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Returns a view populated with a collection of objects and outputs it as a PDF document.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to use (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to use (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'view_id' =>  [
-            'description'   => 'The identifier of the view <type.name>.',
+        'view_id' => [
             'type'          => 'string',
+            'description'   => 'The identifier of the view <type.name>.',
             'default'       => 'list.default'
         ],
-        'domain' =>  [
-            'description'   => 'List of unique identifiers of the objects to read.',
+        'domain' => [
             'type'          => 'array',
+            'description'   => 'List of unique identifiers of the objects to read.',
             'default'       => []
         ],
         'controller' => [
-            'description'   => 'Data controller to use to retrieve objects to print.',
             'type'          => 'string',
+            'description'   => 'Data controller to use to retrieve objects to print.',
             'default'       => 'core_model_collect'
         ],
         'params' => [
-            'description'   => 'Additional params to relay to the data controller.',
             'type'          => 'array',
+            'description'   => 'Additional params to relay to the data controller.',
             'default'       => []
         ],
-        'lang' =>  [
-            'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
+        'lang' => [
             'type'          => 'string',
+            'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'default'       => constant('DEFAULT_LANG')
         ],
         'nolimit' => [
+            'type'          => 'boolean',
             'description'   => 'Explicit request for ignoring limit and return all matching objects.',
             'help'          => 'When activated start and limit parameters are ignored.',
-            'type'          => 'boolean',
             'default'       => false
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'access'        => [
-        'visibility'        => 'protected'
+        'visibility'    => 'protected'
     ],
     'response'      => [
-        'accept-origin'     => '*',
-        'content-type'      => 'application/pdf'
+        'accept-origin' => '*',
+        'content-type'  => 'application/pdf'
     ],
-    'providers'     => ['context', 'orm', 'auth', 'adapt']
+    'constants'     => ['DEFAULT_LANG'],
+    'providers'     => ['context', 'orm', 'adapt']
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
- * @var \equal\auth\AuthenticationManager   $auth
- * @var \equal\data\DataAdapterProvider     $dap
+ * @var \equal\php\Context              $context
+ * @var \equal\orm\ObjectManager        $orm
+ * @var \equal\data\DataAdapterProvider $dap
  */
-list($context, $orm, $auth, $dap) = [$providers['context'], $providers['orm'], $providers['auth'], $providers['adapt']];
+['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
@@ -92,7 +92,7 @@ else {
     // retrieve target entity
     $entity = $orm->getModel($params['entity']);
     if(!$entity) {
-        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+        throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
     }
 
     // get the complete schema of the object (including special fields)
@@ -109,7 +109,7 @@ $view_schema = eQual::run('get', 'model_view', [
 ]);
 
 if(!isset($view_schema['layout']['items'])) {
-    throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('invalid_view', EQ_ERROR_INVALID_CONFIG);
 }
 
 $group_by = (isset($view_schema['group_by'])) ? $view_schema['group_by'] : [];
@@ -467,10 +467,11 @@ else {
 $html = $doc->saveHTML();
 
 /*
-$context->httpResponse()
-        ->header('Content-Type', 'text/html')
-        ->body($html)
-        ->send();
+$context
+    ->httpResponse()
+    ->header('Content-Type', 'text/html')
+    ->body($html)
+    ->send();
 
 die();
 */
@@ -502,10 +503,11 @@ $canvas->page_text(30, 30, $view_title, $font, 14, array(0,0,0));
 // get generated PDF raw binary
 $output = $dompdf->output();
 
-$context->httpResponse()
-        ->header('Content-Disposition', 'inline; filename="document.pdf"')
-        ->body($output)
-        ->send();
+$context
+    ->httpResponse()
+    ->header('Content-Disposition', 'inline; filename="document.pdf"')
+    ->body($output)
+    ->send();
 
 
 /**

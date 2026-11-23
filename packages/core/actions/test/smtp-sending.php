@@ -11,44 +11,48 @@ use equal\email\EmailMessage;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Send a test email using current SMTP configuration',
+    'params'        => [
+        'to' => [
+            'type'          => 'string',
+            'usage'         => 'email',
+            'description'   => 'Recipient email address.',
+            'required'      => true
+        ],
+        'smtp_host' => [
+            'type'          => 'string',
+            'description'   => 'Override SMTP host for this test only.'
+        ],
+        'smtp_port' => [
+            'type'          => 'integer',
+            'description'   => 'Override SMTP port for this test only.'
+        ],
+        'smtp_username' => [
+            'type'          => 'string',
+            'description'   => 'Override SMTP username for this test only.'
+        ],
+        'smtp_password' => [
+            'type'          => 'string',
+            'description'   => 'Override SMTP password for this test only.'
+        ],
+        'smtp_from' => [
+            'type'          => 'string',
+            'usage'         => 'email',
+            'description'   => 'Override SMTP FROM address (if set, must match smtp_username).'
+        ]
+    ],
     'constants'     => [
         'EMAIL_SMTP_HOST',
         'EMAIL_SMTP_PORT',
         'EMAIL_SMTP_ACCOUNT_USERNAME',
         'EMAIL_SMTP_ACCOUNT_EMAIL'
     ],
-    'params'        => [
-        'to' => [
-            'type'        => 'string',
-            'usage'       => 'email',
-            'required'    => true,
-            'description' => 'Recipient email address.'
-        ],
-        'smtp_host' => [
-            'type'        => 'string',
-            'description' => 'Override SMTP host for this test only.'
-        ],
-        'smtp_port' => [
-            'type'        => 'integer',
-            'description' => 'Override SMTP port for this test only.'
-        ],
-        'smtp_username' => [
-            'type'        => 'string',
-            'description' => 'Override SMTP username for this test only.'
-        ],
-        'smtp_password' => [
-            'type'        => 'string',
-            'description' => 'Override SMTP password for this test only.'
-        ],
-        'smtp_from' => [
-            'type'        => 'string',
-            'usage'       => 'email',
-            'description' => 'Override SMTP FROM address (if set, must match smtp_username).'
-        ]
-    ],
     'providers'     => ['context']
 ]);
 
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 // Validate recipient email
 if(filter_var($params['to'], FILTER_VALIDATE_EMAIL) === false) {
@@ -122,7 +126,7 @@ $email->setBody($body);
 // Send (no DB write)
 $sent = Mail::sendRaw($email, $options);
 
-$providers['context']
+$context
     ->httpResponse()
     ->body([
         'status' => ($sent > 0) ? 'sent' : 'failed',

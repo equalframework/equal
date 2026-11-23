@@ -6,14 +6,14 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the schema of the workflow defined for the given entity, if any.',
     'help'          => 'This controller provides a JSON map of the workflow as defined in the class of the given entity. If no `getWorkflow` method is found in the class, it falls back to the one defined in the orm\Model class, which returns an empty array.',
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
             'usage'         => 'orm/entity',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ]
     ],
@@ -26,33 +26,34 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 if(!method_exists($entity, 'getWorkflow')) {
-    throw new Exception("missing_method", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("missing_method", EQ_ERROR_INVALID_CONFIG);
 }
 
 $workflow = [];
 
 $reflectionClass = new ReflectionClass($entity::getType());
 if($reflectionClass->getMethod('getWorkflow')->class != $entity::getType()) {
-    throw new Exception("entity_without_workflow", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("entity_without_workflow", EQ_ERROR_UNKNOWN_OBJECT);
 }
 
 $workflow = $entity->getWorkflow();
 if(!is_array($workflow)) {
-    throw new Exception("invalid_method", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("invalid_method", EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
-        ->body($workflow)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($workflow)
+    ->send();

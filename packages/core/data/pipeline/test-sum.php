@@ -5,42 +5,47 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the sum of two values.',
     'params'        => [
         'first_value' => [
-            'description'   => 'First value',
             'type'          => 'integer',
-            'usage'     => 'numeric/integer',
+            'usage'         => 'numeric/integer',
+            'description'   => 'First value',
             'required'      => true
         ],
         'second_value' => [
-            'description'   => 'Second value',
             'type'          => 'integer',
-            'usage'     => 'numeric/integer',
+            'usage'         => 'numeric/integer',
+            'description'   => 'Second value',
             'required'      => true
         ]
     ],
+    'access'        => [
+        'visibility'    => 'private'
+    ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*',
-        'schema' => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*',
+        'schema'        => [
             'type'          => 'integer',
             'usage'     => 'numeric/integer',
             'qty'       => 'one'
         ]
     ],
-    'access'        => [
-        'visibility'        => 'private',
-    ],
     'providers'     => ['context']
 ]);
 
-list($context) = [$providers['context']];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 $result = $params['first_value'] + $params['second_value'];
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result)
     ->send();

@@ -34,21 +34,21 @@ use equal\php\Context;
             'default'       => true
         ]
     ],
-    'access' => [
-        'visibility' => 'protected'
+    'access'        => [
+        'visibility'    => 'protected'
     ],
-    'response' => [
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'providers' => ['context']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var Context $context
+ * @var \Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $xml      = $params['xml'];
 $schemaId = $params['schema_id'];
@@ -108,7 +108,8 @@ if($strict && !empty($errors)) {
     $valid = false;
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body([
         'result' => (bool) $valid,
         'errors' => $errors

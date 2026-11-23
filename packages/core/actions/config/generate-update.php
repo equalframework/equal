@@ -8,11 +8,6 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => "Create a new empty view as a json file, for a given entity.",
-    'response'      => [
-        'content-type'  => 'text/plain',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
         'package' => [
             'type'          => 'string',
@@ -21,8 +16,8 @@
             'required'      => true
         ],
         'name' => [
-            'description'   => 'Name of the update.',
             'type'          => 'string',
+            'description'   => 'Name of the update.',
             'required'      => true
         ]
     ],
@@ -30,11 +25,16 @@
         'visibility'    => 'protected',
         'groups'        => ['admins']
     ],
+    'response'      => [
+        'content-type'  => 'text/plain',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 

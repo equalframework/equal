@@ -5,20 +5,21 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\Task;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Run a batch of scheduled task. Expected to be run with CLI `$ ./equal.run --do=cron_run`",
     'params'        => [
-        'ids' =>  [
+        'ids' => [
             'type'              => 'one2many',
             'foreign_object'    => Task::getType(),
             'description'       => 'Optional identifiers of the specific tasks to run. If not given, all due tasks are candidates to execution.',
             'default'           => []
         ]
     ],
-    'access' => [
-        'visibility'   => 'protected'
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
@@ -29,19 +30,20 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\cron\Scheduler               $cron
- * @var \equal\access\AccessController      $am
+ * @var \equal\php\Context              $context
+ * @var \equal\cron\Scheduler           $cron
+ * @var \equal\access\AccessController  $am
  */
-list($context, $cron, $am) = [$providers['context'], $providers['cron'], $providers['access']];
+['context' => $context, 'cron' => $cron, 'access' => $am] = $providers;
 
 if(!$am->hasGroup('admins')) {
-    throw new Exception('admin_only', QN_ERROR_NOT_ALLOWED);
+    throw new Exception('admin_only', EQ_ERROR_NOT_ALLOWED);
 }
 
 // run the scheduled tasks that require it
 $cron->run($params['ids']);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

@@ -4,20 +4,21 @@
     Some Rights Reserved, eQual framework, 2010-2025
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder};
+
 use equal\orm\Entity;
-list($params, $providers) = eQual::announce([
+use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder};
+[$params, $providers] = eQual::announce([
     'description'   => "Update the getRoles() return function of an entity",
     'help'          => "This controller relies on the PHP binary. Ensure the PHP binary is present in the PATH.",
     'params'        => [
-        'entity'    => [
-            'description'   => 'Name of the entity (class).',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Name of the entity (class).',
             'required'      => true
         ],
-        'payload' =>  [
-            'description'   => 'Actions definition.',
+        'payload' => [
             'type'          => 'array',
+            'description'   => 'Actions definition.',
             'required'      => false
         ]
     ],
@@ -33,8 +34,7 @@ list($params, $providers) = eQual::announce([
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 
 $entity = new Entity($params['entity']);
@@ -42,7 +42,7 @@ $entity = new Entity($params['entity']);
 // force class autoload
 $entityInstance = $orm->getModel($params['entity']);
 if(!$entityInstance) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 $method_name = 'getRoles' ;
@@ -54,7 +54,8 @@ if(!($class->getMethod($method_name)->class == $entityInstance::getType())) {
 
 $entity->updateMethod($method_name,$params['payload']);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();
 

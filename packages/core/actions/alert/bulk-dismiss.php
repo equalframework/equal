@@ -5,34 +5,34 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\alert\Message;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Tries to dismiss a selection of alert message. Should be invoked as a user request for removing the message.",
     'params'        => [
-        'ids' =>  [
-            'description'       => 'Identifiers of the alerts to dismiss.',
+        'ids' => [
             'type'              => 'one2many',
             'foreign_object'    => 'core\alert\Message',
+            'description'       => 'Identifiers of the alerts to dismiss.',
             'required'          => true
         ]
     ],
-    'access' => [
-        'visibility'        => 'protected'
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'dispatch']
+    'providers'     => ['context']
 ]);
 
 /**
  * @var \equal\php\Context $context
- * @var \equal\dispatch\Dispatcher $dispatch
  */
-list($context, $dispatch) = [ $providers['context'], $providers['dispatch']];
+['context' => $context] = $providers;
 
 $messages = Message::ids($params['ids'])->read(['id']);
 
@@ -45,5 +45,6 @@ foreach($messages as $id => $message) {
     }
 }
 
-$context->httpResponse()
-        ->send();
+$context
+    ->httpResponse()
+    ->send();

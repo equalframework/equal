@@ -5,38 +5,39 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Retrieves the translation values related to the specified menu.",
     'params'        => [
-        'package' =>  [
-            'description'   => "Package name the menu relates to (e.g. 'core').",
+        'package' => [
             'type'          => 'string',
+            'description'   => "Package name the menu relates to (e.g. 'core').",
             'required'      => true
         ],
-        'menu_id'  => [
-          'description'     => "Full menu identifier (menu.<ID>)",
-          'type'            => 'string',
-          'required'        => true
-        ],
-        'lang' =>  [
-            'description'   => "Language for which values are requested (iso639 code expected).",
+        'menu_id' => [
             'type'          => 'string',
+            'description'   => "Full menu identifier (menu.<ID>)",
+            'required'      => true
+        ],
+        'lang' => [
+            'type'          => 'string',
+            'description'   => "Language for which values are requested (iso639 code expected).",
             'default'       => constant('DEFAULT_LANG')
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-list($context) = [ $providers['context'] ];
+['context' => $context] = $providers;
 
 $result = [];
 
@@ -70,6 +71,7 @@ foreach($files as $file) {
     }
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

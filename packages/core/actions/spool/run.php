@@ -5,30 +5,34 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\Mail;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
-    'description'	=>	"Send emails that are currently in spool queue.",
-    'params' 		=>	[
-    ],
-    'access' => [
-        'visibility'        => 'private'
+[$params, $providers] = eQual::announce([
+    'description'   => "Send emails that are currently in spool queue.",
+    'params'        => [    ],
+    'access'        => [
+        'visibility'    => 'private'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth']
+    'providers'     => ['context']
 ]);
 
 
 // initialize local vars with inputs
-list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 Mail::flush();
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

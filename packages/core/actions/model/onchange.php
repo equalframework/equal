@@ -5,58 +5,59 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => "Transform an object being edited in a view, according to the onchange method of the entity, if any.",
+    'params'        => [
+        'entity' => [
+            'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+            'required'      => true
+        ],
+        'id' => [
+            'type'          => 'integer',
+            'description'   => 'Unique identifier of the object being edited.',
+            'default'       => 0
+        ],
+        'view_id' => [
+            'type'          => 'string',
+            'description'   => 'The identifier of the view <type.name>.',
+            'default'       => 'form.default'
+        ],
+        'changes' => [
+            'type'          => 'array',
+            'description'   => 'Associative array holding the fields whose values have been changed, with their related values.',
+            'default'       => []
+        ],
+        'values' => [
+            'type'          => 'array',
+            'description'   => 'Copy of the (partial) object being edited with original value.',
+            'default'       => []
+        ],
+        'lang' => [
+            'type'          => 'string',
+            'description'   => 'Specific language for multilang field.',
+            'default'       => constant('DEFAULT_LANG')
+        ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
-            'type'          => 'string',
-            'required'      => true
-        ],
-        'id' =>  [
-            'description'   => 'Unique identifier of the object being edited.',
-            'type'          => 'integer',
-            'default'       => 0
-        ],
-        'view_id' =>  [
-            'description'   => 'The identifier of the view <type.name>.',
-            'type'          => 'string',
-            'default'       => 'form.default'
-        ],
-        'changes' =>  [
-            'description'   => 'Associative array holding the fields whose values have been changed, with their related values.',
-            'type'          => 'array',
-            'default'       => []
-        ],
-        'values' =>  [
-            'description'   => 'Copy of the (partial) object being edited with original value.',
-            'type'          => 'array',
-            'default'       => []
-        ],
-        'lang' => [
-            'description '  => 'Specific language for multilang field.',
-            'type'          => 'string',
-            'default'       => constant('DEFAULT_LANG')
-        ]
-    ],
     'constants'     => ['DEFAULT_LANG'],
-    'access'        => [
-        'visibility'        => 'protected'
-    ],
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
- * @var \equal\data\DataAdapterProvider  $dap
+ * @var \equal\php\Context              $context
+ * @var \equal\orm\ObjectManager        $orm
+ * @var \equal\data\DataAdapterProvider $dap
  */
-list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
+['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
@@ -65,7 +66,7 @@ $result = [];
 
 $model = $orm->getModel($params['entity']);
 if(!$model) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 if(method_exists($params['entity'], 'onchange')) {
@@ -232,6 +233,7 @@ if(method_exists($params['entity'], 'onchange')) {
 
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

@@ -5,30 +5,34 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the list of namespaces defined in specified package.',
     'params'        => [
         'package' => [
-            'description'   => 'Name of the package for which the list is requested',
             'type'          => 'string',
+            'description'   => 'Name of the package for which the list is requested',
             'default'       => '*'
         ],
         'path' => [
-            'description'   => 'Path within the package for limiting the result to.',
             'type'          => 'string',
+            'description'   => 'Path within the package for limiting the result to.',
             'default'       => ''
         ]
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
 
-list($context) = [$providers['context']];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 
 /**
@@ -92,6 +96,7 @@ else {
 }
 
 
-$context->httpResponse()
-        ->body($data)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($data)
+    ->send();

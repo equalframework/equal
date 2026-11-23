@@ -41,9 +41,9 @@ use equal\php\Context;
 ]);
 
 /**
- * @var Context             $context
- * @var ObjectManager       $orm
- * @var DataAdapterProvider $dap
+ * @var \Context                $context
+ * @var \ObjectManager          $orm
+ * @var \DataAdapterProvider    $dap
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
@@ -150,7 +150,7 @@ if(is_null($entity_mapping)) {
 
 $model = $orm->getModel($entity_mapping['entity']);
 if(!$model) {
-    throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+    throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
 }
 
 if(empty($entity_mapping['column_mappings_ids'])) {
@@ -201,6 +201,7 @@ if(!empty($entities_data)) {
     ]);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

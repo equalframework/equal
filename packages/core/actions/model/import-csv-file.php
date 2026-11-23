@@ -19,21 +19,21 @@ use core\import\EntityMapping;
         ],
         'csv_separator_character' => [
             'type'              => 'string',
-            'default'           => ',',
             'min'               => 1,
-            'max'               => 1
+            'max'               => 1,
+            'default'           => ','
         ],
         'csv_enclosure_character' => [
             'type'              => 'string',
-            'default'           => '"',
             'min'               => 1,
-            'max'               => 1
+            'max'               => 1,
+            'default'           => '"'
         ],
         'csv_escape_character' => [
             'type'              => 'string',
-            'default'           => '\\',
             'min'               => 1,
-            'max'               => 1
+            'max'               => 1,
+            'default'           => '\\'
         ],
         'data' => [
             'type'              => 'binary',
@@ -50,6 +50,9 @@ use core\import\EntityMapping;
     'providers'     => ['context']
 ]);
 
+/**
+ * @var \equal\php\Context $context
+ */
 ['context' => $context] = $providers;
 
 $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
@@ -96,6 +99,7 @@ eQual::run('do', 'core_model_import-mapped', [
     'data'              => $data
 ]);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

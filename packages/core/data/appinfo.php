@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Provide the descriptor of a given App (from manifest), identified by package and app ID.',
     'params'        => [
         'package' => [
@@ -20,21 +20,21 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ]
     ],
-    'access' => [
+    'access'        => [
         'visibility'    => 'public'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-list($context) = [$providers['context']];
+['context' => $context] = $providers;
 
 list($package, $app) = [$params['package'], $params['app']];
 
@@ -67,6 +67,7 @@ if(file_exists("packages/$package/manifest.json")) {
 }
 
 // send back basic info of the User object
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

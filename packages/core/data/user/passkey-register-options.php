@@ -21,13 +21,13 @@ use lbuchs\WebAuthn\WebAuthn;
             'required'      => true
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'protected'
     ],
     'constants'     => ['AUTH_SECRET_KEY', 'APP_NAME', 'BACKEND_URL'],
     'providers'     => ['context', 'auth']
@@ -112,7 +112,8 @@ $register_options->register_token = JWT::encode(
     constant('AUTH_SECRET_KEY')
 );
 
-$context->httpResponse()
-        ->status(200)
-        ->body((array) $register_options)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(200)
+    ->body((array) $register_options)
+    ->send();

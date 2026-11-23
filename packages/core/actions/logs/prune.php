@@ -6,27 +6,28 @@
     Original Author: Cedric Francoys
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\Log;
 use core\setting\Setting;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Prunes log items based on the retention duration defined in the auto-vacuum setting.',
-    'params'        => [],
+    'params'        => [    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'protected',
-        'groups'        => ['admins']
     ],
     'constants'     => ['LOGS_EXPIRY_DELAY'],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 
@@ -57,6 +58,7 @@ while(count($collection->ids())) {
     }
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

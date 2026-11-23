@@ -24,21 +24,21 @@ use equal\php\Context;
             'required'      => true
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/xml',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'    => 'protected'
-    ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var Context $context
+ * @var \Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $schemaId = $params['id'];
 $package  = $params['package'];
@@ -111,6 +111,7 @@ if(!$schema_path) {
 
 $result = file_get_contents($schema_path);
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result, true)
     ->send();

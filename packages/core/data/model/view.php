@@ -5,17 +5,18 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Returns the JSON view related to an entity (class model), given a view ID (<type.name>).",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'view_id' =>  [
-            'description'   => 'The identifier of the view <type.name>.',
+        'view_id' => [
             'type'          => 'string',
+            'description'   => 'The identifier of the view <type.name>.',
             'default'       => 'list.default'
         ]
     ],
@@ -28,8 +29,8 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
 ['context' => $context, 'orm' => $orm] = $providers;
 
@@ -231,26 +232,26 @@ while(true) {
 }
 
 if(!file_exists($file)) {
-    throw new Exception("missing_view", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("missing_view", EQ_ERROR_UNKNOWN_OBJECT);
 }
 
 if(($view = json_decode(@file_get_contents($file), true)) === null) {
-    throw new Exception("malformed_view_json", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("malformed_view_json", EQ_ERROR_INVALID_CONFIG);
 }
 
 if(!isset($view['layout'])) {
-    throw new Exception("malformed_view_json", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("malformed_view_json", EQ_ERROR_INVALID_CONFIG);
 }
 
 // pass-2 : adapt the view if inheritance is involved
 if(isset($view['extends'])) {
     if(!isset($view['extends']['view'])) {
-        throw new Exception("malformed_view_json", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("malformed_view_json", EQ_ERROR_INVALID_CONFIG);
     }
     $view_id = $view['extends']['view'];
     $entity = $view['extends']['entity'] ?? $params['entity'];
     if($params['view_id'] == $view_id && $params['entity'] == $entity) {
-        throw new Exception("cyclic_view_dependency", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("cyclic_view_dependency", EQ_ERROR_INVALID_CONFIG);
     }
     $parent_view = eQual::run('get', 'model_view', ['entity' => $entity, 'view_id' => $view_id]);
     if(isset($view['layout']['remove'])) {
@@ -266,6 +267,7 @@ if(isset($view['extends'])) {
     $view['layout'] = $parent_view['layout'];
 }
 
-$context->httpResponse()
-        ->body($view)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($view)
+    ->send();

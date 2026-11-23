@@ -11,28 +11,28 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'   =>  'Test package view definitions and model field references.',
-    'params'        =>  [
-        'package'   =>  [
-            'description'   => 'Package to validate.',
+    'description'   => 'Test package view definitions and model field references.',
+    'params'        => [
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Package to validate.',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
         ],
-        'level' =>  [
-            'description'   => 'Level of notification to limit the output to.',
+        'level' => [
             'type'          => 'string',
+            'description'   => 'Level of notification to limit the output to.',
             'selection'     => ['*', 'warn', 'error'],
             'default'       => '*'
         ],
-        'strict'    =>  [
-            'description'   => 'Flag to enable strict mode.',
+        'strict' => [
             'type'          => 'boolean',
+            'description'   => 'Flag to enable strict mode.',
             'default'       => false
         ],
         'exit_on_error' => [
-            'description'   => 'Exit with a non-zero status code when consistency errors are found.',
             'type'          => 'boolean',
+            'description'   => 'Exit with a non-zero status code when consistency errors are found.',
             'default'       => true
         ]
     ],
@@ -47,7 +47,7 @@ $packages = eQual::run('get', 'config_packages');
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-[$context, $orm] = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 $filter_result = function(array $result, string $level): array {
     foreach($result as $index => $line) {
@@ -288,13 +288,14 @@ if(!count($result)) {
 }
 
 // send json result
-$context->httpResponse()
-        ->body([
+$context
+    ->httpResponse()
+    ->body([
             'result'   => $result,
             'errors'   => $counts['errors'],
             'warnings' => $counts['warnings']
         ])
-        ->send();
+    ->send();
 
 // in case of error(s), force exiting with an error code
 if($counts['errors'] && $params['exit_on_error']) {

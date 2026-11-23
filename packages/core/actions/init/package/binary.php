@@ -7,26 +7,26 @@
 */
 
 [$params, $providers] = eQual::announce([
-    'description' => 'Install an external binary dependency and persist its runtime files in a dedicated bundle.',
-    'help'        => "The binary and its shared libraries are persisted under `/opt/bin/.equal-packages/{binary}`.
-                `configuration.persist.paths` copies required absolute files or directories to the same path under `/opt/bin/.equal-packages/{binary}/rootfs`.
-                `configuration.persist.environment` maps environment variables to absolute paths to replicate under `/opt/bin/.equal-packages/{binary}/rootfs`.",
-    'params'      => [
+    'description'   => 'Install an external binary dependency and persist its runtime files in a dedicated bundle.',
+    'help'          => "The binary and its shared libraries are persisted under `/opt/bin/.equal-packages/{binary}`.\n"
+                    ."`configuration.persist.paths` copies required absolute files or directories to the same path under `/opt/bin/.equal-packages/{binary}/rootfs`.\n"
+                    ."`configuration.persist.environment` maps environment variables to absolute paths to replicate under `/opt/bin/.equal-packages/{binary}/rootfs`.",
+    'params'        => [
         'binary' => [
-            'description' => 'Name of the binary dependency.',
-            'type'        => 'string',
-            'required'    => true
+            'type'          => 'string',
+            'description'   => 'Name of the binary dependency.',
+            'required'      => true
         ],
         'configuration' => [
-            'description' => 'Binary dependency configuration from the package manifest.',
-            'type'        => 'array',
-            'required'    => true
+            'type'          => 'array',
+            'description'   => 'Binary dependency configuration from the package manifest.',
+            'required'      => true
         ]
     ],
-    'access'      => [
-        'visibility' => 'private'
+    'access'        => [
+        'visibility'    => 'private'
     ],
-    'providers'   => ['context']
+    'providers'     => ['context']
 ]);
 
 /**
@@ -169,9 +169,10 @@ $system_path = implode(PATH_SEPARATOR, array_filter(
 
 [$current_check_code] = $runCommand($check_cmd);
 if($current_check_code === 0 && is_executable($wrapper_path) && is_file($bundle_dir . '/.ready')) {
-    $context->httpResponse()
-            ->status(204)
-            ->send();
+    $context
+        ->httpResponse()
+        ->status(204)
+        ->send();
     return;
 }
 
@@ -328,6 +329,7 @@ if($persistent_check_code !== 0) {
 
 touch($bundle_dir . '/.ready');
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

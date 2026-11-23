@@ -5,22 +5,23 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the list of views defined in a given package, or applicable to a given entity.',
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
-    ],
     'params'        => [
         'package' => [
-            'description'   => 'Name of the package for which the list is requested.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'Name of the package for which the list is requested.'
         ],
         'entity' => [
-            'description'   => 'Name of the entity for which the list is requested.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'Name of the entity for which the list is requested.'
         ]
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context', 'orm']
 ]);
@@ -35,7 +36,7 @@ $result = [];
 
 if(isset($params['package'])) {
     if(!file_exists("packages/{$params['package']}")) {
-        throw new Exception('missing_package_dir', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('missing_package_dir', EQ_ERROR_INVALID_CONFIG);
     }
     if(file_exists("packages/{$params['package']}/views")) {
         // recurse through all sub-folders of `views` directory
@@ -47,7 +48,7 @@ if(isset($params['package'])) {
 }
 else {
     if(!isset($params['entity'])) {
-        throw new Exception('package_or_entity_required', QN_ERROR_MISSING_PARAM);
+        throw new Exception('package_or_entity_required', EQ_ERROR_MISSING_PARAM);
     }
 
     // #todo - standardize the way controllers are referred to as entities
@@ -57,9 +58,9 @@ else {
     $file = array_pop($parts);
     $package = array_shift($parts);
 
-    if(ctype_lower(substr($file, 0, 1)) && file_exists(QN_BASEDIR.'/packages/'.$package.'/data/'.implode('/', $parts).'/'.$file.'.php') || file_exists(QN_BASEDIR.'/packages/'.$package.'/actions/'.implode('/', $parts).'/'.$file.'.php')) {
+    if(ctype_lower(substr($file, 0, 1)) && file_exists(EQ_BASEDIR.'/packages/'.$package.'/data/'.implode('/', $parts).'/'.$file.'.php') || file_exists(EQ_BASEDIR.'/packages/'.$package.'/actions/'.implode('/', $parts).'/'.$file.'.php')) {
         $class_path = implode('/', $parts);
-        $list = glob(QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.*.json");
+        $list = glob(EQ_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.*.json");
         foreach($list as $node) {
             $view_file = basename($node, '.json');
             list($entity_name, $view_type, $view_name, $extension) = explode('.', $view_file);
@@ -68,7 +69,7 @@ else {
         }
     }
     elseif(!class_exists($params['entity'])) {
-        throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+        throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
     }
     else {
         $entity = $params['entity'];
@@ -80,7 +81,7 @@ else {
             $file = array_pop($parts);
             $class_path = implode('/', $parts);
 
-            $list = glob(QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.*.json");
+            $list = glob(EQ_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.*.json");
 
             foreach($list as $node) {
                 $view_file = basename($node, '.json');
@@ -107,9 +108,10 @@ else {
     }
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();
 
 function has_sub_items($directory, $extension) {
     $files = glob($directory.'/*.'.$extension);

@@ -7,11 +7,11 @@
 */
 
 use core\setting\Setting;
+use equal\data\adapt\DataAdapterProvider;
+use equal\error\Reporter;
 use equal\orm\Field;
 use equal\orm\ObjectManager;
 use equal\php\Context;
-use equal\data\adapt\DataAdapterProvider;
-use equal\error\Reporter;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Import eQual objects from a given data payload (export-formatted).',
@@ -29,28 +29,28 @@ use equal\error\Reporter;
         ],
         'lang' => [
             'type'          => 'string',
-            'description '  => 'Specific language for multilang field.',
+            'description'   => 'Specific language for multilang field.',
             'help'          => 'If not provided the DEFAULT_LANG is used.'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'adapt', 'report']
 ]);
 
 /**
- * @var Context             $context
- * @var ObjectManager       $orm
- * @var DataAdapterProvider $dap
- * @var Reporter            $reporter
+ * @var \Context                $context
+ * @var \ObjectManager          $orm
+ * @var \DataAdapterProvider    $dap
+ * @var \Reporter               $reporter
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'report' => $reporter] = $providers;
 
@@ -178,7 +178,8 @@ $result = array_map(
     $object_ids
 );
 
-$context->httpResponse()
-        ->body($result)
-        ->status(200)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->status(200)
+    ->send();

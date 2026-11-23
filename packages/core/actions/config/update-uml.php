@@ -4,63 +4,62 @@
     Some Rights Reserved, eQual framework, 2010-2025
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => "Attempts to create a new package using a given name.",
     'params'        => [
-        'package'   => [
+        'package' => [
+            'type'          => 'string',
             'description'   => 'Name of the package of the new model',
-            'type'          => 'string',
             'required'      => true
         ],
-        'filename' =>  [
+        'filename' => [
+            'type'          => 'string',
             'description'   => 'relative path to the file from packages/{package}/uml',
-            'type'          => 'string',
             'required'      => true
         ],
-        'payload'   => [
-            'description'   => 'value of the field',
+        'payload' => [
             'type'          => 'text',
+            'description'   => 'value of the field',
             'required'      => true
         ],
-        'type'      => [
-            'description'   => 'Type of the UML data',
+        'type' => [
             'type'          => 'string',
-            'required'      => true,
+            'description'   => 'Type of the UML data',
             'selection'     => [
                 'erd'
-            ]
+            ],
+            'required'      => true
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
     ],
     'response'      => [
         'content-type'  => 'text',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
-    'providers'     => ['context', 'orm', 'access']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context              $context
- * @var \equal\orm\ObjectManager        $orm
- * @var \equal\access\AccessController  $ac
+ * @var \equal\php\Context $context
  */
-list($context, $orm, $ac) = [$providers['context'], $providers['orm'], $providers['access']];
+['context' => $context] = $providers;
 
 $response_code = 200;
 
 $package = $params['package'];
 
-if(!file_exists(QN_BASEDIR."/packages/{$package}")) {
-    throw new Exception('missing_package_dir', QN_ERROR_INVALID_PARAM);
+if(!file_exists(EQ_BASEDIR."/packages/{$package}")) {
+    throw new Exception('missing_package_dir', EQ_ERROR_INVALID_PARAM);
 }
 
-if(!file_exists(QN_BASEDIR."/packages/{$package}/uml")) {
-    if(!mkdir(QN_BASEDIR."/packages/{$package}/uml", 0775, true)) {
-        throw new Exception('io_error'.QN_BASEDIR."/packages/{$package}/uml/{$path}", QN_ERROR_INVALID_CONFIG);
+if(!file_exists(EQ_BASEDIR."/packages/{$package}/uml")) {
+    if(!mkdir(EQ_BASEDIR."/packages/{$package}/uml", 0775, true)) {
+        throw new Exception('io_error'.EQ_BASEDIR."/packages/{$package}/uml/{$path}", EQ_ERROR_INVALID_CONFIG);
     }
 }
 
@@ -77,11 +76,11 @@ if(substr($filename, -strlen($extension)) != $extension) {
     $filename = $filename.$extension;
 }
 
-$final_path = QN_BASEDIR."/packages/{$package}/uml/" . ( (strlen($path))?($path.'/'):'' );
+$final_path = EQ_BASEDIR."/packages/{$package}/uml/" . ( (strlen($path))?($path.'/'):'' );
 
 if(!is_dir($final_path)) {
     if(!mkdir($final_path, 0775, true)) {
-        throw new Exception('io_error', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('io_error', EQ_ERROR_INVALID_CONFIG);
     }
 }
 
@@ -92,14 +91,15 @@ if(!file_exists($final_path.$filename)) {
 // store payload
 $f = fopen($final_path.$filename, "w");
 if(!$f) {
-    throw new Exception('io_error', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('io_error', EQ_ERROR_INVALID_CONFIG);
 }
 fputs($f, $params['payload']);
 fclose($f);
 
 $result = file_get_contents($final_path.$filename);
 
-$context->httpResponse()
-        ->body($result)
-        ->status($response_code)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->status($response_code)
+    ->send();

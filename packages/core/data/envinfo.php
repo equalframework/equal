@@ -9,14 +9,14 @@
 use core\setting\Setting;
 use core\setting\SettingValue;
 
-list( $params, $providers ) = eQual::announce([
-    'description' => 'Retrieve public configuration intended for front-end.',
-    'help'        => "This controller is public, but the information stored as SettingValue objects are only disclosed to authenticated users (user_id <> 0).\n
-                     If there are any setting values specific to the current user, these are append to the response.",
-    'access'      => [
-        'visibility' => 'public'
+[$params, $providers] = eQual::announce([
+    'description'   => 'Retrieve public configuration intended for front-end.',
+    'help'          => "This controller is public, but the information stored as SettingValue objects are only disclosed to authenticated users (user_id <> 0).\n\n"
+                    ."If there are any setting values specific to the current user, these are append to the response.",
+    'access'        => [
+        'visibility'    => 'public'
     ],
-    'response'    => [
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*',
@@ -24,7 +24,7 @@ list( $params, $providers ) = eQual::announce([
         'cache-vary'    => ['user'],
         'expires'       => (60*60*24)
     ],
-    'constants'   => [
+    'constants'     => [
         "ENV_MODE",
         "DEFAULT_LANG",
         "APP_DEFAULT_LANG",
@@ -41,7 +41,11 @@ list( $params, $providers ) = eQual::announce([
     'providers'     => ['context', 'auth']
 ] );
 
-list($context, $auth) = [$providers['context'], $providers['auth']];
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ */
+['context' => $context, 'auth' => $auth] = $providers;
 
 $envinfo = [
     "env_mode"              => constant('ENV_MODE'),
@@ -116,6 +120,7 @@ if($user_id) {
     }
 }
 
-$context->httpResponse()
-        ->body($envinfo)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($envinfo)
+    ->send();

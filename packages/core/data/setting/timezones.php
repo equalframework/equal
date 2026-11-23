@@ -6,28 +6,28 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns a list of timezones identifiers, filtered by keywords if given.',
     'params'        => [
-        'q' =>  [
-            'description'   => 'Keyword for filtering matching timezones.',
+        'q' => [
             'type'          => 'string',
+            'description'   => 'Keyword for filtering matching timezones.',
             'default'       => ''
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => [ 'context' ]
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-list($context) = [ $providers['context'] ];
+['context' => $context] = $providers;
 
 $result = [];
 
@@ -44,6 +44,7 @@ else {
     $result = $list;
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

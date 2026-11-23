@@ -5,29 +5,31 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns an associative array mapping orm types with possible widget types.',
     'help'          => 'Widget types allow variations on the way the widget is displayed, without impacting the underlying value (whose type depends on the type and usage from the related field).',
+    'params'        => [    ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
-    'params'        => [],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
+ * @var \equal\php\Context $context
  */
-list($context) = [$providers['context']];
+['context' => $context] = $providers;
 
-if(!file_exists(QN_BASEDIR."/config/widget_types.json")) {
+if(!file_exists(EQ_BASEDIR."/config/widget_types.json")) {
     throw new Exception("no_usages_file", EQ_ERROR_UNKNOWN);
 }
 
-$content = file_get_contents(QN_BASEDIR."/config/widget_types.json");
+$content = file_get_contents(EQ_BASEDIR."/config/widget_types.json");
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($content)
     ->send();

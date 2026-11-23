@@ -5,34 +5,35 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 $packages = eQual::run('get', 'config_packages');
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns all routes defined in a given package, based on content from `init/routes`. Routes being active depends on the package initialization and routes files priorities.',
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'utf-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
-        "package" => [
-            "type"          => "string",
+        'package' => [
+            'type'          => "string",
+            'description'   => "Package to inspect.",
             'selection'     => array_combine(array_values($packages), array_values($packages)),
-            "required"      => true,
-            "description"   => "Package to inspect.",
+            'required'      => true
         ]
     ],
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['users']
     ],
-    'providers'         => ['context']
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
+    ],
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\context  Context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $package = $params["package"];
 
@@ -53,6 +54,7 @@ if(is_dir($dir)) {
     }
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

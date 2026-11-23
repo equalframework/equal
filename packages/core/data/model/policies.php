@@ -6,14 +6,14 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the policies defined for the given entity, if any.',
     'help'          => 'This controller provides a JSON map of the policies as defined in the class of the given entity. If no `getWorkflow` method is found in the class, it falls back to the one defined in the orm\Model class, which returns an empty array.',
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
             'usage'         => 'orm/entity',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ]
     ],
@@ -26,27 +26,28 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 if(!method_exists($entity, 'getPolicies')) {
-    throw new Exception("missing_method", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("missing_method", EQ_ERROR_INVALID_CONFIG);
 }
 
 $policies = $entity->getPolicies();
 
 if(!is_array($policies)) {
-    throw new Exception("invalid_method", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("invalid_method", EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
-        ->body($policies)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($policies)
+    ->send();

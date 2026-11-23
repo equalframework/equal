@@ -5,30 +5,31 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the list of controllers defined in given package.',
     'params'        => [
         'package' => [
-            'description'   => 'Name of the package for which the list is requested',
             'type'          => 'string',
+            'description'   => 'Name of the package for which the list is requested',
             'default'       => '*'
         ]
     ],
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
-    ],
-    'access' => [
+    'access'        => [
         'visibility'    => 'protected'
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 $result = [
     'apps'      => [],
@@ -51,9 +52,10 @@ foreach($packages as $package) {
     $result['data'] = array_merge($result['data'], recurse_dir("packages/{$package}/data", 'php', $package));
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();
 
 function has_sub_items($directory, $extension) {
     $files = glob($directory.'/*.'.$extension);

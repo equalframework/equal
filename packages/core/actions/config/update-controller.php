@@ -5,48 +5,48 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, PrettyPrinter};
+
 use PhpParser\PhpVersion;
+use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, PrettyPrinter};
 
 
 [$params, $providers] = eQual::announce([
     'description'   => "Translate an entity definition to a PHP file and store it in related package dir.",
     'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
-    'response'      => [
-        'content-type'  => 'text/plain',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
-        'controller'	=> [
-            'description'   => 'Name of the controller.',
+        'controller' => [
             'type'          => 'string',
-            'usage'         => 'orm/entity'
-//            'required'      => true
+            'usage'         => 'orm/entity',
+            'description'   => 'Name of the controller.'
+            //            'required'      => true
         ],
-        'operation'	=> [
-            'description'   => 'Operation the controller relates to.',
+        'operation' => [
             'type'          => 'string',
+            'description'   => 'Operation the controller relates to.',
             'selection'     => [
                 'do',
                 'get',
                 'show'
             ]
         ],
-        'payload' =>  [
-            'description'   => 'Controller `announce` descriptor.',
+        'payload' => [
             'type'          => 'array',
-//            'required'      => true
+            'description'   => 'Controller `announce` descriptor.',
+            //            'required'      => true
         ]
     ],
-    'providers'     => ['context', 'orm']
+    'response'      => [
+        'content-type'  => 'text/plain',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 // Create all the object to use for using PhpParser
 $parser = (new ParserFactory)->createForVersion(PhpVersion::getHostVersion());
@@ -102,7 +102,7 @@ $traverser->addVisitor(
 
 // Get the full path of the file
 $dir = ['do' => 'actions', 'get' => 'data', 'show' => 'apps'][$params['operation']];
-$file = QN_BASEDIR."/packages/{$package}/{$dir}/{$class_path}/{$filename}.php";
+$file = EQ_BASEDIR."/packages/{$package}/{$dir}/{$class_path}/{$filename}.php";
 
 $file = str_replace("//","/",$file);
 // Get the code from the original file ...
@@ -123,15 +123,16 @@ try {
     $command = 'php ./vendor/bin/ecs check "' . str_replace('\\', '/', $file) . '" --fix';
 
     if(exec($command) === false) {
-        throw new Exception('command_failed', QN_ERROR_UNKNOWN);
+        throw new Exception('command_failed', EQ_ERROR_UNKNOWN);
     }
 }
 catch(Exception $e) {
-    throw new Exception('unable to beautfy the file', QN_ERROR_UNKNOWN);
+    throw new Exception('unable to beautfy the file', EQ_ERROR_UNKNOWN);
     //trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
 }
 
 $result = file_get_contents($file);
 
-$context->httpResponse()
-        ->send();
+$context
+    ->httpResponse()
+    ->send();
