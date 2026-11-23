@@ -46,7 +46,7 @@ $tests = [
 
                     ['orm' => $orm, 'db' => $db] = eQual::inject(['orm', 'db']);
                     $stored_records = $db->getRecords(
-                        'core_security_Credential',
+                        Credential::getModelTable(),
                         ['secret'],
                         [$fixtures['id']]
                     );
@@ -118,7 +118,7 @@ $tests = [
 
                     ['db' => $db] = eQual::inject(['db']);
                     $stored_records = $db->getRecords(
-                        'core_security_Credential',
+                        Credential::getModelTable(),
                         ['id', 'secret'],
                         $fixtures['ids']
                     );
