@@ -5,17 +5,18 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Attempts to create a new package using a given name.",
     'params'        => [
-        'package' =>  [
-            'description'   => 'Name of the package of the new model',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Name of the package of the new model',
             'required'      => true
         ],
-        'model' =>  [
-            'description'   => 'Name of the model to be created (must be unique).',
+        'model' => [
             'type'          => 'string',
+            'description'   => 'Name of the model to be created (must be unique).',
             'required'      => true
         ],
         'extends' => [
@@ -24,25 +25,30 @@ list($params, $providers) = eQual::announce([
             'default'       => 'Model'
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ],
     'response'      => [
         'content-type'  => 'text',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
     'providers'     => ['context', 'orm', 'access']
 ]);
+
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 $package = $params['package'];
 
 if(!file_exists("packages/{$package}")) {
-    throw new Exception('missing_package_dir', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_package_dir', EQ_ERROR_INVALID_CONFIG);
 }
 if(!file_exists("packages/{$package}/classes")) {
-    throw new Exception('missing_classes_dir', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_classes_dir', EQ_ERROR_INVALID_CONFIG);
 }
 
 $model_path = $params['model'];
@@ -58,18 +64,18 @@ $nest = str_replace("\\","/",$namespace);
 
 
 if(strlen($name) <= 0){
-    throw new Exception('empty_model_name', QN_ERROR_INVALID_PARAM);
+    throw new Exception('empty_model_name', EQ_ERROR_INVALID_PARAM);
 }
 
 if(!ctype_upper(mb_substr($name, 0, 1))){
-    throw new Exception('broken_naming_convention', QN_ERROR_INVALID_PARAM);
+    throw new Exception('broken_naming_convention', EQ_ERROR_INVALID_PARAM);
 }
 
 // Verification de la non existence du model
-$file = QN_BASEDIR."/packages/{$package}/classes/{$nest}/{$name}.class.php";
+$file = EQ_BASEDIR."/packages/{$package}/classes/{$nest}/{$name}.class.php";
 
 if(file_exists($file)) {
-    throw new Exception('model_already_exists', QN_ERROR_INVALID_PARAM);
+    throw new Exception('model_already_exists', EQ_ERROR_INVALID_PARAM);
 }
 
 
@@ -84,21 +90,21 @@ else {
     $part = explode("\\",$extends);
     $package_parent = array_shift($part);
     $model_parent_path = implode("/",$part);
-    $file_parent = QN_BASEDIR."/packages/{$package_parent}/classes/{$model_parent_path}.class.php";
+    $file_parent = EQ_BASEDIR."/packages/{$package_parent}/classes/{$model_parent_path}.class.php";
     if(!file_exists($file_parent)) {
-        throw new Exception('parent_does_not_exists', QN_ERROR_INVALID_PARAM);
+        throw new Exception('parent_does_not_exists', EQ_ERROR_INVALID_PARAM);
     }
     $extends = "\\".$extends;
 }
 
 // create folder if missing
-$dir = QN_BASEDIR."/packages/{$package}/classes/".$nest;
+$dir = EQ_BASEDIR."/packages/{$package}/classes/".$nest;
 $d = mkdir($dir, 0777, true);
 
 $f = fopen($file,"w");
 
 if(!$f) {
-    throw new Exception('io_error', QN_ERROR_UNKNOWN);
+    throw new Exception('io_error', EQ_ERROR_UNKNOWN);
 }
 
 if(!empty($namespace)) {
@@ -122,6 +128,7 @@ fclose($f);
 
 $result = file_get_contents($file);
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->send();

@@ -6,8 +6,6 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use equal\php\Context;
-
 [$params, $providers] = eQual::announce([
     'description'   => 'Return the XSD schema matching the provided schema id.',
     'params'        => [
@@ -24,21 +22,21 @@ use equal\php\Context;
             'required'      => true
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/xml',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'    => 'protected'
-    ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var Context $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $schemaId = $params['id'];
 $package  = $params['package'];
@@ -111,6 +109,7 @@ if(!$schema_path) {
 
 $result = file_get_contents($schema_path);
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result, true)
     ->send();

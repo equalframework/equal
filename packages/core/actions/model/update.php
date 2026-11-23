@@ -9,68 +9,68 @@
 [$params, $providers] = eQual::announce([
     'description'   => "Update (fully or partially) the given object.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'id' =>  [
-            'description'   => 'Unique identifier of the object to update.',
+        'id' => [
             'type'          => 'integer',
+            'description'   => 'Unique identifier of the object to update.',
             'default'       => 0
         ],
-        'ids' =>  [
+        'ids' => [
+            'type'          => 'array',
             'description'   => 'List of Unique identifiers of the objects to update.',
-            'type'          => 'array',
             'default'       => []
         ],
-        'fields' =>  [
+        'fields' => [
+            'type'          => 'array',
             'description'   => 'Associative array mapping fields to be updated with their related values.',
-            'type'          => 'array',
             'default'       => []
         ],
-        'force' =>  [
-            'description'   => 'Flag for forcing update in case a concurrent change is detected.',
+        'force' => [
             'type'          => 'boolean',
+            'description'   => 'Flag for forcing update in case a concurrent change is detected.',
             'default'       => false
         ],
         'previous_state' => [
-            'description'   => 'State of the object when it was loaded by the client.',
             'type'          => 'string',
+            'description'   => 'State of the object when it was loaded by the client.',
             'default'       => ''
         ],
         'previous_modified' => [
-            'description'   => 'Modification timestamp of the object when it was loaded by the client.',
             'type'          => 'string',
+            'description'   => 'Modification timestamp of the object when it was loaded by the client.',
             'default'       => ''
         ],
         'lang' => [
-            'description '  => 'Specific language for multilang field.',
             'type'          => 'string',
+            'description'   => 'Specific language for multilang field.',
             'default'       => constant('DEFAULT_LANG')
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected'
-    ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'adapt', 'auth']
 ]);
 
 /**
- * @var \equal\php\Context                $context
- * @var \equal\orm\ObjectManager          $orm
- * @var \equal\data\DataAdapterProvider   $dap
- * @var \equal\auth\AuthenticationManager $auth
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
+ * @var \equal\auth\AuthenticationManager       $auth
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'auth' => $auth] = $providers;
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('json');
 
 $result = [];
@@ -179,7 +179,8 @@ if(count($fields)) {
         ->get(true);
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->status(200)
     ->body($result)
     ->send();

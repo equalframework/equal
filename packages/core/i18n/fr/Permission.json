@@ -3,6 +3,11 @@
     "plural": "Permissions",
     "description": "Les permissions (ACL) permettent d'assigner des droits à un utilisateur ou un groupe d'utilisateurs sur une classe (entité) ou sur un objet (instance d'une classe).",
     "model": {
+        "description": {
+            "label": "Description",
+            "description": "Résumé facultatif de l'objectif de la permission.",
+            "help": "Saisissez une brève explication de ce que la permission accorde."
+        },
         "class_name":{
             "label": "Classe",
             "description": "Classe d'entité à laquelle la permission s'applique.",

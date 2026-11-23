@@ -29,8 +29,8 @@ use equal\html\HtmlTemplate;
 ]);
 
 /**
- * @var equal\php\Context                $context
- * @var equal\auth\AuthenticationManager $auth
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 

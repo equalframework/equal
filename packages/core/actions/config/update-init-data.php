@@ -5,16 +5,12 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\fs\FSManipulator;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Save a representation of a view to a json file.",
-    'response'      => [
-        'content-type'  => 'text/plain',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
-    'params' => [
+    'params'        => [
         'package' => [
             'type'          => 'string',
             'description'   => 'Name of the entity.',
@@ -27,22 +23,29 @@ list($params, $providers) = eQual::announce([
                 'init',
                 'demo'
             ],
-            'default'       => 'init',
+            'default'       => 'init'
         ],
-        'payload' =>  [
-            'description'   => 'View definition (JSON).',
+        'payload' => [
             'type'          => 'text',
+            'description'   => 'View definition (JSON).',
             'required'      => true
         ]
+    ],
+    'response'      => [
+        'content-type'  => 'text/plain',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
-/** @var \equal\php\context Context */
-list($context) = [$providers['context']];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 if( ($decoded = json_decode($params['payload'], true)) === null) {
-    throw new Exception("invalid_payload", QN_ERROR_INVALID_PARAM);
+    throw new Exception("invalid_payload", EQ_ERROR_INVALID_PARAM);
 }
 
 $package = $params['package'];
@@ -50,7 +53,7 @@ $package = $params['package'];
 $packages = equal::run("get", "config_packages");
 
 if(!in_array($package, $packages)) {
-    throw new Exception("unknown_package", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_package", EQ_ERROR_INVALID_PARAM);
 }
 
 $folder = ([
@@ -58,10 +61,10 @@ $folder = ([
         "demo" => "demo"
     ])[$params['type']];
 
-$dir = QN_BASEDIR."/packages/$package/init/$folder";
+$dir = EQ_BASEDIR."/packages/$package/init/$folder";
 
 if(!is_dir($dir)) {
-    throw new Exception("missing_directory", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("missing_directory", EQ_ERROR_INVALID_CONFIG);
 }
 
 $files = FSManipulator::getDirFlatten($dir, ['json']);
@@ -72,7 +75,7 @@ foreach($files as $file) {
     unlink($dir.'/'.$file.'.bak');
     $res = rename($dir.'/'.$file, $dir.'/'.$file.'.bak');
     if(!$res) {
-        throw new Exception("io_error",QN_ERROR_INVALID_CONFIG);
+        throw new Exception("io_error",EQ_ERROR_INVALID_CONFIG);
     }
     $backups[] = $dir.'/'.$file.'.bak';
 }
@@ -81,11 +84,11 @@ foreach($decoded as $file => $content) {
     $sanitized_filename = FSManipulator::getSanitizedPath($file);
     $f = fopen($dir.'/'.$sanitized_filename, "w");
     if(!$f) {
-        throw new Exception("io_error", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("io_error", EQ_ERROR_INVALID_CONFIG);
     }
     $json = json_encode($content, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     if(!$json) {
-        throw new Exception("encoding_error", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("encoding_error", EQ_ERROR_INVALID_CONFIG);
     }
     fputs($f, $json);
     fclose($f);
@@ -95,6 +98,7 @@ foreach($backups as $file) {
     unlink($file);
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->send();

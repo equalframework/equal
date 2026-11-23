@@ -5,38 +5,38 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
+
 use equal\orm\Model;
 use PhpParser\PhpVersion;
+use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Translate an entity definition to a PHP file and store it in related package dir.",
     'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
+    'params'        => [
+        'entity' => [
+            'type'          => 'string',
+            'description'   => 'Name of the entity (class).',
+            'required'      => true
+        ],
+        'payload' => [
+            'type'          => 'array',
+            'description'   => 'Entity definition .',
+            'required'      => true
+        ]
+    ],
     'response'      => [
         'content-type'  => 'text/plain',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params'        => [
-        'entity'    => [
-            'description'   => 'Name of the entity (class).',
-            'type'          => 'string',
-            'required'      => true
-        ],
-        'payload' =>  [
-            'description'   => 'Entity definition .',
-            'type'          => 'array',
-            'required'      => true
-        ]
-    ],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 // Create all the object to use for using PhpParser
 $parser = (new ParserFactory)->createForVersion(PhpVersion::getHostVersion());
@@ -98,7 +98,7 @@ $traverser->addVisitor(
     );
 
 // Get the full path of the file
-$file = QN_BASEDIR."/packages/{$package}/classes/{$class_path}/{$filename}.class.php";
+$file = EQ_BASEDIR."/packages/{$package}/classes/{$class_path}/{$filename}.class.php";
 // Get the code from the original file ...
 $code = file_get_contents($file);
 // ... and parse it to create an AST
@@ -114,16 +114,17 @@ try {
     // apply coding standards (ecs.php is expected in QN_BASEDIR)
     $command = 'php ./vendor/bin/ecs check "' . str_replace('\\', '/', $file) . '" --fix';
     if(exec($command) === false) {
-        throw new Exception('command_failed', QN_ERROR_UNKNOWN);
+        throw new Exception('command_failed', EQ_ERROR_UNKNOWN);
     }
     $result = file_get_contents($file);
 }
 catch(Exception $e) {
-    trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
+    trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), EQ_REPORT_INFO);
 }
 
-$context->httpResponse()
-        ->send();
+$context
+    ->httpResponse()
+    ->send();
 
 /**
  * Filter out the properties of the schema from special columns inherited from the Model.

@@ -12,39 +12,35 @@ use core\followup\Task;
     'description'   => "Alerts followup tasks that should have be done by today.",
     'help'          => "This controller is intended for scheduled runs. It finds unfinished follow-up tasks whose deadline has passed and dispatches an alert on the related business object, using the task check callback to dismiss or renew the alert later.",
     'params'        => [
-
         'entity' => [
-            'type'              => 'string',
-            'description'       => "Full name (including namespace) of the specific class to handle.",
-            'usage'             => 'orm/entity'
+            'type'          => 'string',
+            'usage'         => 'orm/entity',
+            'description'   => "Full name (including namespace) of the specific class to handle."
         ],
-
         'message_model' => [
-            'type'              => 'string',
-            'description'       => "The name of the message model to use for the alert.",
-            'default'           => 'core.followup.task.reminder'
+            'type'          => 'string',
+            'description'   => "The name of the message model to use for the alert.",
+            'default'       => 'core.followup.task.reminder'
         ],
-
         'severity' => [
-            'type'              => 'string',
-            'description'       => "Severity of the created alerts.",
-            'selection'         => [
+            'type'          => 'string',
+            'description'   => "Severity of the created alerts.",
+            'selection'     => [
                 'notice',
                 'warning',
                 'important',
                 'urgent'
             ],
-            'default'           => 'warning'
+            'default'       => 'warning'
         ]
-
     ],
     'access'        => [
-        'visibility'        => 'protected'
+        'visibility'    => 'protected'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context', 'dispatch']
 ]);
@@ -94,6 +90,7 @@ if(!empty($tasks)) {
     }
 }
 
-$context->httpResponse()
-        ->status(200)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(200)
+    ->send();

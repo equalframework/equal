@@ -11,79 +11,78 @@ use equal\db\DBConnector;
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Initialize a package by populating the database with tables mapping the entities defined in the given package and its dependencies.',
     'params'        => [
         'package' => [
-            'description'   => 'Package that must be initialized.',
             'type'          => 'string',
             'usage'         => 'orm/package',
+            'description'   => 'Package that must be initialized.',
             'required'      => true
         ],
         'cascade' => [
-            'description'   => 'Request cascade initialization of the dependencies.',
             'type'          => 'boolean',
+            'description'   => 'Request cascade initialization of the dependencies.',
             'default'       => true
         ],
         'force' => [
-            'description'   => 'Request initialization even if package has already been initialized.',
             'type'          => 'boolean',
+            'description'   => 'Request initialization even if package has already been initialized.',
             'default'       => false
         ],
         'force_cascade' => [
-            'description'   => 'Force initialization for dependencies as well.',
             'type'          => 'boolean',
+            'description'   => 'Force initialization for dependencies as well.',
             'default'       => false
         ],
         'import' => [
+            'type'          => 'boolean',
             'description'   => 'Request importing initial data.',
-            'help'          => 'No default is set in announcement since default value depends on previous initialization and `force` param.',
-            'type'          => 'boolean'
+            'help'          => 'No default is set in announcement since default value depends on previous initialization and `force` param.'
         ],
         'import_cascade' => [
-            'description'   => 'Import initial data for dependencies as well.',
             'type'          => 'boolean',
+            'description'   => 'Import initial data for dependencies as well.',
             'default'       => true
         ],
         'demo' => [
-            'description'   => 'Request importing demo data.',
             'type'          => 'boolean',
+            'description'   => 'Request importing demo data.',
             'default'       => false
         ],
         'test' => [
-            'description'   => 'Request importing data intended for testing.',
             'type'          => 'boolean',
+            'description'   => 'Request importing data intended for testing.',
             'default'       => false
         ],
         'composer' => [
-            'description'   => 'Request initialization of composer dependencies (`/vendor`).',
             'type'          => 'boolean',
+            'description'   => 'Request initialization of composer dependencies (`/vendor`).',
             'default'       => true
         ],
         'ignore_platform' => [
-            'description' => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
-            'type'        => 'boolean',
-            'default'     => false
+            'type'          => 'boolean',
+            'description'   => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
+            'default'       => false
         ],
         'root' => [
-            'description'   => 'Mark the script as top-level or as a sub-call (for recursion).',
             'type'          => 'boolean',
+            'description'   => 'Mark the script as top-level or as a sub-call (for recursion).',
             'default'       => true
         ]
     ],
-    'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'providers'     => ['context', 'orm'],
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['admins']
-    ]
+    ],
+    'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context $context
  */
-['context' => $context, 'orm' => $orm] = $providers;
+['context' => $context] = $providers;
 
 /**
  * Methods

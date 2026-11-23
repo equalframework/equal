@@ -23,20 +23,20 @@ use lbuchs\WebAuthn\WebAuthn;
             'required'      => true
         ]
     ],
+    'access'        => [
+        'visibility'    => 'public'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'public'
     ],
     'constants'     => ['AUTH_SECRET_KEY', 'APP_NAME', 'BACKEND_URL'],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 
@@ -129,7 +129,8 @@ $authOptions->authToken = JWT::encode(
     constant('AUTH_SECRET_KEY')
 );
 
-$context->httpResponse()
-        ->status(200)
-        ->body((array) $authOptions)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(200)
+    ->body((array) $authOptions)
+    ->send();

@@ -5,64 +5,65 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
-    'description'	=>	"Lists objects of provided entity and ids with requested fields.",
-    'params' 		=>	[
-        'entity' =>  [
-            'description'   => 'Full name (with namespace) of requested entity.',
+
+[$params, $providers] = eQual::announce([
+    'description'   => "Lists objects of provided entity and ids with requested fields.",
+    'params'        => [
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (with namespace) of requested entity.',
             'required'      => true
         ],
-        'ids' =>  [
+        'ids' => [
+            'type'          => 'array',
             'description'   => 'List of unique identifiers of the objects to read.',
-            'type'          => 'array',
             'required'      => true
         ],
-        'fields' =>  [
-            'description'   => 'Names of fields for which value is requested.',
+        'fields' => [
             'type'          => 'array',
+            'description'   => 'Names of fields for which value is requested.',
             'default'       => ['id', 'name']
         ],
-        'lang' =>  [
-            'description'   => 'Language in which to retrieve multilang fields.',
+        'lang' => [
             'type'          => 'string',
             'usage'         => 'language/iso-639',
+            'description'   => 'Language in which to retrieve multilang fields.',
             'default'       => constant('DEFAULT_LANG')
         ],
         'order' => [
-            'description'   => 'Column to use for sorting results.',
             'type'          => 'string',
+            'description'   => 'Column to use for sorting results.',
             'default'       => 'id'
         ],
         'sort' => [
-            'description'   => 'Direction of the sorting.',
             'type'          => 'string',
+            'description'   => 'Direction of the sorting.',
             'selection'     => ['asc', 'desc'],
             'default'       => 'asc'
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected'
-    ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => [ 'context', 'orm' ]
 ]);
 
 /**
- * @var \equal\php\Context $context
- * @var \equal\orm\ObjectManager $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 // get the complete schema of the object (including special fields)
@@ -112,6 +113,7 @@ $result = $collection
     // #memo - JSON objects handled by ES2015+ might have their keys order altered
     ->get(true);
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

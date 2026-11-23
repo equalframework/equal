@@ -8,37 +8,31 @@
 [$params, $providers] = eQual::announce([
     'description'   => "Creates a new i18n translation file for a menu.",
     'params'        => [
-
         'package' => [
             'type'          => 'string',
             'description'   => "Name of the package.",
             'required'      => true
         ],
-
         'menu_name' => [
             'type'          => 'string',
             'description'   => "Name of the menu.",
             'required'      => true
         ],
-
         'lang' => [
             'type'          => 'string',
             'description'   => "Code of the desired lang.",
             'required'      => true
         ],
-
         'overwrite' => [
             'type'          => 'boolean',
             'description'   => "If true the file will be overwritten if it already exists.",
             'default'       => false
         ],
-
         'payload' => [
             'type'          => 'array',
             'description'   => "JSON structure containing the menu view items.",
             'required'      => false
         ]
-
     ],
     'access'        => [
         'visibility'    => 'protected',
@@ -53,7 +47,7 @@
 ]);
 
 /**
- * @var \equal\php\Context          $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 
@@ -113,7 +107,8 @@ if(!file_put_contents($file, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESC
     throw new Exception("file_access_denied", EQ_ERROR_UNKNOWN);
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->body($result)
+    ->send();

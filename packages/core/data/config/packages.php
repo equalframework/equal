@@ -5,25 +5,26 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Provide the full list of packages present within the `packages` folder (initialized or not).',
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-list($context) = [$providers['context']];
+['context' => $context] = $providers;
 
 $packages = [];
 
 if(!is_dir('packages') || !($list = scandir('packages'))) {
-    throw new Exception('missing_packages_directory', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_packages_directory', EQ_ERROR_INVALID_CONFIG);
 }
 
 foreach($list as $node) {
@@ -32,6 +33,7 @@ foreach($list as $node) {
     }
 }
 
-$context->httpResponse()
-        ->body($packages)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($packages)
+    ->send();

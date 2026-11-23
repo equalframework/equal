@@ -5,33 +5,34 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\orm\ObjectManager;
-use equal\db\DBConnector;
+
 use equal\data\adapt\DataAdapterProviderSql;
+use equal\db\DBConnector;
+use equal\orm\ObjectManager;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
 
-list($params, $providers) = eQual::announce([
-    'description'	=> "Returns the schema of the specified package in standard SQL ('CREATE' statements with 'IF NOT EXISTS' clauses).",
+[$params, $providers] = eQual::announce([
+    'description'   => "Returns the schema of the specified package in standard SQL ('CREATE' statements with 'IF NOT EXISTS' clauses).",
     'params'        => [
-        'package'   => [
-            'description'   => 'Package for which we want SQL schema.',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Package for which we want SQL schema.',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
         ],
-        'full'	=> [
-            'description'   => 'Force the output to complete schema (i.e. all tables with all columns, even if already present in DB).',
+        'full' => [
             'type'          => 'boolean',
+            'description'   => 'Force the output to complete schema (i.e. all tables with all columns, even if already present in DB).',
             'default'       => false
         ]
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm']
 ]);
 
@@ -304,6 +305,7 @@ foreach($m2m_tables as $table => $columns) {
 }
 
 // provide SQL schema as a JSON encoded SQL query
-$context->httpResponse()
-        ->body(['result' => implode("\n", $result)])
-        ->send();
+$context
+    ->httpResponse()
+    ->body(['result' => implode("\n", $result)])
+    ->send();

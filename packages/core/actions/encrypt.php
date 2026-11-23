@@ -8,11 +8,11 @@
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Encrypts given value using private cipher key.",
-    'params' 		=>	[
-        'value' =>  [
-            'description'   => 'Value to encrypt.',
+    'description'   => "Encrypts given value using private cipher key.",
+    'params'        => [
+        'value' => [
             'type'          => 'string',
+            'description'   => 'Value to encrypt.',
             'required'      => true
         ],
         'legacy' => [
@@ -25,9 +25,9 @@
         'visibility'    => 'private'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);

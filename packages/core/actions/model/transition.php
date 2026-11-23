@@ -5,44 +5,45 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => "Attempts to apply a transition on an object or a collection of a given class.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'id' =>  [
-            'description'   => 'Unique identifier of the object to remove.',
+        'id' => [
             'type'          => 'integer',
+            'description'   => 'Unique identifier of the object to remove.',
             'default'       => 0
         ],
-        'ids' =>  [
-            'description'   => 'List of Unique identifiers of the objects to update.',
+        'ids' => [
             'type'          => 'array',
+            'description'   => 'List of Unique identifiers of the objects to update.',
             'default'       => []
         ],
-        'transition' =>  [
-            'description'   => 'Name of the transition to attempt to apply on the objects.',
+        'transition' => [
             'type'          => 'string',
+            'description'   => 'Name of the transition to attempt to apply on the objects.',
             'required'      => true
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected'
-    ],
     'providers'     => ['context', 'orm']
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
 ['context' => $context, 'orm' => $orm] = $providers;
 
@@ -62,6 +63,7 @@ if(empty($params['ids'])) {
 
 $entity::ids($params['ids'])->transition($params['transition']);
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->status(204)
     ->send();

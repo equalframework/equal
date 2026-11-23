@@ -9,23 +9,22 @@
 use core\setting\Setting;
 
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Sign a user out.",
-    'params' 		=>	[
+    'description'   => "Sign a user out.",
+    'params'        => [],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'constants'     => ['BACKEND_URL', 'AUTH_TOKEN_HTTPS'],
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
-    ],
-    'providers'     => ['context', 'auth'],
+    'providers'     => ['context', 'auth']
 ]);
 
 /**
- * @var equal\php\Context   $context
- * @var equal\auth\AuthenticationManager    $auth
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
-['context' => $context, 'auth' => $auth ] = $providers;
+['context' => $context, 'auth' => $auth] = $providers;
 
 $authenticated_user_id = $auth->authenticatedUserId();
 
@@ -48,12 +47,13 @@ Setting::set_value(
     ['user_id' => $authenticated_user_id]
 );
 
-$context->httpResponse()
-        ->cookie('access_token', '', [
+$context
+    ->httpResponse()
+    ->cookie('access_token', '', [
             'expires'   => time() - 3600,
             'httponly'  => true,
             'secure'    => constant('AUTH_TOKEN_HTTPS'),
             'samesite'  => 'Strict'
         ])
-        ->status(205)
-        ->send();
+    ->status(205)
+    ->send();

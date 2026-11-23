@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 $params = eQual::announce([
     'description'   => 'Checks current installation PHP loaded extensions.',
     'help'          => "This controller raises an exception if one or more mandatory PHP extensions are not loaded in the current environment.\n
@@ -19,7 +20,7 @@ $params = eQual::announce([
 ]);
 
 if(!is_callable('get_loaded_extensions')) {
-    throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("missing_dependency", EQ_ERROR_INVALID_CONFIG);
 }
 
 $extensions = get_loaded_extensions();
@@ -33,13 +34,13 @@ $ext_dbms = ['sqlite3', 'mysqli', 'sqlsrv', 'pgsql'];
 
 $diff_mandatory = array_diff($ext_mandatory, $extensions);
 if(count($diff_mandatory)) {
-    throw new Exception(serialize(['missing_extension' => $diff_mandatory]), QN_ERROR_INVALID_CONFIG);
+    throw new Exception(serialize(['missing_extension' => $diff_mandatory]), EQ_ERROR_INVALID_CONFIG);
 }
 
 if($params['dbms']) {
     $diff_dbms = array_diff($ext_dbms, $extensions);
     if(count($diff_dbms) >= count($ext_dbms)) {
-        throw new Exception(serialize(['missing_one_amongst' => $diff_dbms]), QN_ERROR_INVALID_CONFIG);
+        throw new Exception(serialize(['missing_one_amongst' => $diff_dbms]), EQ_ERROR_INVALID_CONFIG);
     }
 }
 

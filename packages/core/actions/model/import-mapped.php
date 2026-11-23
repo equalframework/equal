@@ -8,9 +8,6 @@
 
 use core\import\DataTransformer;
 use core\import\EntityMapping;
-use equal\data\adapt\DataAdapterProvider;
-use equal\orm\ObjectManager;
-use equal\php\Context;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Import eQual model data from external source using EntityMapping.',
@@ -41,9 +38,9 @@ use equal\php\Context;
 ]);
 
 /**
- * @var Context             $context
- * @var ObjectManager       $orm
- * @var DataAdapterProvider $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
@@ -150,7 +147,7 @@ if(is_null($entity_mapping)) {
 
 $model = $orm->getModel($entity_mapping['entity']);
 if(!$model) {
-    throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+    throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
 }
 
 if(empty($entity_mapping['column_mappings_ids'])) {
@@ -201,6 +198,7 @@ if(!empty($entities_data)) {
     ]);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

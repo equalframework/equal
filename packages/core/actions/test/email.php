@@ -5,30 +5,31 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\Mail;
 use equal\email\EmailMessage;
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Send a test email (using current config) to `EMAIL_SMTP_ACCOUNT_EMAIL`.",
+    'description'   => "Send a test email (using current config) to `EMAIL_SMTP_ACCOUNT_EMAIL`.",
     'params'        => [
         'instant' => [
-            'type'              => 'boolean',
-            'description'       => 'Flag for sending instant message. If false, email is queued in the spooler.',
-            'default'           => true
+            'type'          => 'boolean',
+            'description'   => 'Flag for sending instant message. If false, email is queued in the spooler.',
+            'default'       => true
         ]
     ],
-    'constants'     => ['BACKEND_URL', 'EMAIL_SMTP_ACCOUNT_EMAIL'],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
+    'constants'     => ['BACKEND_URL', 'EMAIL_SMTP_ACCOUNT_EMAIL'],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 
@@ -65,6 +66,7 @@ else {
     Mail::queue($message);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

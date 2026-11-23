@@ -5,11 +5,17 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Check SMTP connectivity using values defined in config file',
     'constants'     => ['EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_ACCOUNT_USERNAME', 'EMAIL_SMTP_ACCOUNT_PASSWORD', 'EMAIL_SMTP_ACCOUNT_EMAIL'],
     'providers'     => ['context']
 ]);
+
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 global $result;
 $result = '';
@@ -46,31 +52,31 @@ $attributes = [];
 try {
     // check email syntax validity
     if(filter_var(constant('EMAIL_SMTP_ACCOUNT_EMAIL'), FILTER_VALIDATE_EMAIL) === false) {
-        throw new Exception('invalid_smtp_account_email', QN_ERROR_INVALID_PARAM);
+        throw new Exception('invalid_smtp_account_email', EQ_ERROR_INVALID_PARAM);
     }
 
     // check email domain validity
     if(filter_var($domain, FILTER_VALIDATE_DOMAIN) === false) {
-        throw new Exception('invalid_smtp_account_domain', QN_ERROR_INVALID_PARAM);
+        throw new Exception('invalid_smtp_account_domain', EQ_ERROR_INVALID_PARAM);
     }
 
     // make sure that an MX record is set for domain to which relates the given email account
     if( checkdnsrr($domain, "MX") === false) {
-        throw new Exception('no_mx_record_for_smtp_account_domain', QN_ERROR_INVALID_PARAM);
+        throw new Exception('no_mx_record_for_smtp_account_domain', EQ_ERROR_INVALID_PARAM);
     }
 
     // make sure the smtp hostname can be resolved to an IP address
     if( ip2long(constant('EMAIL_SMTP_HOST')) === false) {
         $ipv4 = gethostbyname(constant('EMAIL_SMTP_HOST'));
         if($ipv4 == constant('EMAIL_SMTP_HOST')) {
-            throw new Exception('invalid_smtp_host', QN_ERROR_INVALID_PARAM);
+            throw new Exception('invalid_smtp_host', EQ_ERROR_INVALID_PARAM);
         }
     }
 
     // try to establish a connection with the SMTP host
     $sock = fsockopen($host, $port, $errno, $errstr, 2);
     if (!$sock) {
-        throw new Exception('unable_to_connect', QN_ERROR_UNKNOWN);
+        throw new Exception('unable_to_connect', EQ_ERROR_UNKNOWN);
     }
     // do not wait for responses more than 1 sec
     stream_set_timeout($sock, 1);
@@ -80,14 +86,14 @@ try {
     send_line($sock, sprintf("EHLO %s", $domain));
 
     if(!($line = read_line($sock))) {
-        throw new Exception('no_response_received', QN_ERROR_UNKNOWN);
+        throw new Exception('no_response_received', EQ_ERROR_UNKNOWN);
     }
 
     $matches = [];
     preg_match('/^([0-9]{3})([ -])(.*)$/', $line, $matches);
 
     if( intval($matches[1]) != 220) {
-        throw new Exception('invalid_EHLO_response', QN_ERROR_UNKNOWN);
+        throw new Exception('invalid_EHLO_response', EQ_ERROR_UNKNOWN);
     }
 
     // SMTP responses can span multiple lines, they will look like
@@ -102,7 +108,7 @@ try {
         preg_match('/^([0-9]{3})([ -])(.*)$/', $line, $matches);
 
         if( intval($matches[1]) != 250) {
-            throw new Exception('invalid_data_received', QN_ERROR_UNKNOWN);
+            throw new Exception('invalid_data_received', EQ_ERROR_UNKNOWN);
         }
         $parts = explode(' ', $matches[3], 2);
         $attributes[$parts[0]] = (isset($parts[1]))?$parts[1]:'';
@@ -112,7 +118,7 @@ try {
     // The advertised capabilities of the server in the EHLO response will include
     // the types of AUTH mechanisms that are supported
     if(!isset($attributes['AUTH']) || !in_array($attributes['AUTH'], ['LOGIN PLAIN', 'PLAIN LOGIN']) ) {
-        throw new Exception('plain_login_auth_not_available', QN_ERROR_UNKNOWN);
+        throw new Exception('plain_login_auth_not_available', EQ_ERROR_UNKNOWN);
     }
 
     // request authentication
@@ -120,7 +126,7 @@ try {
     $line = read_line($sock);
 
     if(!$line || $line != "334 VXNlcm5hbWU6") {
-        throw new Exception('no_username_prompt_received', QN_ERROR_UNKNOWN);
+        throw new Exception('no_username_prompt_received', EQ_ERROR_UNKNOWN);
     }
 
     // send username
@@ -129,9 +135,9 @@ try {
 
     if(!$line || $line != "334 UGFzc3dvcmQ6") {
         if(intval(explode(' ', $line)[0]) == 535) {
-            throw new Exception('failed_auth_at_user', QN_ERROR_UNKNOWN);
+            throw new Exception('failed_auth_at_user', EQ_ERROR_UNKNOWN);
         }
-        throw new Exception('no_password_prompt_received', QN_ERROR_UNKNOWN);
+        throw new Exception('no_password_prompt_received', EQ_ERROR_UNKNOWN);
     }
 
 
@@ -140,7 +146,7 @@ try {
     $line = read_line($sock);
 
     if(!$line || intval(explode(' ', $line)[0]) != 235) {
-        throw new Exception("failed_auth_at_pass", QN_ERROR_UNKNOWN);
+        throw new Exception("failed_auth_at_pass", EQ_ERROR_UNKNOWN);
     }
 }
 catch(Exception $e) {
@@ -149,7 +155,7 @@ catch(Exception $e) {
 
 fclose($sock);
 
-$providers['context']
+$context
     ->httpResponse()
     ->body(['result' => $line])
     ->send();

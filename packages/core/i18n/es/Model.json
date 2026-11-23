@@ -1,0 +1,58 @@
+{
+    "model": {
+        "id": {
+            "label": "Identificador",
+            "description": "Identificador único del objeto.",
+            "help": "Este valor se asigna automáticamente al objeto."
+        },
+        "name": {
+            "label": "Nombre",
+            "description": "Nombre utilizado para identificar el objeto.",
+            "help": "Este valor identifica el objeto en listas y referencias."
+        },
+        "model": {
+            "label": "Modelo",
+            "description": "Discriminador de modelo asociado al objeto.",
+            "help": "Este valor identifica el ámbito del modelo usado para almacenar el objeto."
+        },
+        "creator": {
+            "label": "Creado por",
+            "description": "Usuario que creó el objeto.",
+            "help": "Este valor identifica al usuario que creó el objeto."
+        },
+        "created": {
+            "label": "Creado",
+            "description": "Fecha y hora de creación del objeto.",
+            "help": "Este valor se establece cuando se crea el objeto."
+        },
+        "modifier": {
+            "label": "Modificado por",
+            "description": "Último usuario que modificó el objeto.",
+            "help": "Este valor identifica al último usuario que modificó el objeto."
+        },
+        "modified": {
+            "label": "Modificado",
+            "description": "Fecha y hora de la última modificación.",
+            "help": "Este valor se actualiza cuando se modifica el objeto."
+        },
+        "deleted": {
+            "label": "Eliminado",
+            "description": "Indica si el objeto se ha eliminado.",
+            "help": "Este valor se activa cuando el objeto se elimina."
+        },
+        "state": {
+            "label": "Estado",
+            "description": "Estado de persistencia del objeto.",
+            "help": "Este valor indica si el objeto es borrador, instancia o archivo.",
+            "selection": {
+                "draft": "Borrador",
+                "instance": "Activo",
+                "archive": "Archivado"
+            }
+        }
+    },
+    "view": {
+    },
+    "error": {
+    }
+}

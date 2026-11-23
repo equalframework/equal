@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
@@ -13,32 +14,32 @@ use Opis\JsonSchema\Validator;
 [$params, $providers] = eQual::announce([
     'description'   => "Parse and validate a raw JSON structure against a given JSON-schema.",
     'params'        => [
-        'json' =>  [
+        'json' => [
             'type'          => 'string',
             'usage'         => 'text/json.medium',
             'description'   => "Raw JSON to be validated against a given schema.",
             'required'      => true
         ],
-        'schema_id' =>  [
+        'schema_id' => [
             'type'          => 'string',
-            'pattern'       => '/^urn:[a-z0-9_-]+:json-schema:[a-z0-9_-]+:[a-z0-9._-]+$/i',
             'description'   => 'Json-Schema $id following the syntax `urn:<namespace>:json-schema[:<package>]:<schema-name>`.',
             'help'          => "Target JSON schema is expected to be a https://json-schema.org/draft/2020-12/ descriptor for validation.",
+            'pattern'       => '/^urn:[a-z0-9_-]+:json-schema:[a-z0-9_-]+:[a-z0-9._-]+$/i',
             'required'      => true
         ],
         'package' => [
-            'description'   => 'Package the schema relates to, if any.',
             'type'          => 'string',
-            'usage'         => 'orm/package'
+            'usage'         => 'orm/package',
+            'description'   => 'Package the schema relates to, if any.'
         ],
-        'strict' =>  [
+        'strict' => [
             'type'          => 'boolean',
             'description'   => 'Flag for enabling/disabling strict valiation (structure + types + mandatory).',
             'default'       => true
         ]
     ],
-    'access' => [
-        'visibility'        => 'protected'
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
@@ -49,9 +50,9 @@ use Opis\JsonSchema\Validator;
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $schema = eQual::run('get', 'json-schema', ['id' => $params['schema_id']], false, true);
 
@@ -108,9 +109,10 @@ if(!$valid) {
     $errors = (new ErrorFormatter())->format($result->error());
 }
 
-$context->httpResponse()
-        ->body([
+$context
+    ->httpResponse()
+    ->body([
             'result' => (bool) $valid,
             'errors' => $errors
         ])
-        ->send();
+    ->send();

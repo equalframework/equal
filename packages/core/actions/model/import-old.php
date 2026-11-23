@@ -5,35 +5,34 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\orm\Field;
 
-list($params, $providers) = announce([
+[$params, $providers] = eQual::announce([
     'description'   => "mark the given object(s) as archived.",
     'params'        => [
-        'json' =>  [
-            'description'   => 'Unique identifier of the object to remove.',
+        'json' => [
             'type'          => 'text',
+            'description'   => 'Unique identifier of the object to remove.',
             'default'       => ''
         ]
     ],
-    'constants'     => ['UPLOAD_MAX_FILE_SIZE'],
+    'access'        => [
+        'visibility'    => 'private'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'access' => [
-        'visibility'        => 'private'
-    ],
-    'providers'     => ['context', 'orm', 'access', 'adapt']
+    'constants'     => ['UPLOAD_MAX_FILE_SIZE'],
+    'providers'     => ['orm', 'adapt']
 ]);
 
 /**
- * @var \equal\php\Context              $context
- * @var \equal\orm\ObjectManager        $orm
- * @var \equal\access\AccessController  $ac
- * @var \equal\data\DataAdapterProvider $dap
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
-list($context, $orm, $ac, $dap) = [$providers['context'], $providers['orm'], $providers['access'], $providers['adapt']];
+['orm' => $orm, 'adapt' => $dap] = $providers;
 
 /**
  * This script is meant to be run using CLI, in conjunction with -i arg.
@@ -64,7 +63,7 @@ else {
         while($s = fgets($stdin, $chunk_size)) {
             $bytes += $chunk_size;
             if($bytes > constant('UPLOAD_MAX_FILE_SIZE')) {
-                throw new Exception('max_size_exceeded', QN_ERROR_INVALID_PARAM);
+                throw new Exception('max_size_exceeded', EQ_ERROR_INVALID_PARAM);
             }
             $json .= $s;
         }
@@ -76,21 +75,21 @@ $data = [];
 if(strlen($json)) {
     $data = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
     if(is_null($data)) {
-        throw new Exception('invalid json: '.json_last_error_msg(), QN_ERROR_INVALID_PARAM);
+        throw new Exception('invalid json: '.json_last_error_msg(), EQ_ERROR_INVALID_PARAM);
     }
 }
 
 if(empty($data)) {
-    throw new Exception('missing_data', QN_ERROR_INVALID_PARAM);
+    throw new Exception('missing_data', EQ_ERROR_INVALID_PARAM);
 }
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('json');
 
 foreach($data as $class) {
 
     if(!isset($class['name']) || !isset($class['data'])) {
-        throw new Exception('invalid_schema', QN_ERROR_INVALID_PARAM);
+        throw new Exception('invalid_schema', EQ_ERROR_INVALID_PARAM);
     }
 
     $entity = $class['name'];

@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 $params = eQual::announce([
     'description'   => 'Checks current installation directories integrity, create mandatory folders, and attempts to assign permissions.',
     'params'        => [],
@@ -19,7 +20,7 @@ $params = eQual::announce([
 $paths = [
     [
         'rights'    =>  EQ_R_READ | EQ_R_WRITE,
-        'path'      =>  QN_LOG_STORAGE_DIR
+        'path'      =>  EQ_LOG_STORAGE_DIR
     ],
     [
         'rights'    =>  EQ_R_READ | EQ_R_WRITE,

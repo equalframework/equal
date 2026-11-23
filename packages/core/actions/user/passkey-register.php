@@ -40,13 +40,13 @@ use lbuchs\WebAuthn\WebAuthn;
             'required'      => true
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'protected'
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL', 'AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']
@@ -101,6 +101,7 @@ Passkey::create([
     'fmt'                   => $attestation['fmt']
 ]);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

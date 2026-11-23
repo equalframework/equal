@@ -5,35 +5,36 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\setting\Setting;
 use core\setting\SettingSection;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Attempts to create (or to reset) a setting given its package, section & code.",
     'params'        => [
-        'package' =>  [
+        'package' => [
+            'type'          => 'string',
             'description'   => 'Name of the package the setting relates to.',
-            'type'          => 'string',
             'required'      => true
         ],
-        'section' =>  [
+        'section' => [
+            'type'          => 'string',
             'description'   => 'Section identifier in which to create the setting.',
-            'type'          => 'string',
             'required'      => true
         ],
-        'code' =>  [
-            'description'   => 'Unique identifier of the setting.',
+        'code' => [
             'type'          => 'string',
+            'description'   => 'Unique identifier of the setting.',
             'required'      => true
         ],
         'value' => [
-            'description'   => 'Value to assign to the setting.',
             'type'          => 'string',
+            'description'   => 'Value to assign to the setting.',
             'required'      => true
         ],
         'type' => [
-            'description'   => 'Type of the values associated to the setting.',
             'type'          => 'string',
+            'description'   => 'Type of the values associated to the setting.',
             'selection'     => [
                     'boolean',
                     'integer',
@@ -44,19 +45,22 @@ use core\setting\SettingSection;
             'default'       => 'string'
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
     'providers'     => ['context', 'orm', 'access']
 ]);
 
-$context = $providers['context'];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 $packages = eQual::run('get', 'core_config_packages');
 
@@ -74,6 +78,7 @@ if(!$settingSection) {
 
 Setting::assert_value($params['package'], $params['section'], $params['code'], $params['value']);
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->send();

@@ -4,20 +4,21 @@
     Some Rights Reserved, eQual framework, 2010-2025
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\orm\Entity;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Update the getActions() return function of an entity",
     'help'          => "This controller relies on the PHP binary. Ensure the PHP binary is present in the PATH.",
     'params'        => [
-        'entity'    => [
-            'description'   => 'Name of the entity (class).',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Name of the entity (class).',
             'required'      => true
         ],
-        'payload' =>  [
-            'description'   => 'Actions definition.',
+        'payload' => [
             'type'          => 'array',
+            'description'   => 'Actions definition.',
             'required'      => true
         ]
     ],
@@ -33,8 +34,7 @@ use equal\orm\Entity;
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 $entity = new Entity($params['entity']);
 
@@ -53,6 +53,7 @@ if(!$class->hasMethod($method_name) || $class->getMethod($method_name)->class !=
 
 $entity->updateMethod($method_name, $params['payload']);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

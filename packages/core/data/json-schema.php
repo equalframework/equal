@@ -16,26 +16,26 @@
             'required'      => true
         ],
         'package' => [
-            'description'   => 'Package the schema relates to, if any.',
             'type'          => 'string',
-            'usage'         => 'orm/package'
+            'usage'         => 'orm/package',
+            'description'   => 'Package the schema relates to, if any.'
         ]
     ],
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
-    ],
-    'access' => [
+    'access'        => [
         'visibility'    => 'protected'
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context               $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $parseJsonSchemaId = function(string $id) {
     $pattern = '/^urn:[a-z0-9_-]+:json-schema:([a-z0-9_-]+):([a-z0-9._-]+)$/i';
@@ -65,6 +65,7 @@ if(!file_exists($filename)) {
 $schema = file_get_contents($filename);
 
 // send back basic info of the User object
-$context->httpResponse()
-        ->body($schema, true)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($schema, true)
+    ->send();

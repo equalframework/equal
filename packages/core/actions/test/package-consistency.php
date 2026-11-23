@@ -11,38 +11,38 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'   =>  "This script tests the given package and returns a report about found errors (if any).",
-    'params'        =>  [
-        'package' =>  [
-            'description'   => 'Package to validate.',
+    'description'   => "This script tests the given package and returns a report about found errors (if any).",
+    'params'        => [
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Package to validate.',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
         ],
-        'level' =>  [
-            'description'   => 'Level of notification to limit the output to.',
+        'level' => [
             'type'          => 'string',
+            'description'   => 'Level of notification to limit the output to.',
             'selection'     => ['*', 'warn', 'error'],
             'default'       => '*'
         ],
-        'strict' =>  [
-            'description'   => 'Flag to enable strict mode.',
+        'strict' => [
             'type'          => 'boolean',
+            'description'   => 'Flag to enable strict mode.',
             'default'       => false
         ]
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context']
 ]);
 
 /**
  * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 /*
     #todo :
@@ -109,13 +109,14 @@ if(!count($result)) {
 }
 
 // send json result
-$context->httpResponse()
-        ->body([
+$context
+    ->httpResponse()
+    ->body([
             'result'   => $result,
             'errors'   => $errors_count,
             'warnings' => $warnings_count
         ])
-        ->send();
+    ->send();
 
 // exit with an error code according to the requested notification level
 if($errors_count || ($warnings_count && in_array($params['level'], ['*', 'warn']))) {

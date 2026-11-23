@@ -10,33 +10,33 @@
 [$params, $providers] = eQual::announce([
     'description'   => 'Seed objects for package using json configuration files in "{package}/init/seed/".',
     'params'        => [
-        'package' =>  [
-            'description'   => 'Name of the package to seed.',
+        'package' => [
             'type'          => 'string',
             'usage'         => 'orm/package',
+            'description'   => 'Name of the package to seed.',
             'required'      => true
         ],
         'config_file' => [
+            'type'          => 'string',
             'description'   => 'Name of the configuration file to use to seed objects.',
             'help'          => 'Configuration file must match the format "{package}/init/seed/{config_file}.json".'
-                                . ' If no config file specified, then all files of seed folder are used.',
-            'type'          => 'string'
+                                . ' If no config file specified, then all files of seed folder are used.'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access'        => [
-        'visibility'    => 'protected'
-    ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 
@@ -73,6 +73,7 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
     }
 }
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->send();

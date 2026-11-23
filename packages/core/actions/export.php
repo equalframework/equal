@@ -5,6 +5,7 @@
     Original author(s): Lucas LAURENT
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\Translation;
 
 [$params, $providers] = eQual::announce([
@@ -12,25 +13,25 @@ use core\Translation;
     'help'          => 'Result export files can be found in export folder at root of project.',
     'params'        => [
         'package' => [
-            'description'   => 'Package that must be initialized (e.g. "core").',
-            'help'          => 'If left empty, all packages are exported.',
             'type'          => 'string',
-            'usage'         => 'orm/package'
+            'usage'         => 'orm/package',
+            'description'   => 'Package that must be initialized (e.g. "core").',
+            'help'          => 'If left empty, all packages are exported.'
         ],
         'entity' => [
-            'description'   => 'Full name (including namespace) of the specific class to export (e.g. "core\\User").',
-            'help'          => 'If left empty, all entities are exported.',
             'type'          => 'string',
-            'usage'         => 'orm/entity'
+            'usage'         => 'orm/entity',
+            'description'   => 'Full name (including namespace) of the specific class to export (e.g. "core\\User").',
+            'help'          => 'If left empty, all entities are exported.'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'protected'
     ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'adapt']
@@ -216,6 +217,7 @@ foreach($packages as $package) {
     }
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

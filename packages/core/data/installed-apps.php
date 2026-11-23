@@ -5,7 +5,8 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Returns a map with the descriptors of the installed apps (depending on initialized packages).",
     'deprecated'    => true,
     'access'        => [
@@ -16,18 +17,18 @@ list($params, $providers) = eQual::announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 // #deprecated - scripts should make direct calls to core_config_live_packages
 $result = eQual::run('get', 'core_config_live_apps');
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result)
     ->send();

@@ -52,13 +52,13 @@ use lbuchs\WebAuthn\WebAuthn;
             'help'          => 'In WebAuthn, the user_handle allows the authenticator to link a specific passkey to the correct user during authentication, without exposing sensitive or human-readable information (e.g. login or username).'
         ]
     ],
+    'access'        => [
+        'visibility'    => 'public'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'public'
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL', 'AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']

@@ -5,39 +5,43 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the division of two values.',
     'params'        => [
         'numerator' => [
-            'description'   => 'Numerator',
             'type'          => 'integer',
             'usage'         => 'numeric/integer',
+            'description'   => 'Numerator',
             'required'      => true
         ],
         'denominator' => [
-            'description'   => 'Denominator',
             'type'          => 'integer',
             'usage'         => 'numeric/integer',
+            'description'   => 'Denominator',
             'required'      => true
         ]
     ],
+    'access'        => [
+        'visibility'    => 'private'
+    ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*',
-        'schema' => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*',
+        'schema'        => [
             'type'          => 'integer',
             'usage'          => 'numeric/integer',
             'qty'       => 'one'
         ]
     ],
-    'access'        => [
-        'visibility'        => 'private',
-    ],
     'providers'     => ['context']
 ]);
 
-list($context) = [$providers['context']];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 $result = 0;
 
@@ -45,6 +49,7 @@ if ($params['denominator'] != 0) {
     $result = intdiv($params['numerator'], $params['denominator']);
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result)
     ->send();

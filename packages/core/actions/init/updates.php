@@ -11,19 +11,19 @@
     'help'          => 'If no package is given, list pending updates for all packages. A package must be initialized before its updates can be executed.',
     'params'        => [
         'package' => [
-            'description'   => 'Package whose pending update scripts must be executed.',
             'type'          => 'string',
-            'usage'         => 'orm/package'
+            'usage'         => 'orm/package',
+            'description'   => 'Package whose pending update scripts must be executed.'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'protected',
-        'groups'        => ['admins']
     ],
     'providers'     => ['context']
 ]);

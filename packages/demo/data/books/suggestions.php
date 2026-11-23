@@ -5,17 +5,18 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Suggests books for bedtime stories based on child age and interests',
     'params'        => [
         'keywords' => [
-            'description'   => "Keywords that catch your child attention",
             'type'          => 'array',
+            'description'   => "Keywords that catch your child attention",
             'default'       => []
         ],
         'age' => [
-            'description'   => 'Your child age',
             'type'          => 'integer',
+            'description'   => 'Your child age',
             'min'           => 4,
             'required'      => true
         ]
@@ -24,10 +25,13 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'providers'     => ['context'] 
+    'providers'     => ['context']
 ]);
 
-list($context) = [$providers['context']];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 
 $store = [
@@ -58,4 +62,7 @@ foreach($store as $age => $books) {
 }
 
    
-$context->httpResponse()->body($result)->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

@@ -10,15 +10,18 @@
     'description'   => "Provide a unique identifier of the current git revision.\n" .
                        "This script assumes the current installation is versioned using git\n" .
                        "and that a `.git` folder is present at the root of the installation.",
+    'params'        => [],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'params'    => [],
-    'providers' => ['context']
+    'providers'     => ['context']
 ]);
 
-$context = $providers['context'];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 try {
     if(!is_dir(EQ_BASEDIR . '/.git')) {

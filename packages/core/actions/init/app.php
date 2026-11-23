@@ -5,42 +5,42 @@
     Original author(s): Cedric FRANCOYS
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\db\DBConnector;
 use equal\fs\FSManipulator as FS;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Install a specific App from a given package by exporting the related archive to the `/public` folder.',
     'params'        => [
         'package' => [
-            'description'   => 'Package holding the App to be initialized.',
             'type'          => 'string',
             'usage'         => 'orm/package',
+            'description'   => 'Package holding the App to be initialized.',
             'required'      => true
         ],
         'app' => [
-            'description'   => 'App to be initialized (installed).',
             'type'          => 'string',
+            'description'   => 'App to be initialized (installed).',
             'required'      => true
         ],
         'force' => [
-            'description'   => 'Force initialization even if target folder is already present in `/public`.',
             'type'          => 'boolean',
+            'description'   => 'Force initialization even if target folder is already present in `/public`.',
             'default'       => false
         ]
-
     ],
-    'providers'     => ['context'],
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['admins']
-    ]
+    ],
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
+ * @var \equal\php\Context $context
  */
 ['context' => $context] = $providers;
 

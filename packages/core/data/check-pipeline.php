@@ -8,33 +8,33 @@
 
 use core\pipeline\Pipeline;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Run the given pipeline.',
     'params'        => [
         'pipeline_id' => [
-            'description'   => 'Pipeline\'s id',
-            'type'          => 'integer'
+            'type'          => 'integer',
+            'description'   => 'Pipeline\'s id'
         ]
     ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*',
-        'schema' => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*',
+        'schema'        => [
             'type'          => '',
             'qty'       => ''
         ]
-    ],
-    'access' => [
-        'visibility'    => 'protected'
     ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context               $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $pipeline = Pipeline::id($params['pipeline_id'])
     ->read([
@@ -62,10 +62,11 @@ foreach ($pipeline_nodes as $node) {
 }
 
 if (!isGraphConnected($graph)) {
-    throw new Exception('non-compliant_pipeline', QN_ERROR_UNKNOWN);
+    throw new Exception('non-compliant_pipeline', EQ_ERROR_UNKNOWN);
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body(['success' => true])
     ->send();
 

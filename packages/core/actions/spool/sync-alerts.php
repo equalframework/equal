@@ -9,13 +9,13 @@
 use core\email\Email;
 
 [$params, $providers] = eQual::announce([
-    'description' => "Monitor failed email deliveries and maintain related system alerts.",
-    'help'        => "This controller scans emails marked as failing for more than one hour and ensures that a corresponding system alert exists for each affected object.\n
-                    If a failing email already has an associated alert, it is preserved. If not, a new alert is created.\n
-                    Alerts that no longer correspond to any failing email are automatically removed.\n
-                    This controller is intended to be executed periodically (cron job) as part of the email delivery monitoring process.",
+    'description'   => "Monitor failed email deliveries and maintain related system alerts.",
+    'help'          => "This controller scans emails marked as failing for more than one hour and ensures that a corresponding system alert exists for each affected object.\n\n"
+                    ."If a failing email already has an associated alert, it is preserved. If not, a new alert is created.\n\n"
+                    ."Alerts that no longer correspond to any failing email are automatically removed.\n\n"
+                    ."This controller is intended to be executed periodically (cron job) as part of the email delivery monitoring process.",
     'params'        => [],
-    'access' => [
+    'access'        => [
         'visibility'    => 'protected'
     ],
     'response'      => [
@@ -23,16 +23,15 @@ use core\email\Email;
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'cron', 'dispatch']
+    'providers'     => ['context', 'orm', 'dispatch']
 ]);
 
 /**
- * @var \equal\php\Context              $context
- * @var \equal\orm\ObjectManager        $orm
- * @var \equal\cron\Scheduler           $cron
- * @var \equal\dispatch\Dispatcher      $dispatch
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\dispatch\Dispatcher  $dispatch
  */
-['context' => $context, 'orm' => $orm, 'cron' => $cron, 'dispatch' => $dispatch] = $providers;
+['context' => $context, 'orm' => $orm, 'dispatch' => $dispatch] = $providers;
 
 $now = time();
 
@@ -75,6 +74,7 @@ if(!empty($map_messages_ids)) {
     $orm->delete('core\alert\Message', array_keys($map_messages_ids), true);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

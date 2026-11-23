@@ -5,17 +5,18 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Returns the JSON menu related to a package, given a menu ID (<name>).",
     'params'        => [
-        'package' =>  [
-            'description'   => 'Name of the package the menu relates to (e.g. \'core\').',
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Name of the package the menu relates to (e.g. \'core\').',
             'required'      => true
         ],
-        'menu_id' =>  [
-            'description'   => 'The identifier of the menu <name>.',
+        'menu_id' => [
             'type'          => 'string',
+            'description'   => 'The identifier of the menu <name>.',
             'default'       => 'list'
         ]
     ],
@@ -28,9 +29,9 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-list($context) = [ $providers['context'] ];
+['context' => $context] = $providers;
 
 $result = [];
 
@@ -51,6 +52,7 @@ elseif(strpos($params['menu_id'], '.') !== false) {
     }
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

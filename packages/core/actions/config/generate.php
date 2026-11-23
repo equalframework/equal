@@ -10,13 +10,13 @@
     'description'   => "Generate a configuration file based on a set of params and store it as `config/config.json`.",
     'params'        => [
         'domain_name' => [
-            'description'   => "The domain name of the installation (virtual host).",
             'type'          => 'string',
+            'description'   => "The domain name of the installation (virtual host).",
             'default'       => getenv('VIRTUAL_HOST')
         ],
         'scheme' => [
-            'description'   => "The scheme of the installation (https method).",
             'type'          => 'string',
+            'description'   => "The scheme of the installation (https method).",
             'selection'     => [
                 'http',
                 'https'
@@ -24,8 +24,8 @@
             'default'       => (getenv('HTTPS_METHOD') === 'noredirect') ? 'http' : 'https'
         ],
         'dbms' => [
-            'description'   => "DBMS software brand.",
             'type'          => 'string',
+            'description'   => "DBMS software brand.",
             'selection'     => [
                 'MYSQL',
                 'SQLSRV',
@@ -36,28 +36,28 @@
             'required'      => true
         ],
         'db_host' => [
-            'description'   => "The host of the database.",
             'type'          => 'string',
+            'description'   => "The host of the database.",
             'required'      => true
         ],
         'db_port' => [
-            'description'   => "The tcp port of the DBMS host.",
             'type'          => 'integer',
+            'description'   => "The tcp port of the DBMS host.",
             'required'      => true
         ],
         'db_name' => [
-            'description'   => "The table name of the database.",
             'type'          => 'string',
+            'description'   => "The table name of the database.",
             'required'      => true
         ],
         'db_username' => [
-            'description'   => "The username of the DBMS host.",
             'type'          => 'string',
+            'description'   => "The username of the DBMS host.",
             'required'      => true
         ],
         'db_password' => [
-            'description'   => "The password of the DBMS host.",
             'type'          => 'string',
+            'description'   => "The password of the DBMS host.",
             'required'      => true
         ]
     ],
@@ -114,6 +114,7 @@ file_put_contents(
     json_encode($config, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)
 );
 
-$context->httpResponse()
-        ->status(201)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->send();
