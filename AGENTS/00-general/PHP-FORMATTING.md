@@ -235,6 +235,7 @@ In the example below, `'foreign_object'` is the longest quoted metadata key. It 
 
 ```php
 'params'        => [
+    /* The comment remains attached to the parameter below it. */
     'entity' => [
         'type'              => 'string',
         'description'       => 'name',
