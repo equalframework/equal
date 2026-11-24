@@ -82,9 +82,11 @@ if(!$user['allow_auth']) {
     throw new Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
 }
 
-$mfa_method = $auth->getUserMfa();
+// Resolve whether the verified password must be followed by another authentication method.
+$mfa_method = $auth->resolveNextAuthMethod('pwd');
 
 if($mfa_method) {
+    // Do not issue an access token yet: authorize only the selected continuation flow.
     $now = time();
     $timeout_setting = $mfa_method === 'totp'
         ? 'auth.totp.timeout'
@@ -92,10 +94,11 @@ if($mfa_method) {
     $validity = Setting::get_value('core', 'security', $timeout_setting, 300);
 
     if($mfa_method === 'email_otp') {
+        // Email OTP needs a pending server-side challenge before the code can be verified.
         eQual::run('do', 'core_user_emailotp-request');
     }
 
-    $auth_token = $auth->issueMfaChallengeToken(
+    $auth_token = $auth->issueAuthContinuationToken(
         $user['id'],
         $mfa_method,
         $validity,
@@ -117,6 +120,7 @@ if($mfa_method) {
         ->send();
 }
 else {
+    // The password is sufficient for this flow: establish the authenticated session immediately.
     $auth_method = [
         'method'    => 'pwd',
         'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')

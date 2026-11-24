@@ -871,6 +871,24 @@
     {
         "package": "core",
         "section": "security",
+        "code": "auth.email_otp.enabled",
+        "title": "Email OTP authentication enabled",
+        "form_control": "toggle",
+        "description": "Allow users to authenticate with a one-time password sent by email as an additional factor.",
+        "help": "Enable this setting before requiring email OTP authentication.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Authentification email OTP activée",
+                "description": "Autoriser les utilisateurs à s'authentifier avec un mot de passe à usage unique envoyé par e-mail comme facteur supplémentaire.",
+                "help": "Activez ce paramètre avant d'exiger l'authentification email OTP."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
         "code": "auth.password.email_otp_required",
         "title": "Email OTP authentication required (MFA)",
         "form_control": "toggle",
