@@ -60,7 +60,7 @@ if($user_id <= 0) {
         throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
     }
 
-    $mfa_challenge = $auth->verifyMfaChallengeToken($params['auth_token'], 'email_otp');
+    $mfa_challenge = $auth->verifyAuthContinuationToken($params['auth_token'], 'email_otp');
     $user_id = $mfa_challenge['sub'];
 }
 elseif(!empty($params['auth_token'])) {

@@ -235,6 +235,7 @@ In the example below, `'foreign_object'` is the longest quoted metadata key. It 
 
 ```php
 'params'        => [
+    /* The comment remains attached to the parameter below it. */
     'entity' => [
         'type'              => 'string',
         'description'       => 'name',
@@ -396,5 +397,16 @@ $context
 ```
 
 Apply the same chain layout when methods such as `body()` or `header()` are present.
+Comments between calls use the same indentation as the calls, including comments
+that temporarily disable a call.
+
+```php
+$context
+    ->httpResponse()
+    // ->header('Content-Disposition', 'attachment; filename="document.pdf"')
+    ->header('Content-Disposition', 'inline; filename="document.pdf"')
+    ->body($output)
+    ->send();
+```
 
 The formatter accepts both single-line and multiline response chains as input. It formats each `$context->httpResponse()...->send();` statement independently and does not alter object operators nested inside method arguments.

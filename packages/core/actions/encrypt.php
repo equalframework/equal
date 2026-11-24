@@ -34,11 +34,15 @@
 
 
 // initalise local vars with inputs
+/**
+ * @var \equal\php\Context $context
+ */
 ['context' => $context] = $providers;
 
 $result = config\encrypt($params['value'], $params['legacy']);
 
-$context->httpResponse()
-        ->body(['result' => $result])
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->body(['result' => $result])
+    ->status(204)
+    ->send();

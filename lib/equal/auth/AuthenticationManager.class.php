@@ -169,20 +169,20 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Issue a short-lived token carrying a password proof for a specific MFA flow.
+     * Issue a short-lived token authorizing the continuation of an authentication flow.
      *
-     * MFA challenge tokens deliberately omit the access-token `id` claim so they
+     * Authentication continuation tokens deliberately omit the access-token `id` claim so they
      * cannot be accepted by `retrieveAccessToken()` as authenticated sessions.
      *
-     * @param int    $user_id      identifier of the user who passed password authentication
-     * @param string $mfa_method   MFA method that is allowed to consume the challenge (totp, email_otp)
-     * @param int    $validity     challenge validity duration in seconds
-     * @param array  $auth_methods authentication methods established before the challenge
-     * @return string              signed MFA challenge using JWT format
+     * @param int    $user_id         identifier of the user who passed password authentication
+     * @param string $next_auth_method authentication method allowed to continue the flow (totp, email_otp)
+     * @param int    $validity        continuation validity duration in seconds
+     * @param array  $auth_methods    authentication methods established before the continuation
+     * @return string                 signed authentication continuation token using JWT format
      */
-    public function issueMfaChallengeToken(
+    public function issueAuthContinuationToken(
         int $user_id,
-        string $mfa_method,
+        string $next_auth_method,
         int $validity,
         array $auth_methods
     ): string {
@@ -192,7 +192,7 @@ class AuthenticationManager extends Service {
             throw new \Exception('invalid_user', EQ_ERROR_INVALID_USER);
         }
 
-        if($mfa_method === '' || $validity <= 0) {
+        if($next_auth_method === '' || $validity <= 0) {
             throw new \Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
         }
 
@@ -215,7 +215,7 @@ class AuthenticationManager extends Service {
 
         return $this->encodeToken([
             'type'          => 'mfa_challenge',
-            'mfa_method'    => $mfa_method,
+            'mfa_method'    => $next_auth_method,
             'auth'          => $auth_methods,
             'amr'           => $this->extractAmrReferences($auth_methods),
             'sub'           => $user_id,
@@ -225,14 +225,14 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Verify and return a signed MFA challenge for the expected MFA flow.
+     * Verify and return a signed authentication continuation for the expected method.
      *
-     * @param string $token               signed MFA challenge
-     * @param string $expected_mfa_method MFA method attempting to consume the challenge
-     * @return array                      validated challenge payload
+     * @param string $token                signed authentication continuation token
+     * @param string $expected_auth_method authentication method attempting to consume the continuation
+     * @return array                       validated continuation payload
      * @throws \Exception
      */
-    public function verifyMfaChallengeToken(string $token, string $expected_mfa_method): array {
+    public function verifyAuthContinuationToken(string $token, string $expected_auth_method): array {
         try {
             $decoded = $this->decodeToken($token);
 
@@ -254,7 +254,7 @@ class AuthenticationManager extends Service {
             || ($payload['type'] ?? null) !== 'mfa_challenge'
             || !is_string($payload['mfa_method'] ?? null)
             || $payload['mfa_method'] === ''
-            || $payload['mfa_method'] !== $expected_mfa_method
+            || $payload['mfa_method'] !== $expected_auth_method
             || !is_int($payload['sub'] ?? null)
             || $payload['sub'] <= 0
             || !is_int($payload['iat'] ?? null)
@@ -796,15 +796,19 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Resolve the second authentication factor required after password authentication.
+     * Resolve the next authentication method required after the current method.
      *
-     * TOTP takes precedence when it is enabled and either required or already configured
-     * for the user. Email OTP is used as a fallback when required by the user's settings.
+     * Only password-originated flows currently define a continuation policy.
+     * Other authentication methods do not require an additional method.
      *
-     * @return string|null Required MFA method, or null when no second factor is required.
+     * TOTP takes precedence when it is enabled and required for the user.
+     * Email OTP is used as a fallback when required by the user's settings.
+     *
+     * @param string $current_auth_method authentication method that initiated the flow
+     * @return string|null Next required authentication method, or null when no continuation is required.
      * @throws \Exception
      */
-    public function getUserMfa(): ?string {
+    public function resolveNextAuthMethod(string $current_auth_method): ?string {
         $user_id = $this->userId();
 
         $user = User::id($user_id)
@@ -823,6 +827,10 @@ class AuthenticationManager extends Service {
             throw new \Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
         }
 
+        if($current_auth_method !== 'pwd') {
+            return null;
+        }
+
         $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
         $totp_enabled = Setting::get_value(
             'core',
@@ -833,14 +841,6 @@ class AuthenticationManager extends Service {
         );
 
         if($totp_enabled) {
-            $totp_key = TotpKey::search([
-                    ['user_id', '=', $user['id']],
-                    ['type', '=', 'totp'],
-                    ['status', '=', 'active']
-                ])
-                ->read(['failed_attempts'])
-                ->first();
-
             $global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
             $totp_required = Setting::get_value(
                 'core',
@@ -850,7 +850,15 @@ class AuthenticationManager extends Service {
                 ['user_id' => $user['id']]
             );
 
-            if($totp_required || $totp_key) {
+            if($totp_required) {
+                $totp_key = TotpKey::search([
+                        ['user_id', '=', $user['id']],
+                        ['type', '=', 'totp'],
+                        ['status', '=', 'active']
+                    ])
+                    ->read(['failed_attempts'])
+                    ->first();
+
                 if($totp_key) {
                     $allowed_failed_attempts = Setting::get_value(
                         'core',
@@ -868,17 +876,28 @@ class AuthenticationManager extends Service {
             }
         }
 
-        $global_email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required');
-        $email_otp_required = Setting::get_value(
+        $global_email_otp_enabled = Setting::get_value('core', 'security', 'auth.email_otp.enabled');
+        $email_otp_enabled = Setting::get_value(
             'core',
             'security',
-            'auth.password.email_otp_required',
-            $global_email_otp_required,
+            'auth.email_otp.enabled',
+            $global_email_otp_enabled,
             ['user_id' => $user['id']]
         );
 
-        if($email_otp_required) {
-            return 'email_otp';
+        if($email_otp_enabled) {
+            $global_email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required');
+            $email_otp_required = Setting::get_value(
+                'core',
+                'security',
+                'auth.password.email_otp_required',
+                $global_email_otp_required,
+                ['user_id' => $user['id']]
+            );
+
+            if($email_otp_required) {
+                return 'email_otp';
+            }
         }
 
         return null;

@@ -52,7 +52,7 @@ They also own mechanism-specific challenges, enrollment, verification rules and 
 
 ### AuthenticationManager
 
-`equal\auth\AuthenticationManager` owns JWT encoding/verification, token discovery, authenticated-user resolution, tracked-token revocation checks, impersonation resolution, normalized authentication-state updates, and assurance-policy evaluation. It also applies cross-method policy. In particular, `getUserMfa()` selects the MFA method required after password authentication from the user's state, global or per-user settings, available active factors, and lockout state.
+`equal\auth\AuthenticationManager` owns JWT encoding/verification, token discovery, authenticated-user resolution, tracked-token revocation checks, impersonation resolution, normalized authentication-state updates, and assurance-policy evaluation. It also applies cross-method policy. In particular, `resolveNextAuthMethod('pwd')` selects the authentication method required after password authentication from the user's state, global or per-user settings, available active factors, and lockout state.
 
 This boundary is responsibility-based rather than a dependency-inversion boundary. Direct dependencies from `AuthenticationManager` to the canonical core identity and session models, notably `core\User` and `core\security\AccessToken`, are intentional. The manager may also read factor metadata and authentication settings when they are needed to make a cross-method policy decision; mechanism-specific credential verification remains in the corresponding method controller. Method controllers describe verified facts; they do not grant a level.
 

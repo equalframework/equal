@@ -641,17 +641,17 @@ $tests = [
                         'exp'       => $now + 60
                     ];
 
-                    $token = $auth->issueMfaChallengeToken(
+                    $token = $auth->issueAuthContinuationToken(
                         EQ_ROOT_USER_ID,
                         'totp',
                         30,
                         [$password_proof]
                     );
-                    $payload = $auth->verifyMfaChallengeToken($token, 'totp');
+                    $payload = $auth->verifyAuthContinuationToken($token, 'totp');
 
                     $wrong_flow_rejected = false;
                     try {
-                        $auth->verifyMfaChallengeToken($token, 'email_otp');
+                        $auth->verifyAuthContinuationToken($token, 'email_otp');
                     }
                     catch(Exception $exception) {
                         $wrong_flow_rejected = $exception->getMessage() === 'invalid_token'
@@ -664,7 +664,7 @@ $tests = [
 
                     $tampered_token_rejected = false;
                     try {
-                        $auth->verifyMfaChallengeToken($tampered_token, 'totp');
+                        $auth->verifyAuthContinuationToken($tampered_token, 'totp');
                     }
                     catch(Exception $exception) {
                         $tampered_token_rejected = $exception->getMessage() === 'invalid_token'
@@ -684,7 +684,7 @@ $tests = [
         ],
 
     '0123' => [
-            'description'       =>  'Use email OTP when TOTP is enabled but neither required nor configured.',
+            'description'       =>  'Use email OTP when it is enabled and required while TOTP is disabled.',
             'return'            =>  ['array'],
             'arrange'           =>  function () {
                     $login = 'auth_mfa_email_fallback_test@example.com';
@@ -699,11 +699,13 @@ $tests = [
                         ->first();
 
                     core\setting\Setting::assert_value('core', 'security', 'auth.totp.enabled', true);
+                    core\setting\Setting::assert_value('core', 'security', 'auth.email_otp.enabled', false);
                     core\setting\Setting::assert_value('core', 'security', 'auth.password.totp_required', false);
                     core\setting\Setting::assert_value('core', 'security', 'auth.password.email_otp_required', true);
 
                     $selector = ['user_id' => $user['id']];
-                    core\setting\Setting::set_value('core', 'security', 'auth.totp.enabled', true, $selector);
+                    core\setting\Setting::set_value('core', 'security', 'auth.totp.enabled', false, $selector);
+                    core\setting\Setting::set_value('core', 'security', 'auth.email_otp.enabled', true, $selector);
                     core\setting\Setting::set_value('core', 'security', 'auth.password.totp_required', false, $selector);
                     core\setting\Setting::set_value('core', 'security', 'auth.password.email_otp_required', true, $selector);
 
@@ -714,22 +716,26 @@ $tests = [
 
                     try {
                         $auth->su($user_id);
-                        $method = $auth->getUserMfa();
+                        $method = $auth->resolveNextAuthMethod('pwd');
+                        $passkey_next_method = $auth->resolveNextAuthMethod('passkey');
                     }
                     catch(Throwable $exception) {
                         $method = $exception->getMessage();
+                        $passkey_next_method = $exception->getMessage();
                     }
                     finally {
                         $auth->su();
                     }
 
                     return [
-                        'user_id'   => $user_id,
-                        'method'    => $method
+                        'user_id'               => $user_id,
+                        'method'                => $method,
+                        'passkey_next_method'   => $passkey_next_method
                     ];
                 },
             'assert'            =>  function ($result) {
-                    return $result['method'] === 'email_otp';
+                    return $result['method'] === 'email_otp'
+                        && is_null($result['passkey_next_method']);
                 },
             'rollback'          =>  function ($result) {
                     core\setting\SettingValue::search(['user_id', '=', $result['user_id']])->delete(true);
@@ -758,13 +764,13 @@ $tests = [
                             'method'    => 'pwd',
                             'exp'       => $now + 60
                         ];
-                        $challenge_token = $auth->issueMfaChallengeToken(
+                        $challenge_token = $auth->issueAuthContinuationToken(
                             EQ_ROOT_USER_ID,
                             'totp',
                             30,
                             [$password_proof]
                         );
-                        $challenge = $auth->verifyMfaChallengeToken($challenge_token, 'totp');
+                        $challenge = $auth->verifyAuthContinuationToken($challenge_token, 'totp');
                         $totp_proof = [
                             'method'    => 'totp',
                             'exp'       => $now + 60
@@ -899,7 +905,7 @@ $tests = [
                             'login'     => $fixture['login'],
                             'password'  => 'auth-totp-timeout-test'
                         ]);
-                        $challenge = $auth->verifyMfaChallengeToken($response['auth_token'], 'totp');
+                        $challenge = $auth->verifyAuthContinuationToken($response['auth_token'], 'totp');
 
                         $fixture['challenge_method'] = $response['challenge']['method'] ?? null;
                         $fixture['challenge_validity'] = $challenge['exp'] - $challenge['iat'];

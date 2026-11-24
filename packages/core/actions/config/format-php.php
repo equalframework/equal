@@ -368,7 +368,10 @@ $formatHttpResponseChains = static function(string $source): string {
 
         if(
             trim($segments[0]) !== '$context'
-            || !preg_match('/^httpResponse\s*\(\s*\)$/s', trim($segments[1] ?? ''))
+            || !preg_match(
+                '/^httpResponse\s*\(\s*\)(?:\s*(?:(?:\/\/|#)[^\r\n]*|\/\*.*?\*\/))*\s*$/s',
+                trim($segments[1] ?? '')
+            )
             || !preg_match('/^send\s*\(.*\)\s*;$/s', trim($segments[count($segments) - 1]))
         ) {
             $offset = $statement_end;
@@ -377,7 +380,12 @@ $formatHttpResponseChains = static function(string $source): string {
 
         $formatted = $indent.'$context';
         foreach(array_slice($segments, 1) as $segment) {
-            $formatted .= "\n".$indent.'    ->'.trim($segment);
+            $segment = preg_replace(
+                '/\n[ \t]*(?=(?:\/\/|#|\/\*))/',
+                "\n".$indent.'    ',
+                trim($segment)
+            );
+            $formatted .= "\n".$indent.'    ->'.$segment;
         }
 
         $source = substr_replace(
@@ -507,15 +515,26 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
     ];
 
     foreach($parameter_items as $parameter_item) {
+        $parameter_source = $parameter_item;
+        $leading_comment = '';
+        if(preg_match(
+            '/^\s*((?:(?:\/\*.*?\*\/|\/\/[^\r\n]*|#[^\r\n]*)\s*)+)(?=[\'\"])/s',
+            $parameter_item,
+            $comment_matches
+        )) {
+            $leading_comment = trim($comment_matches[1]);
+            $parameter_item = substr($parameter_item, strlen($comment_matches[0]));
+        }
+
         if(!preg_match('/^\s*([\'\"])([^\'\"\r\n]+)\1\s*=>\s*\[/', $parameter_item, $parameter_matches)) {
-            $descriptors[] = ['raw' => $parameter_item];
+            $descriptors[] = ['raw' => $parameter_source];
             continue;
         }
 
         $descriptor_open = strpos($parameter_item, '[', strlen($parameter_matches[0]) - 1);
         $descriptor_close = $findClosingBracket($parameter_item, $descriptor_open);
         if($descriptor_close === null) {
-            $descriptors[] = ['raw' => $parameter_item];
+            $descriptors[] = ['raw' => $parameter_source];
             continue;
         }
 
@@ -547,10 +566,11 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
 
         $metadata_items = $reorderKnownItems($metadata_items, $metadata_order);
         $descriptors[] = [
-            'name'      => $parameter_matches[2],
-            'items'     => $metadata_items,
-            'comments'  => $metadata_comments,
-            'suffix'    => trim(substr($parameter_item, $descriptor_close + 1))
+            'name'              => $parameter_matches[2],
+            'items'             => $metadata_items,
+            'comments'          => $metadata_comments,
+            'leading_comment'   => $leading_comment,
+            'suffix'            => trim(substr($parameter_item, $descriptor_close + 1))
         ];
     }
 
@@ -566,9 +586,17 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
         foreach($descriptor['comments'] as $comment) {
             $metadata .= "\n".preg_replace('/^[ \t]*/m', str_repeat(' ', 12), $comment);
         }
-        $formatted_parameters[] = "        '{$descriptor['name']}' => [\n"
+        $formatted_parameter = "        '{$descriptor['name']}' => [\n"
             .$metadata
             ."\n        ]{$descriptor['suffix']}";
+        if($descriptor['leading_comment'] !== '') {
+            $formatted_parameter = preg_replace(
+                '/^[ \t]*/m',
+                str_repeat(' ', 8),
+                $descriptor['leading_comment']
+            )."\n".$formatted_parameter;
+        }
+        $formatted_parameters[] = $formatted_parameter;
     }
 
     return substr($item, 0, $open_position + 1)

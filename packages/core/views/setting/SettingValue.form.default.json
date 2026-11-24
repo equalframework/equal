@@ -1,6 +1,16 @@
 {
     "name": "Setting value",
     "description": "Default form for Setting",
+    "header": {
+        "actions": {
+            "ACTION.SAVE": [
+                {
+                    "id": "SAVE_AND_CLOSE",
+                    "controller": "core_setting_SettingValue_update"
+                }
+            ]
+        }
+    },
     "layout": {
         "groups": [
             {
