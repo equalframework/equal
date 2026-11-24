@@ -41,9 +41,11 @@ use core\setting\SettingValue;
  */
 ['context' => $context, 'orm' => $orm] = $providers;
 
-if($params['entity'] !== SettingValue::class) {
+$setting_value_model = $orm->getModel($params['entity']);
+if(!$setting_value_model || !is_a($setting_value_model, SettingValue::class)) {
     throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
 }
+$setting_value_class = $setting_value_model::getType();
 
 $ids = array_values(array_unique(array_filter(
     array_map('intval', $params['ids']),
@@ -94,7 +96,7 @@ foreach($setting_values as $id => $setting_value) {
 $result = [];
 foreach($ids_by_lang as $effective_lang => $lang_ids) {
     $update_params = [
-        'entity'    => SettingValue::class,
+        'entity'    => $setting_value_class,
         'ids'       => $lang_ids,
         'fields'    => $fields,
         'force'     => $params['force'],
