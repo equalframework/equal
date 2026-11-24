@@ -368,7 +368,10 @@ $formatHttpResponseChains = static function(string $source): string {
 
         if(
             trim($segments[0]) !== '$context'
-            || !preg_match('/^httpResponse\s*\(\s*\)$/s', trim($segments[1] ?? ''))
+            || !preg_match(
+                '/^httpResponse\s*\(\s*\)(?:\s*(?:(?:\/\/|#)[^\r\n]*|\/\*.*?\*\/))*\s*$/s',
+                trim($segments[1] ?? '')
+            )
             || !preg_match('/^send\s*\(.*\)\s*;$/s', trim($segments[count($segments) - 1]))
         ) {
             $offset = $statement_end;
@@ -377,7 +380,12 @@ $formatHttpResponseChains = static function(string $source): string {
 
         $formatted = $indent.'$context';
         foreach(array_slice($segments, 1) as $segment) {
-            $formatted .= "\n".$indent.'    ->'.trim($segment);
+            $segment = preg_replace(
+                '/\n[ \t]*(?=(?:\/\/|#|\/\*))/',
+                "\n".$indent.'    ',
+                trim($segment)
+            );
+            $formatted .= "\n".$indent.'    ->'.$segment;
         }
 
         $source = substr_replace(
