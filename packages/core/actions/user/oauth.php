@@ -161,8 +161,9 @@ else {
     $access_token = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
 }
 
-$context->httpResponse()
-        // store token in cookie
-        ->cookie('access_token', $access_token)
-        ->body(['access_token' => $access_token])
-        ->send();
+$context
+    ->httpResponse()
+    // store token in cookie
+    ->cookie('access_token', $access_token)
+    ->body(['access_token' => $access_token])
+    ->send();
