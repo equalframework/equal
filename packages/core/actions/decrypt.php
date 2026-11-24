@@ -34,25 +34,15 @@
 
 
 // initalise local vars with inputs
-<<<<<<< HEAD
-=======
 /**
  * @var \equal\php\Context $context
  */
->>>>>>> 45e2187973a46a3a738f5991b970fba5eff8ab3c
 ['context' => $context] = $providers;
 
 $result = config\decrypt($params['value'], $params['legacy']);
 
-<<<<<<< HEAD
-$context->httpResponse()
-        ->body(['result' => $result])
-        ->status(204)
-        ->send();
-=======
 $context
     ->httpResponse()
     ->body(['result' => $result])
     ->status(204)
     ->send();
->>>>>>> 45e2187973a46a3a738f5991b970fba5eff8ab3c
