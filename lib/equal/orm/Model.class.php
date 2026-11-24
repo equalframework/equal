@@ -340,6 +340,16 @@ class Model implements \ArrayAccess, \Iterator {
                 'default'           => fn() => time(),
                 'readonly'          => true
             ],
+            // date and token of the exclusive object lock, when any
+            'locked' => [
+                'type'              => 'datetime',
+                'readonly'          => true
+            ],
+            'lock' => [
+                'type'              => 'string',
+                'usage'             => 'text/plain:16',
+                'readonly'          => true
+            ],
             // #memo - when set to true, modifier points to the user who deleted the object and modified is the time of the deletion
             'deleted' => [
                 'type'              => 'boolean',

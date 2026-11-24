@@ -174,7 +174,7 @@ if(!$model) {
     throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
-$root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
+$root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'locked', 'lock', 'deleted', 'state'];
 
 $qty = $getQty($params['qty']);
 

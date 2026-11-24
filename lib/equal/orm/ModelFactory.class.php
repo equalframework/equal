@@ -7,7 +7,7 @@ use Exception;
 
 class ModelFactory {
 
-    private static $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
+    private static $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'locked', 'lock', 'deleted', 'state'];
 
     private static $relationship_field_types = ['many2one', 'one2many', 'many2many'];
 

@@ -1933,6 +1933,9 @@ class ObjectManager extends Service {
         $res = 0;
         $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
 
+        // lock fields are exclusively controlled by the ORM
+        unset($fields['locked'], $fields['lock']);
+
         try {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDbHandler();
@@ -2255,10 +2258,10 @@ class ObjectManager extends Service {
             // ids that are left are the ones of the objects that will be written
             $res = $ids;
 
-            // remove unknown fields and prevent updating reserved fields (id, model, creator, created, state)
+            // remove unknown fields and prevent updating reserved fields (id, model, creator, created, locked, lock, state)
             $fields = array_filter(
                 $fields,
-                fn($name) => isset($schema[$name]) && !in_array($name, ['id', 'model', 'creator', 'created', 'state'], true),
+                fn($name) => isset($schema[$name]) && !in_array($name, ['id', 'model', 'creator', 'created', 'locked', 'lock', 'state'], true),
                 ARRAY_FILTER_USE_KEY
             );
 
@@ -2334,9 +2337,9 @@ class ObjectManager extends Service {
             // remaining ids are the ones of the objects that will be written
             $res = $ids;
 
-            // remove unknown fields and prevent updating reserved fields (id, model, creator, created)
+            // remove unknown fields and prevent updating reserved fields (id, model, creator, created, locked, lock)
             $fields = array_filter($fields, function($field) use ($schema) {
-                        return isset($schema[$field]) && !in_array($field, ['id', 'model', 'creator', 'created']);
+                        return isset($schema[$field]) && !in_array($field, ['id', 'model', 'creator', 'created', 'locked', 'lock']);
                     },
                     ARRAY_FILTER_USE_KEY
                 );

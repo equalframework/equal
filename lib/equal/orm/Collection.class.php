@@ -417,17 +417,17 @@ class Collection implements \Iterator, \Countable {
             $allowed_fields = array_keys($schema);
             if($operation == 'create') {
                 // discard special fields (except `id` and `state`)
-                $allowed_fields = array_diff($allowed_fields, ['creator','created','modifier','modified','deleted']);
+                $allowed_fields = array_diff($allowed_fields, ['creator','created','modifier','modified','locked','lock','deleted']);
                 // #memo - all fields are allowed at creation (do not drop readonly)
             }
             elseif($operation == 'draft') {
                 // discard special fields (except `id`); state is forced to `draft`
-                $allowed_fields = array_diff($allowed_fields, ['creator','created','modifier','modified','deleted','state']);
+                $allowed_fields = array_diff($allowed_fields, ['creator','created','modifier','modified','locked','lock','deleted','state']);
                 // #memo - all fields are allowed at draft creation (do not drop readonly)
             }
             elseif($operation == 'write') {
                 // discard fields that cannot be written through ObjectManager::write()
-                $allowed_fields = array_diff($allowed_fields, ['id','creator','created','state']);
+                $allowed_fields = array_diff($allowed_fields, ['id','creator','created','locked','lock','state']);
             }
             elseif($operation == 'update') {
                 // discard readonly fields
@@ -436,7 +436,7 @@ class Collection implements \Iterator, \Countable {
                     });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // discard special fields (except `state`)
-                $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','deleted']);
+                $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','locked','lock','deleted']);
                 // log a notice about discarded readonly fields
                 trigger_error("ORM::discarding readonly fields " . implode(', ', $readonly_fields), EQ_REPORT_INFO);
             }

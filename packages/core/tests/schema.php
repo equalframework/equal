@@ -69,4 +69,17 @@ $tests = [
                     return $descriptor['foreign_object'] == 'demo\core\Group';
                 }
         ],
+    '1105' => [
+            'description'   =>  "System lock fields are exposed with their expected descriptors",
+            'act'           =>  function () use($orm) {
+                    return $orm->getModel('core\User')->getSchema();
+                },
+            'assert'        =>  function($schema) {
+                    return ($schema['locked']['type'] ?? null) === 'datetime'
+                        && ($schema['locked']['readonly'] ?? null) === true
+                        && ($schema['lock']['type'] ?? null) === 'string'
+                        && ($schema['lock']['usage'] ?? null) === 'text/plain:16'
+                        && ($schema['lock']['readonly'] ?? null) === true;
+                }
+        ],
 ];
