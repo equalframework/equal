@@ -3,7 +3,7 @@
 *    This file is part of the eQual framework.
 *    https://github.com/equalframework/equal
 *
-*    Some Rights Reserved, The eQual Framework, 2010-2024
+*    Some Rights Reserved, The eQual Framework, 2010-2026
 *    Original Author(s): Cedric Francoys
 *    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
@@ -14,11 +14,11 @@
 *
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 *    GNU General Public License for more details.
 *
 *    You should have received a copy of the GNU Lesser General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 namespace {
     global $last_context;
