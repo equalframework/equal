@@ -9,50 +9,53 @@
 use core\Group;
 use core\User;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Creates a new user account based in given credentials and details.',
+    'params'        => [
+        'login' => [
+            'type'          => 'string',
+            'usage'         => 'email',
+            'description'   => 'email address to be used as login for the user.',
+            'required'      => true
+        ],
+        'password' => [
+            'type'          => 'string',
+            'usage'         => 'password/nist',
+            'description'   => 'the user chosen password.',
+            'required'      => true
+        ],
+        'firstname' => [
+            'type'          => 'string',
+            'description'   => 'User given name.',
+            'default'       => ''
+        ],
+        'lastname' => [
+            'type'          => 'string',
+            'description'   => 'User family name.',
+            'default'       => ''
+        ],
+        'language' => [
+            'type'          => 'string',
+            'description'   => 'User language.',
+            'default'       => constant('DEFAULT_LANG')
+        ]
+    ],
+    'access'        => [
+        'visibility'    => 'private'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params'        => [
-        'login' =>  [
-            'description'   => 'email address to be used as login for the user.',
-            'type'          => 'string',
-            'usage'         => 'email',
-            'required'      => true
-        ],
-        'password' =>  [
-            'description'   => 'the user chosen password.',
-            'type'          => 'string',
-            'usage'         => 'password/nist',
-            'required'      => true
-        ],
-        'firstname' =>  [
-            'description'   => 'User given name.',
-            'type'          => 'string',
-            'default'       => ''
-        ],
-        'lastname' => [
-            'description'   => 'User family name.',
-            'type'          => 'string',
-            'default'       => ''
-        ],
-        'language' => [
-            'description'   => 'User language.',
-            'type'          => 'string',
-            'default'       => constant('DEFAULT_LANG')
-        ]
-    ],
-    'access'        => [
-        'visibility'        => 'private'
-    ],
     'constants'     => ['DEFAULT_LANG'],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 // create user: resulting Collection will check for current user privilege; validate the received values; and check the `Unique` constraints
 // #memo - User class defines its own Unique constraint on `login` field, and User::onchangePassword method makes sure `password` is hashed
@@ -64,7 +67,8 @@ $user = User::create($params)
 // try to assign the new user to default "users" group
 Group::search(['name', '=', 'users'])->update(['users_ids' => [+$user['id']]]);
 
-$context->httpResponse()
-        ->status(201)
-        ->body($user)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(201)
+    ->body($user)
+    ->send();

@@ -6,42 +6,42 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Add an empty policies to the given class by creating a `getPolicies()` method (if not defined yet).",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
     ],
     'response'      => [
         'content-type'  => 'text',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
     'providers'     => ['context', 'orm']
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // force class autoload
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 $class = new ReflectionClass($entity::getType());
 if($class->getMethod('getPolicies')->class == $entity::getType()) {
-    throw new Exception("duplicate_method", QN_ERROR_INVALID_PARAM);
+    throw new Exception("duplicate_method", EQ_ERROR_INVALID_PARAM);
 }
 
 $file = $class->getFileName();
@@ -58,16 +58,17 @@ $policies_code = ''.
 $pos = strrpos($code, '}');
 
 if($pos === false) {
-    throw new Exception('malformed_file', QN_ERROR_UNKNOWN);
+    throw new Exception('malformed_file', EQ_ERROR_UNKNOWN);
 }
 
 $result = substr_replace($code, $policies_code, $pos, 0);
 
 // write back the code to the source file
 if(file_put_contents($file, rtrim($result)."\n") === false) {
-    throw new Exception('io_error', QN_ERROR_UNKNOWN);
+    throw new Exception('io_error', EQ_ERROR_UNKNOWN);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

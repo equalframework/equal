@@ -3,6 +3,11 @@
     "plural": "Permisos",
     "description": "Permisos",
     "model": {
+        "description": {
+            "label": "Descripción",
+            "description": "Resumen opcional de la finalidad del permiso.",
+            "help": "Introduzca una breve explicación de lo que concede el permiso."
+        },
         "class_name": {
             "label": "Clase",
             "description": "Clase de entidad a la que se aplica el permiso.",
@@ -12,6 +17,11 @@
             "label": "Dominio",
             "description": "Valor JSON del dominio de restricciones.",
             "help": "Indique el dominio JSON que limita los objetos accesibles."
+        },
+        "object_id": {
+            "label": "Objeto",
+            "description": "Identificador del objeto al que se aplica el permiso.",
+            "help": "Indique el identificador cuando el permiso se aplique a un objeto específico."
         },
         "group_id": {
             "label": "Grupo",

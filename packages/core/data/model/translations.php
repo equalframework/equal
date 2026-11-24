@@ -14,37 +14,37 @@ use equal\orm\ObjectManager;
     'description'   => 'Returns stored translations for the multilang fields of a given object.',
     'params'        => [
         'entity' => [
-            'description'   => 'Full name (including namespace) of the concerned entity.',
             'type'          => 'string',
             'usage'         => 'orm/entity',
+            'description'   => 'Full name (including namespace) of the concerned entity.',
             'required'      => true
         ],
         'id' => [
-            'description'   => 'Unique identifier of the concerned object.',
             'type'          => 'integer',
+            'description'   => 'Unique identifier of the concerned object.',
             'required'      => true
         ],
         'field' => [
-            'description'   => 'Optional multilang field to retrieve translations for.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'Optional multilang field to retrieve translations for.'
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'    => 'protected'
-    ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
 /**
- * @var \equal\php\Context                     $context
- * @var \equal\orm\ObjectManager               $orm
- * @var \equal\data\DataAdapterProvider        $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
 ['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
@@ -86,7 +86,7 @@ if(!$object) {
 $result = [];
 
 if(count($multilang_fields)) {
-    /** @var \equal\data\adapt\DataAdapter */
+    /** @var \equal\data\adapt\DataAdapter $adapter */
     $adapter = $dap->get('json');
 
     $map_field_usages = [];
@@ -140,6 +140,7 @@ if(count($multilang_fields)) {
     }
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result)
     ->send();

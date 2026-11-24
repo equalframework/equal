@@ -5,6 +5,7 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\db\DBConnector;
 
 // get listing of existing packages
@@ -12,36 +13,36 @@ $packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'   =>  'Test database consistency for package model definitions.',
-    'params'        =>  [
-        'package'   =>  [
-            'description'   => 'Package to validate.',
+    'description'   => 'Test database consistency for package model definitions.',
+    'params'        => [
+        'package' => [
             'type'          => 'string',
+            'description'   => 'Package to validate.',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
         ],
-        'level' =>  [
-            'description'   => 'Level of notification to limit the output to.',
+        'level' => [
             'type'          => 'string',
+            'description'   => 'Level of notification to limit the output to.',
             'selection'     => ['*', 'warn', 'error'],
             'default'       => '*'
         ],
-        'strict'    =>  [
-            'description'   => 'Flag to enable strict mode.',
+        'strict' => [
             'type'          => 'boolean',
+            'description'   => 'Flag to enable strict mode.',
             'default'       => false
         ],
         'exit_on_error' => [
-            'description'   => 'Exit with a non-zero status code when consistency errors are found.',
             'type'          => 'boolean',
+            'description'   => 'Exit with a non-zero status code when consistency errors are found.',
             'default'       => true
         ]
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm']
 ]);
 
@@ -49,7 +50,7 @@ $packages = eQual::run('get', 'config_packages');
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-[$context, $orm] = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 $filter_result = function(array $result, string $level): array {
     foreach($result as $index => $line) {
@@ -102,7 +103,7 @@ $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]
 $db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
 if(!$db) {
-    throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_database', EQ_ERROR_INVALID_CONFIG);
 }
 
 // load database tables
@@ -210,13 +211,14 @@ if(!count($result)) {
 }
 
 // send json result
-$context->httpResponse()
-        ->body([
+$context
+    ->httpResponse()
+    ->body([
             'result'   => $result,
             'errors'   => $counts['errors'],
             'warnings' => $counts['warnings']
         ])
-        ->send();
+    ->send();
 
 // in case of error(s), force exiting with an error code
 if($counts['errors'] && $params['exit_on_error']) {

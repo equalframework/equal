@@ -11,7 +11,6 @@
  * 
  */
 
-
  /**
   * generate HTML code of emails footers, including signature (system or current user)
   *

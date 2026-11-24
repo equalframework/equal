@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\db\DBConnector;
 
 $params = eQual::announce([
@@ -27,13 +28,13 @@ if(strlen($json)) {
 // 2) try to connect to DBMS
 if(!$db->connected()) {
     if($db->connect(false) == false) {
-        throw new Exception('Unable to establish connection to DBMS host (wrong credentials)', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('Unable to establish connection to DBMS host (wrong credentials)', EQ_ERROR_INVALID_CONFIG);
     }
 }
 // 3) try to select specified DB
 if(!$db->select(constant('DB_NAME'))) {
     $db->disconnect();
-    throw new Exception('Unable to access specified database (DB \''.constant('DB_NAME').'\' not found)', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('Unable to access specified database (DB \''.constant('DB_NAME').'\' not found)', EQ_ERROR_INVALID_CONFIG);
 }
 // 3) everything went well: disconnect
 $db->disconnect();

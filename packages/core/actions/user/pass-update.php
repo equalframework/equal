@@ -5,20 +5,16 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\User;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Updates the password related to a user account.',
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
-        'user_id' =>  [
-            'description'       => 'Identifier of the user to update (when not current user).',
+        'user_id' => [
             'type'              => 'many2one',
             'foreign_object'    => 'identity\User',
+            'description'       => 'Identifier of the user to update (when not current user).',
             'default'           => 0
         ],
         'token' => [
@@ -26,27 +22,37 @@ use core\User;
             'description'       => 'access token in case of password recovery with email',
             'default'           => ''
         ],
-        'password' =>  [
-            'description'       => 'New password.',
+        'password' => [
             'type'              => 'string',
             'usage'             => 'password',
+            'description'       => 'New password.',
             'required'          => true
         ],
-        'confirm' =>  [
-            'description'       => 'Confirmation of the password.',
+        'confirm' => [
             'type'              => 'string',
             'usage'             => 'password',
+            'description'       => 'Confirmation of the password.',
             'required'          => true
         ]
     ],
-    'access' => [
-        'visibility' => 'public'
+    'access'        => [
+        'visibility'    => 'public'
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
-    'providers'     => ['context', 'orm', 'auth', 'access']
+    'providers'     => ['context', 'auth', 'access']
 ]);
 
-['context' => $context, 'orm' => $orm, 'auth' => $auth, 'access' => $access] = $providers;
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ * @var \equal\access\AccessController      $access
+ */
+['context' => $context, 'auth' => $auth, 'access' => $access] = $providers;
 
 if(strcmp($params['password'], $params['confirm']) != 0) {
     throw new Exception('password_confirm_mismatch', EQ_ERROR_INVALID_PARAM);

@@ -5,46 +5,47 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\html\HtmlTemplate;
-use equal\email\EmailMessage;
+
 use core\Mail;
 use core\User;
+use equal\email\EmailMessage;
+use equal\html\HtmlTemplate;
 
 [$params, $providers] = eQual::announce([
-    'description' => 'Queue the confirmation email for a newly registered user.',
-    'params'      => [
+    'description'   => 'Queue the confirmation email for a newly registered user.',
+    'params'        => [
         'id' => [
-            'description' => 'Identifier of the user awaiting confirmation.',
-            'type'        => 'integer',
-            'required'    => true
+            'type'          => 'integer',
+            'description'   => 'Identifier of the user awaiting confirmation.',
+            'required'      => true
         ],
         'password' => [
-            'description' => 'Plain-text password used to generate the confirmation code.',
-            'type'        => 'string',
-            'usage'       => 'password/nist',
-            'required'    => true
+            'type'          => 'string',
+            'usage'         => 'password/nist',
+            'description'   => 'Plain-text password used to generate the confirmation code.',
+            'required'      => true
         ]
     ],
-    'access' => [
-        'visibility' => 'protected'
+    'access'        => [
+        'visibility'    => 'protected'
     ],
-    'response' => [
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'constants' => ['EQ_ROOT_USER_ID', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
-    'providers' => ['context', 'auth']
+    'constants'     => ['EQ_ROOT_USER_ID', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
+    'providers'     => ['context', 'auth']
 ]);
 
 /**
- * @var equal\php\Context                 $context
- * @var equal\auth\AuthenticationManager $auth
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
 if($auth->userId() !== EQ_ROOT_USER_ID) {
-    throw new Exception('not_allowed', QN_ERROR_NOT_ALLOWED);
+    throw new Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
 }
 
 $user = User::id($params['id'])
@@ -52,7 +53,7 @@ $user = User::id($params['id'])
     ->first(true);
 
 if(!$user) {
-    throw new Exception('invalid_user', QN_ERROR_INVALID_USER);
+    throw new Exception('invalid_user', EQ_ERROR_INVALID_USER);
 }
 
 // The original password is required to generate the confirmation code in the email.
@@ -62,7 +63,7 @@ $user['password'] = $params['password'];
 $subject = '';
 $file = "packages/core/i18n/{$user['language']}/mail_user_confirm.html";
 if(!($html = @file_get_contents($file))) {
-    throw new Exception('missing_dependency', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_dependency', EQ_ERROR_INVALID_CONFIG);
 }
 
 $template = new HtmlTemplate($html, [
@@ -96,7 +97,8 @@ $message
 
 $message_id = Mail::queue($message);
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->status(201)
     ->body(['message_id' => $message_id])
     ->send();

@@ -5,33 +5,34 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => 'Validate a model translation file against its JSON schema.',
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to validate (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to validate (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'lang' =>  [
-            'description'   => 'Language for which the translation file must be validated (iso639 code expected).',
+        'lang' => [
             'type'          => 'string',
+            'description'   => 'Language for which the translation file must be validated (iso639 code expected).',
             'pattern'       => '/^[a-z]{2}(_[A-Z]{2})?$/',
             'default'       => constant('DEFAULT_LANG')
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $entity = str_replace('_', '\\', $params['entity']);
 $parts = explode('\\', $entity);
@@ -73,6 +74,7 @@ if(!($validation['result'] ?? false)) {
     throw new Exception('invalid_translation_json', EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

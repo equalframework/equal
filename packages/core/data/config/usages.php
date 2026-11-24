@@ -5,21 +5,22 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns an associative array mapping orm types with possible usages and their descriptors.',
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
-    ],
     'params'        => [],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
+    ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
+ * @var \equal\php\Context $context
  */
-list($context) = [$providers['context']];
+['context' => $context] = $providers;
 
 
 /*
@@ -335,6 +336,7 @@ $schema = '{
     }
 }';
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($schema)
     ->send();

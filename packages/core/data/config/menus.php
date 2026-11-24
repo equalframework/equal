@@ -5,44 +5,45 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the list of menus defined in a given package, or applicable to a given entity.',
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
-    ],
     'params'        => [
         'package' => [
-            'description'   => 'Name of the package for which the list is requested.',
             'type'          => 'string',
+            'description'   => 'Name of the package for which the list is requested.',
             'required'      => true
-        ],
+        ]
     ],
-    'providers'     => ['context', 'orm']
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 $result = [];
 
 if(!file_exists("packages/{$params['package']}")) {
-    throw new Exception('missing_package_dir', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_package_dir', EQ_ERROR_INVALID_CONFIG);
 }
 if(!file_exists("packages/{$params['package']}/views")) {
-    throw new Exception('missing_views_dir', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_views_dir', EQ_ERROR_INVALID_CONFIG);
 }
 // recurse through all sub-folders of `views` directory
 $result = recurse_dir("packages/{$params['package']}/views", 'json', $params['package']);
 
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();
 
 function has_sub_items($directory, $extension) {
     $files = glob($directory.'/*.'.$extension);

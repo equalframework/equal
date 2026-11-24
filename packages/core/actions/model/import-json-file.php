@@ -15,8 +15,8 @@ use core\import\EntityMapping;
             'type'              => 'many2one',
             'foreign_object'    => 'core\import\EntityMapping',
             'description'       => 'The entity mapping to use to adapt given data to eQual entities.',
-            'required'          => true,
-            'domain'            => ['mapping_type', '=', 'name']
+            'domain'            => ['mapping_type', '=', 'name'],
+            'required'          => true
         ],
         'data' => [
             'type'              => 'binary',
@@ -33,6 +33,9 @@ use core\import\EntityMapping;
     'providers'     => ['context']
 ]);
 
+/**
+ * @var \equal\php\Context $context
+ */
 ['context' => $context] = $providers;
 
 $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
@@ -56,6 +59,7 @@ eQual::run('do', 'core_model_import-mapped', [
     'data'              => json_decode($params['data'], true)
 ]);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

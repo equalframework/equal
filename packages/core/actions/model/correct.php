@@ -5,60 +5,61 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\orm\Domain;
 use equal\orm\DomainCondition;
 use equal\orm\Field;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Updates a list of entities matching a given domain (filter). This is the symmetrical operation of `model_collect`.',
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'fields' =>  [
-            'description'   => 'Associative array mapping fields to be updated with theirs related values to be assigned.',
+        'fields' => [
             'type'          => 'array',
+            'description'   => 'Associative array mapping fields to be updated with theirs related values to be assigned.',
             'default'       => []
         ],
-        'lang' =>  [
-            'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
+        'lang' => [
             'type'          => 'string',
+            'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
             'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'default'       => []
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected'
-    ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => [ 'context', 'orm', 'adapt' ]
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
- * @var \equal\data\DataAdapterProvider  $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
-list($context, $orm, $dap) = [ $providers['context'], $providers['orm'], $providers['adapt'] ];
+['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('json');
 
 // retrieve target entity
 $model = $orm->getModel($params['entity']);
 if(!$model) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 // get the complete schema of the object (including special fields)
@@ -97,6 +98,7 @@ $collection = $params['entity']::search($domain->toArray());
 // update list
 $collection->update($fields, $params['lang']);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

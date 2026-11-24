@@ -8,10 +8,20 @@
             "description": "Adresse e-mail utilisée pour authentifier l'utilisateur.",
             "help":"Les identifiants sont des adresses e-mail."
         },
+        "username": {
+            "label": "Nom d'utilisateur",
+            "description": "Nom d'utilisateur unique du compte.",
+            "help": "Indiquez un nom d'utilisateur unique composé de lettres, de chiffres ou de traits d'union simples."
+        },
         "password":{
             "label":"Mot de passe",
             "description": "Mot de passe utilisé pour authentifier le compte.",
             "help": "Saisissez une nouvelle valeur uniquement lorsque le mot de passe doit être modifié."
+        },
+        "nickname": {
+            "label": "Surnom",
+            "description": "Alias du nom d'utilisateur du compte.",
+            "help": "Cette valeur reflète le nom d'utilisateur attribué au compte."
         },
         "firstname":{
             "label":"Prénom",
@@ -23,6 +33,11 @@
             "description": "Nom de famille de l'utilisateur.",
             "help": "Indiquez le nom de famille de l'utilisateur."
         },
+        "fullname": {
+            "label": "Nom complet",
+            "description": "Nom complet calculé à partir du prénom et du nom.",
+            "help": "Cette valeur est calculée automatiquement à partir du prénom et du nom."
+        },
         "validated":{
             "label":"Validé",
             "description": "Indique si le compte utilisateur est validé.",
@@ -32,6 +47,47 @@
             "label":"Langue",
             "description": "Langue préférée pour l'interface utilisateur.",
             "help": "La langue de préférence de l'utilisateur."
+        },
+        "groups_ids": {
+            "label": "Groupes",
+            "description": "Groupes auxquels l'utilisateur appartient.",
+            "help": "Sélectionnez les groupes auxquels l'utilisateur appartient."
+        },
+        "permissions_ids": {
+            "label": "Permissions",
+            "description": "Permissions accordées directement à l'utilisateur.",
+            "help": "Cette liste contient les permissions attribuées directement à l'utilisateur."
+        },
+        "setting_values_ids": {
+            "label": "Valeurs de configuration",
+            "description": "Valeurs de configuration propres à l'utilisateur.",
+            "help": "Cette liste contient les préférences et réglages attribués à l'utilisateur."
+        },
+        "passkeys_ids": {
+            "label": "Clés d'accès",
+            "description": "Clés d'accès enregistrées par l'utilisateur.",
+            "help": "Cette liste contient les clés d'accès associées à l'utilisateur."
+        },
+        "status": {
+            "label": "Statut",
+            "description": "État actuel du compte utilisateur.",
+            "help": "Cette valeur suit la création, la validation, la confirmation ou la suspension du compte.",
+            "selection": {
+                "created": "Créé",
+                "validated": "Validé",
+                "confirmed": "Confirmé",
+                "suspended": "Suspendu"
+            }
+        },
+        "allow_auth": {
+            "label": "Autoriser l'authentification",
+            "description": "Autorise l'authentification par mot de passe, clé ou courriel.",
+            "help": "Désactivez cette option pour limiter l'accès aux jetons générés manuellement."
+        },
+        "access_tokens_ids": {
+            "label": "Jetons d'accès",
+            "description": "Jetons d'accès appartenant à l'utilisateur.",
+            "help": "Cette liste contient les jetons d'accès délivrés à l'utilisateur."
         }
     },
     "view": {

@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\orm\Domain;
 use equal\orm\DomainCondition;
 use equal\orm\Operation;
@@ -12,38 +13,38 @@ use equal\orm\Operation;
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'lang' =>  [
-            'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
+        'lang' => [
             'type'          => 'string',
+            'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
             'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'default'       => []
         ],
         'datasets' => [
-            'description'   => 'Array of datasets descriptors.',
             'type'          => 'array',
+            'description'   => 'Array of datasets descriptors.',
             'default'       => []
         ],
         'field' => [
-            'description'   => 'Field to use for grouping the objects.',
             'type'          => 'string',
+            'description'   => 'Field to use for grouping the objects.',
             'default'       => 'created'
         ],
         'range_field' => [
-            'description'   => 'Date field to use for filtering the objects by range and grouping time ranges.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'Date field to use for filtering the objects by range and grouping time ranges.'
         ],
         'group_by' => [
-            'description'   => 'Method for grouping the results.',
             'type'          => 'string',
+            'description'   => 'Method for grouping the results.',
             'selection'     => [
                 'field',
                 'range'
@@ -51,18 +52,18 @@ use equal\orm\Operation;
             'default'       => 'range'
         ],
         'range_from' => [
-            'description'   => 'Start of date range.',
             'type'          => 'date',
+            'description'   => 'Start of date range.',
             'default'       => function () { return time() - (30 * 86400); }
         ],
         'range_to' => [
-            'description'   => 'End of date range.',
             'type'          => 'date',
+            'description'   => 'End of date range.',
             'default'       => function () { return time() + (30 * 86400); }
         ],
         'range_interval' => [
-            'description'   => 'Time interval for grouping abscissa values.',
             'type'          => 'string',
+            'description'   => 'Time interval for grouping abscissa values.',
             'selection'     => [
                 'day',
                 'week',
@@ -72,8 +73,8 @@ use equal\orm\Operation;
             'default'       => 'month'
         ],
         'mode' => [
-            'description'   => 'Mode defining to way data are to be returned.',
             'type'          => 'string',
+            'description'   => 'Mode defining to way data are to be returned.',
             'selection'     => [
                 'chart',
                 'grid'
@@ -81,7 +82,6 @@ use equal\orm\Operation;
             'default'       => 'chart'
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
@@ -90,9 +90,14 @@ use equal\orm\Operation;
         'cache-vary'    => ['uri'],
         'expires'       => 60 * 5
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => [ 'context', 'orm' ]
 ]);
 
+/**
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ */
 ['context' => $context, 'orm' => $orm] = $providers;
 
 $getDateIndex = function($date, $interval) {
@@ -352,6 +357,7 @@ if($params['mode'] === 'grid') {
     $result = &$res;
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

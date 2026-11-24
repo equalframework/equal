@@ -9,31 +9,28 @@ use core\followup\Task;
 use core\followup\TaskModel;
 
 [$params, $providers] = eQual::announce([
-    'description'	=> "Generate task models' tasks when an entity status changes.",
+    'description'   => "Generate task models' tasks when an entity status changes.",
     'help'          => "This controller is intended to be called after a target entity changes status. It evaluates status-based task model triggers for the given object, and creates or refreshes matching follow-up tasks with their configured visibility and deadline dates.",
-    'params' 		=> [
-
+    'params'        => [
         'entity' => [
-            'type'              => 'string',
-            'description'       => "Full name (including namespace) of the specific class to handle.",
-            'usage'             => 'orm/entity',
-            'required'          => true
+            'type'          => 'string',
+            'usage'         => 'orm/entity',
+            'description'   => "Full name (including namespace) of the specific class to handle.",
+            'required'      => true
         ],
-
         'entity_id' => [
-            'type'              => 'integer',
-            'description'       => "Id of the concerned object.",
-            'required'          => true
+            'type'          => 'integer',
+            'description'   => "Id of the concerned object.",
+            'required'      => true
         ]
-
     ],
     'access'        => [
-        'visibility'        => 'protected'
+        'visibility'    => 'protected'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
@@ -133,6 +130,7 @@ if(!empty($task_models)) {
     }
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

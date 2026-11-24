@@ -18,35 +18,43 @@
       "description": "Extended help text for the action"
     },
     "params": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "description": "Data type of the parameter (e.g. string, integer, boolean)"
-          },
-          "required": {
-            "type": "boolean",
-            "description": "Indicates if the parameter is required"
-          },
-          "default": {
-            "description": "Default value for the parameter if not provided"
-          },
-          "selection": {
-            "oneOf": [
-              {"type": "array"},
-              {"type": "object"}
-            ],
-            "description": "Optional list/map of allowed values for the parameter"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the parameter for documentation purposes"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Data type of the parameter (e.g. string, integer, boolean)"
+              },
+              "required": {
+                "type": "boolean",
+                "description": "Indicates if the parameter is required"
+              },
+              "default": {
+                "description": "Default value for the parameter if not provided"
+              },
+              "selection": {
+                "oneOf": [
+                  {"type": "array"},
+                  {"type": "object"}
+                ],
+                "description": "Optional list/map of allowed values for the parameter"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the parameter for documentation purposes"
+              }
+            },
+            "additionalProperties": true
           }
         },
-        "additionalProperties": true
-      }
+        {
+          "type": "array",
+          "maxItems": 0
+        }
+      ]
     },
     "response": {
       "type": "object",

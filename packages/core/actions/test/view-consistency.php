@@ -5,17 +5,18 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 [$params, $providers] = eQual::announce([
     'description'   => 'Validate a model view definition against its JSON schema.',
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'view_id' =>  [
-            'description'   => 'The identifier of the view <type.name>.',
+        'view_id' => [
             'type'          => 'string',
+            'description'   => 'The identifier of the view <type.name>.',
             'default'       => 'list.default'
         ]
     ],
@@ -27,9 +28,9 @@
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context $context
  */
-$context = $providers['context'];
+['context' => $context] = $providers;
 
 $parts = explode('.', $params['view_id'], 2);
 if(count($parts) !== 2 || !isset($parts[0]) || !strlen($parts[0]) || !isset($parts[1]) || !strlen($parts[1])) {
@@ -74,7 +75,8 @@ if(!($validation['result'] ?? false)) {
     throw new Exception('invalid_view_json', EQ_ERROR_INVALID_CONFIG);
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();
 

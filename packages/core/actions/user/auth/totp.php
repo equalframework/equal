@@ -11,9 +11,9 @@ use core\setting\Setting;
 use core\User;
 
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Attempts to log a user in or elevate its privileges using a totp.",
-    'params' 		=>	[
-        'auth_token' =>  [
+    'description'   => "Attempts to log a user in or elevate its privileges using a totp.",
+    'params'        => [
+        'auth_token' => [
             'type'          => 'string',
             'usage'         => 'text/plain:20248',
             'description'   => "The temporary token that proves the correct password was given."
@@ -32,13 +32,13 @@ use core\User;
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'auth'],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
+    'providers'     => ['context', 'auth']
 ]);
 
 /**
- * @var equal\php\Context                   $context
- * @var equal\auth\AuthenticationManager    $auth
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 

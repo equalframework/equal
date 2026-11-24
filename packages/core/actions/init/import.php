@@ -5,77 +5,69 @@
     Original author(s): Lucas LAURENT
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\db\DBConnection;
-use equal\db\DBManipulator;
 use equal\db\DBConnector;
+use equal\db\DBManipulator;
 
-list($params, $providers) = eQual::announce([
-    'description' => 'Import data from a database to eQual database for a given package.',
-    'help'        => 'This controller requires a schema and expects it as a `import-config.json` file in the `init` folder of the given package.',
-    'constants'   => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'params'      => [
+[$params, $providers] = eQual::announce([
+    'description'   => 'Import data from a database to eQual database for a given package.',
+    'help'          => 'This controller requires a schema and expects it as a `import-config.json` file in the `init` folder of the given package.',
+    'params'        => [
         'db_dbms' => [
-            'type'    => 'string',
-            'default' => 'MYSQL'
+            'type'      => 'string',
+            'default'   => 'MYSQL'
         ],
-
         'db_host' => [
-            'type'     => 'string',
-            'required' => true
+            'type'      => 'string',
+            'required'  => true
         ],
-
         'db_port' => [
-            'type'     => 'integer',
-            'required' => true
+            'type'      => 'integer',
+            'required'  => true
         ],
-
         'db_user' => [
-            'type'     => 'string',
-            'required' => true
+            'type'      => 'string',
+            'required'  => true
         ],
-
         'db_password' => [
-            'type'     => 'string',
-            'required' => true
+            'type'      => 'string',
+            'required'  => true
         ],
-
         'db_name' => [
-            'type'     => 'string',
-            'required' => true
+            'type'      => 'string',
+            'required'  => true
         ],
-
         'db_charset' => [
-            'type'     => 'string',
-            'default'  => 'utf8mb4'
+            'type'      => 'string',
+            'default'   => 'utf8mb4'
         ],
-
         'db_collation' => [
-            'type'     => 'string',
-            'default'  => 'utf8mb4_unicode_ci'
+            'type'      => 'string',
+            'default'   => 'utf8mb4_unicode_ci'
         ],
-
         'package' => [
-            'type'     => 'string',
-            'required' => true
+            'type'      => 'string',
+            'required'  => true
         ],
-
         'entity' => [
-            'type'     => 'string'
+            'type'      => 'string'
         ]
     ],
-    'response'    => [
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'   => ['context', 'adapt']
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'providers'     => ['context', 'adapt']
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\data\DataAdapterProvider  $dap
+ * @var \equal\php\Context                      $context
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
-list($context, $dap) = [$providers['context'], $providers['adapt']];
+['context' => $context, 'adapt' => $dap] = $providers;
 
 $getImportConfig = function($config_file_path): array {
     $config_file_content = file_get_contents($config_file_path);
@@ -143,9 +135,9 @@ $castOldDbRow = function(array $old_item, array $old_table_fields_config): array
 
 $createNewItemFromOld = function(array $config, DBManipulator $old_db_connection, array $old_item): array {
     $item = [
-        'creator'  => QN_ROOT_USER_ID,
+        'creator'  => EQ_ROOT_USER_ID,
         'created'  => time(),
-        'modifier' => QN_ROOT_USER_ID,
+        'modifier' => EQ_ROOT_USER_ID,
         'modified' => time(),
         'deleted'  => false,
         'state'    => 'instance'
@@ -260,11 +252,11 @@ $createNewItemFromOld = function(array $config, DBManipulator $old_db_connection
     return $item;
 };
 
-/** @var \equal\data\adapt\DataAdapter */
+/** @var \equal\data\adapt\DataAdapter $adapter */
 $adapter = $dap->get('sql');
 
 $import_config = $getImportConfig(
-    QN_BASEDIR . '/packages/' . $params['package'] . '/init/import-config.json'
+    EQ_BASEDIR . '/packages/' . $params['package'] . '/init/import-config.json'
 );
 
 /** @var DBManipulator */
@@ -335,6 +327,7 @@ foreach($import_config as $config) {
 $old_db_connection->disconnect();
 $new_db_connection->disconnect();
 
-$context->httpResponse()
-        ->body(['success' => true])
-        ->send();
+$context
+    ->httpResponse()
+    ->body(['success' => true])
+    ->send();

@@ -5,34 +5,34 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder};
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Removes the specified view relating to the given entity.",
+    'params'        => [
+        'entity' => [
+            'type'          => 'string',
+            'description'   => 'Name of the entity.',
+            'required'      => true
+        ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ],
     'response'      => [
         'content-type'  => 'text/plain',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params' => [
-        'entity' => [
-            'description'   => 'Name of the entity.',
-            'type'          => 'string',
-            'required'      => true
-        ]
-    ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
     'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 // Create all the object to use for using PhpParser
 $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
@@ -64,7 +64,7 @@ $traverser->addVisitor(
     );
 
 // Get the full path of the file
-$file = QN_BASEDIR."/packages/{$package}/classes/{$class_path}/{$filename}.class.php";
+$file = EQ_BASEDIR."/packages/{$package}/classes/{$class_path}/{$filename}.class.php";
 // Get the code from the original file ...
 $code = file_get_contents($file);
 // ... and parse it to create an AST
@@ -75,21 +75,22 @@ $stmtModified = $traverser->traverse($stmtOriginal);
 $result = $prettyPrinter->prettyPrintFile($stmtModified);
 // ... and write back the code to the file
 if(file_put_contents($file, $result) === false) {
-    throw new Exception('io_error', QN_ERROR_UNKNOWN);
+    throw new Exception('io_error', EQ_ERROR_UNKNOWN);
 }
 
 try {
     // apply coding standards (ecs.php is expected in QN_BASEDIR)
     $command = 'php ./vendor/bin/ecs check "' . str_replace('\\', '/', $file) . '" --fix';
     if(exec($command) === false) {
-        throw new Exception('command_failed', QN_ERROR_UNKNOWN);
+        throw new Exception('command_failed', EQ_ERROR_UNKNOWN);
     }
 }
 catch(Exception $e) {
-    trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
+    trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), EQ_REPORT_INFO);
 }
 
 $result = file_get_contents($file);
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

@@ -1,27 +1,28 @@
 <?php
 namespace core\pipeline;
 use equal;
-use equal\php\Context;
 
-list($params, $providers) = eQual::announce([
-    'description' => "Load a full pipeline with its nodes, metadata, links and parameters.",
-    'params' => [
+[$params, $providers] = eQual::announce([
+    'description'   => "Load a full pipeline with its nodes, metadata, links and parameters.",
+    'params'        => [
         'name' => [
-            'description' => "Pipeline name",
-            'type' => 'string',
-            'required' => true
+            'type'          => 'string',
+            'description'   => "Pipeline name",
+            'required'      => true
         ]
     ],
-    'response' => [
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers' => ['context']
+    'providers'     => ['context']
 ]);
 
-/** @var Context $context */
-$context = $providers['context'];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 // Step 1: Get pipeline by name
 $pipelineList = \eQual::run('get', 'model_collect', [
@@ -121,6 +122,7 @@ if (!empty($paramIds)) {
     $result['parameters'] = $params;
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body($result)
     ->send();

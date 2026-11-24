@@ -5,38 +5,43 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\setting\Setting;
 use core\setting\SettingValue;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Retrieve configuration settings according to package and section filters (support wildcards support) and current user.',
     'params'        => [
-        'package' =>  [
-            'description'   => "The package which the result list has to be limited to.",
+        'package' => [
             'type'          => 'string',
+            'description'   => "The package which the result list has to be limited to.",
             'default'       => '*'
         ],
-        'section' =>  [
-            'description'   => 'The section which the result list has to be limited to.',
+        'section' => [
             'type'          => 'string',
-			'default' 		=> '*'
+            'description'   => 'The section which the result list has to be limited to.',
+            'default'       => '*'
         ]
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth']
+    'providers'     => ['context', 'auth']
 ]);
 
-list($context, $om, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ */
+['context' => $context, 'auth' => $auth] = $providers;
 
 // retrieve current User identifier (HTTP headers lookup through Authentication Manager)
 $user_id = $auth->userId();
 // make sure user is authenticated
 if($user_id <= 0) {
-    throw new Exception('user_unknown', QN_ERROR_NOT_ALLOWED);
+    throw new Exception('user_unknown', EQ_ERROR_NOT_ALLOWED);
 }
 
 $domain = [];
@@ -52,7 +57,7 @@ if($params['package'] != '*') {
     }
     $packages = $data;
     if(!in_array($params['package'], $packages)) {
-        throw new Exception('unknown_package', QN_ERROR_INVALID_PARAM);
+        throw new Exception('unknown_package', EQ_ERROR_INVALID_PARAM);
     }
     $domain[] = ['package', '=', $params['package']];
 }
@@ -97,6 +102,7 @@ foreach($collection as $oid => $odata) {
 }
 
 // send back basic info of the User object
-$context->httpResponse()
-        ->body(array_values($res))
-        ->send();
+$context
+    ->httpResponse()
+    ->body(array_values($res))
+    ->send();

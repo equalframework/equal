@@ -30,13 +30,13 @@ use core\User;
             'help'              => 'Only needed if the authentication using totpkey is required for the user.'
         ]
     ],
+    'access'        => [
+        'visibility'    => 'public' // #memo - allow access with temporary auth_token when MFA is required
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'public' // #memo - allow access with temporary auth_token when MFA is required
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'providers'     => ['context', 'auth']

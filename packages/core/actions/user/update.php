@@ -5,38 +5,39 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\User;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Updates a user account based on given details.',
     'params'        => [
-        'id' =>  [
-            'description'   => 'Identifier of the user to update.',
+        'id' => [
             'type'          => 'integer',
+            'description'   => 'Identifier of the user to update.',
             'required'      => true
         ],
-        'firstname' =>  [
-            'description'   => 'User firstname.',
+        'firstname' => [
             'type'          => 'string',
+            'description'   => 'User firstname.'
         ],
         'lastname' => [
-            'description'   => 'User lastname.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'User lastname.'
         ],
         'language' => [
-            'description'   => 'User language.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'User language.'
         ]
     ],
-    'access' => [
-        'visibility'        => 'protected'
+    'access'        => [
+        'visibility'    => 'protected'
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -81,7 +82,8 @@ $user = $collection
     ->adapt('json')
     ->first(true);
 
-$context->httpResponse()
-        ->status(200)
-        ->body($user)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(200)
+    ->body($user)
+    ->send();

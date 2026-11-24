@@ -8,11 +8,11 @@
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Encrypts given value using private cipher key.",
-    'params' 		=>	[
-        'value' =>  [
-            'description'   => 'Value to encrypt.',
+    'description'   => "Encrypts given value using private cipher key.",
+    'params'        => [
+        'value' => [
             'type'          => 'string',
+            'description'   => 'Value to encrypt.',
             'required'      => true
         ],
         'legacy' => [
@@ -25,20 +25,34 @@
         'visibility'    => 'private'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context']
 ]);
 
 
 // initalise local vars with inputs
+<<<<<<< HEAD
+=======
+/**
+ * @var \equal\php\Context $context
+ */
+>>>>>>> 45e2187973a46a3a738f5991b970fba5eff8ab3c
 ['context' => $context] = $providers;
 
 $result = config\encrypt($params['value'], $params['legacy']);
 
+<<<<<<< HEAD
 $context->httpResponse()
         ->body(['result' => $result])
         ->status(204)
         ->send();
+=======
+$context
+    ->httpResponse()
+    ->body(['result' => $result])
+    ->status(204)
+    ->send();
+>>>>>>> 45e2187973a46a3a738f5991b970fba5eff8ab3c

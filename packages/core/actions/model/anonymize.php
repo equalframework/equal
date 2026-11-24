@@ -6,44 +6,45 @@
     Original Author: Lucas Laurent
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use equal\data\DataGenerator;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Anonymize an existing object with random data and given values.",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'fields' =>  [
-            'description'   => 'List of fields that must be anonymized.',
+        'fields' => [
             'type'          => 'array',
+            'description'   => 'List of fields that must be anonymized.',
             'default'       => []
         ],
         'relations' => [
-            'description'   => 'How to handle the object relations (many2one and one2many)',
             'type'          => 'array',
+            'description'   => 'How to handle the object relations (many2one and one2many)',
             'default'       => []
         ],
         'lang' => [
-            'description '  => 'Specific language for multilang field.',
             'type'          => 'string',
+            'description'   => 'Specific language for multilang field.',
             'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
-            'description'   => 'Criteria that results have to match (series of conjunctions)',
             'type'          => 'array',
+            'description'   => 'Criteria that results have to match (series of conjunctions)',
             'default'       => []
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],
-    'access'        => [
-        'visibility'    => 'protected'
     ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm']
@@ -59,7 +60,7 @@ $anonymized_values = [];
 
 $model = $orm->getModel($params['entity']);
 if(!$model) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 $schema = $model->getSchema();
@@ -131,6 +132,7 @@ foreach($ids as $id) {
     }
 }
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

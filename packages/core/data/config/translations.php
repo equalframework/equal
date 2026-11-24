@@ -5,22 +5,23 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the list of translation files defined in a given package, or applicable to a given entity.',
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
-    ],
     'params'        => [
         'package' => [
-            'description'   => 'Name of the package for which the list is requested.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'Name of the package for which the list is requested.'
         ],
         'entity' => [
-            'description'   => 'Name of the entity for which the list is requested.',
-            'type'          => 'string'
+            'type'          => 'string',
+            'description'   => 'Name of the entity for which the list is requested.'
         ]
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context', 'orm']
 ]);
@@ -29,7 +30,7 @@ list($params, $providers) = eQual::announce([
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 /**
  * Methods
@@ -81,10 +82,10 @@ $result = [];
 
 if(isset($params['package'])) {
     if(!file_exists("packages/{$params['package']}")) {
-        throw new Exception('missing_package_dir', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('missing_package_dir', EQ_ERROR_INVALID_CONFIG);
     }
     if(!file_exists("packages/{$params['package']}/i18n")) {
-        throw new Exception('missing_views_dir', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('missing_views_dir', EQ_ERROR_INVALID_CONFIG);
     }
     // recurse through all sub-folders of `i18n` directory
     // get the list of languages directories
@@ -98,17 +99,17 @@ if(isset($params['package'])) {
 }
 else {
     if(!isset($params['entity'])) {
-        throw new Exception('package_or_entity_required', QN_ERROR_MISSING_PARAM);
+        throw new Exception('package_or_entity_required', EQ_ERROR_MISSING_PARAM);
     }
     $temp = explode("\\", str_replace("_","\\",$params['entity']));
     $pkg = array_shift($temp);
     $path = implode("/",$temp);
     if(
-        !file_exists(QN_BASEDIR."/packages/{$pkg}/classes/{$path}.class.php") 
-        && !file_exists(QN_BASEDIR."/packages/{$pkg}/actions/{$path}.php") 
-        && !file_exists(QN_BASEDIR."/packages/{$pkg}/data/{$path}.php")
+        !file_exists(EQ_BASEDIR."/packages/{$pkg}/classes/{$path}.class.php") 
+        && !file_exists(EQ_BASEDIR."/packages/{$pkg}/actions/{$path}.php") 
+        && !file_exists(EQ_BASEDIR."/packages/{$pkg}/data/{$path}.php")
     ) {
-        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+        throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
     }
     $entity = $params['entity'];
     $map_views_ids = [];
@@ -125,7 +126,7 @@ else {
                 $result[$lang] = [];
             }
 
-            $list = glob(QN_BASEDIR."/packages/{$package}/i18n/{$lang}/{$class_path}/{$file}.json");
+            $list = glob(EQ_BASEDIR."/packages/{$package}/i18n/{$lang}/{$class_path}/{$file}.json");
 
             foreach($list as $node) {
                 $result[$lang][] = $package.'_'.(strlen($class_path)?str_replace('/', '_', $class_path).'_':'').basename($node, '.json');
@@ -147,6 +148,7 @@ else {
 
 }
 
-$context->httpResponse()
-        ->body($result)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();

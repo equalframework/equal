@@ -5,61 +5,62 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+
+[$params, $providers] = eQual::announce([
     'description'   => "Deletes the given object(s).",
     'params'        => [
-        'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+        'entity' => [
             'type'          => 'string',
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'required'      => true
         ],
-        'id' =>  [
-            'description'   => 'Unique identifier of the object to remove.',
+        'id' => [
             'type'          => 'integer',
+            'description'   => 'Unique identifier of the object to remove.',
             'default'       => 0
         ],
-        'ids' =>  [
-            'description'   => 'List of Unique identifiers of the objects to update.',
+        'ids' => [
             'type'          => 'array',
+            'description'   => 'List of Unique identifiers of the objects to update.',
             'default'       => []
         ],
         'permanent' => [
-            'description '  => 'Flag for choosing either soft deletion (recycle bin) or hard deletion (removed from DB).',
             'type'          => 'boolean',
+            'description'   => 'Flag for choosing either soft deletion (recycle bin) or hard deletion (removed from DB).',
             'default'       => false
         ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'protected'
-    ],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context $context
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context] = $providers;
 
 if( empty($params['ids']) ) {
     if( !isset($params['id']) || $params['id'] <= 0 ) {
-        throw new Exception("object_invalid_id", QN_ERROR_INVALID_PARAM);
+        throw new Exception("object_invalid_id", EQ_ERROR_INVALID_PARAM);
     }
     $params['ids'][] = $params['id'];
 }
 
 if(!class_exists($params['entity'])) {
-    throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+    throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
 }
 
 $params['entity']::ids($params['ids'])->delete($params['permanent']);
 
 // respond with a code 205 "Reset content" so that if controller was called by a view, it allows UI to close it
-$context->httpResponse()
-        ->status(205)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(205)
+    ->send();

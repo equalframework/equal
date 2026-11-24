@@ -5,42 +5,40 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\Group;
 use core\User;
 
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Add a user to a given group (identified by name or id).',
+    'params'        => [
+        'group' => [
+            'type'          => 'string',
+            'description'   => 'name or ID of targeted group.',
+            'required'      => true
+        ],
+        'user' => [
+            'type'          => 'string',
+            'description'   => 'login (email address) or ID of targeted user.',
+            'required'      => true
+        ]
+    ],
+    'access'        => [
+        'visibility'    => 'private'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params'        => [
-        'group' =>  [
-            'description'   => 'name or ID of targeted group.',
-            'type'          => 'string',
-            'required'      => true
-        ],
-        'user' =>  [
-            'description'   => 'login (email address) or ID of targeted user.',
-            'type'          => 'string',
-            'required'      => true
-        ]
-    ],
-    'access' => [
-        'visibility'        => 'private'
-    ],
-    'providers'     => ['context', 'auth', 'access', 'orm']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context                  $context
- * @var \equal\orm\ObjectManager            $orm
- * @var \equal\auth\AuthenticationManager   $am
- * @var \equal\access\AccessController      $ac
+ * @var \equal\php\Context $context
  */
-list($context, $orm, $am, $ac) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['access'] ];
+['context' => $context] = $providers;
 
 
 // 1) retrieve targeted group
@@ -51,7 +49,7 @@ if(is_numeric($params['group'])) {
 
     $ids = Group::search(['id', '=', $group_id])->ids();
     if(!count($ids)) {
-        throw new \Exception("unknown_group_id", QN_ERROR_UNKNOWN_OBJECT);
+        throw new \Exception("unknown_group_id", EQ_ERROR_UNKNOWN_OBJECT);
     }
 }
 else {
@@ -59,7 +57,7 @@ else {
     $ids = Group::search(['name', '=', $params['group']])->ids();
 
     if(!count($ids)) {
-        throw new \Exception("unknown_group_name", QN_ERROR_UNKNOWN_OBJECT);
+        throw new \Exception("unknown_group_name", EQ_ERROR_UNKNOWN_OBJECT);
     }
 
     $group_id = array_shift($ids);
@@ -73,7 +71,7 @@ if(is_numeric($params['user'])) {
 
     $ids = User::search(['id', '=', $user_id])->ids();
     if(!count($ids)) {
-        throw new \Exception("unknown_user_id", QN_ERROR_UNKNOWN_OBJECT);
+        throw new \Exception("unknown_user_id", EQ_ERROR_UNKNOWN_OBJECT);
     }
 }
 else {
@@ -81,7 +79,7 @@ else {
     $ids = User::search(['login', '=', $params['user']])->ids();
 
     if(!count($ids)) {
-        throw new \Exception("unknown_username", QN_ERROR_UNKNOWN_OBJECT);
+        throw new \Exception("unknown_username", EQ_ERROR_UNKNOWN_OBJECT);
     }
 
     $user_id = array_shift($ids);
@@ -90,6 +88,7 @@ else {
 // #memo - no need to switch to root user: this script is private (meant for CLI only)
 Group::id($group_id)->update(['users_ids' => [$user_id]]);
 
-$context->httpResponse()
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->status(204)
+    ->send();

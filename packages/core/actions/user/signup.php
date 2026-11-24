@@ -4,72 +4,72 @@ use core\User;
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Attempt to register a new user.",
-    'params' 		=>	[
+    'description'   => "Attempt to register a new user.",
+    'params'        => [
         'email' => [
-            'description'   => 'Email address of the user.',
             'type'          => 'string',
             'usage'         => 'email',
+            'description'   => 'Email address of the user.',
             'required'      => true
         ],
         'username' => [
-            'description'   => 'Nickname of the user.',
             'type'          => 'string',
+            'description'   => 'Nickname of the user.',
             'required'      => true
         ],
-        'password' =>  [
-            'description'   => 'The user chosen password.',
+        'password' => [
             'type'          => 'string',
             'usage'         => 'password/nist',
+            'description'   => 'The user chosen password.',
             'required'      => true
         ],
         'firstname' => [
-            'description'   => 'User\'s firstname.',
             'type'          => 'string',
+            'description'   => 'User\'s firstname.',
             'default'       => ''
         ],
         'lastname' => [
-            'description'   => 'User\'s lastname.',
             'type'          => 'string',
+            'description'   => 'User\'s lastname.',
             'default'       => ''
         ],
         'language' => [
-            'description'   => 'User\'s preferred language.',
             'type'          => 'string',
+            'description'   => 'User\'s preferred language.',
             'default'       => constant('DEFAULT_LANG')
         ],
         'send_confirm' => [
-            'description'   => 'Flag telling if we need to send a confirmation email.',
             'type'          => 'boolean',
+            'description'   => 'Flag telling if we need to send a confirmation email.',
             'default'       => true
         ],
         'resend' => [
-            'description'   => 'Previously sent message identifier to resend (must match credentials).',
             'type'          => 'integer',
+            'description'   => 'Previously sent message identifier to resend (must match credentials).',
             'default'       => 0
         ]
     ],
     'access'        => [
-        'visibility'        => 'public'
+        'visibility'    => 'public'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
     'constants'     => ['USER_ACCOUNT_REGISTRATION', 'DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
 /**
- * @var equal\php\Context                   $context
- * @var equal\orm\ObjectManager             $om
- * @var equal\auth\AuthenticationManager    $auth
+ * @var \equal\orm\ObjectManager            $om
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
-list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
+['orm' => $om, 'context' => $context, 'auth' => $auth] = $providers;
 
 if(!constant('USER_ACCOUNT_REGISTRATION')) {
-    throw new Exception('no_registration', QN_ERROR_NOT_ALLOWED);
+    throw new Exception('no_registration', EQ_ERROR_NOT_ALLOWED);
 }
 
 // cleanup provided email (as login): strip heading and trailing spaces and remove recipient tag, if any
@@ -99,7 +99,7 @@ $ids = $om->search(User::getType(), [['login', '=', $login]]);
 
 if($params['resend']) {
     if(count($ids) <= 0) {
-        throw new Exception('invalid_request', QN_ERROR_INVALID_USER);
+        throw new Exception('invalid_request', EQ_ERROR_INVALID_USER);
     }
     $user_id = reset($ids);
     $user = User::id($user_id)->read(['id', 'status', 'login', 'username', 'firstname', 'lastname'])->first(true);
@@ -109,13 +109,13 @@ if($params['resend']) {
 }
 else {
     if(count($ids) > 0) {
-        throw new Exception('existing_email', QN_ERROR_INVALID_USER);
+        throw new Exception('existing_email', EQ_ERROR_INVALID_USER);
     }
 
     // check username uniqueness
     $ids = $om->search(User::getType(), [['username', '=', $username]]);
     if(count($ids) > 0) {
-        throw new Exception('existing_username', QN_ERROR_INVALID_USER);
+        throw new Exception('existing_username', EQ_ERROR_INVALID_USER);
     }
 
     // #memo - email might still be invalid (a validation check is made in User class)
@@ -139,6 +139,7 @@ if($send_confirm) {
     $message_id = $result['message_id'];
 }
 
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->body(['message_id' => $message_id])
     ->send();

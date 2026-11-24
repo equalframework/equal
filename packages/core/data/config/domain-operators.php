@@ -8,23 +8,26 @@
 
 use equal\orm\ObjectManager;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns schema of available operators and for each type',
+    'params'        => [],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
-    'params'        => [
-    ],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+/**
+ * @var \equal\php\Context $context
+ */
+['context' => $context] = $providers;
 
 $operators = ObjectManager::$valid_operators;
 
-$context->httpResponse()
-        ->body($operators)
-        ->send();
+$context
+    ->httpResponse()
+    ->body($operators)
+    ->send();

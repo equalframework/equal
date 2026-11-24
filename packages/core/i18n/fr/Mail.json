@@ -3,6 +3,25 @@
     "plural": "Mails",
     "description": "Messages courriels envoyés.",
     "model": {
+        "message_id": {
+            "label": "Identifiant du message",
+            "description": "Identifiant unique du message selon la RFC 5322.",
+            "help": "Cette valeur identifie le courriel conformément à la RFC 5322."
+        },
+        "date": {
+            "label": "Date",
+            "description": "Date et heure du message électronique.",
+            "help": "Cette valeur est initialisée avec la date et l'heure actuelles."
+        },
+        "direction": {
+            "label": "Direction",
+            "description": "Sens de circulation du message électronique.",
+            "help": "Sélectionnez si le message est sortant ou entrant.",
+            "selection": {
+                "outgoing": "Sortant",
+                "incoming": "Entrant"
+            }
+        },
         "to":{
             "label":"À",
             "description": "Destinataire principal du courriel.",
@@ -12,6 +31,16 @@
             "label":"Réponse à",
             "description": "Adresse de réponse.",
             "help":"Adresse reprise dans le champ `reply-to` et à laquelle adresser les emails de réponse."
+        },
+        "cc": {
+            "label": "Copie",
+            "description": "Destinataires recevant une copie du message.",
+            "help": "Indiquez les adresses en copie, séparées par des virgules."
+        },
+        "bcc": {
+            "label": "Copie cachée",
+            "description": "Destinataires recevant une copie cachée du message.",
+            "help": "Indiquez les adresses en copie cachée, séparées par des virgules."
         },
         "status":{
             "label":"Statut",
@@ -38,6 +67,16 @@
             "label":"Pièces jointes",
             "description": "Liste des noms des documents joints au message.",
             "help": "Indiquez les noms des documents joints, séparés par des virgules."
+        },
+        "object_class": {
+            "label": "Classe de l'objet",
+            "description": "Classe de l'objet associé au message.",
+            "help": "Indiquez la classe de l'objet source lorsque le message est associé à un objet."
+        },
+        "object_id": {
+            "label": "Objet",
+            "description": "Identifiant de l'objet associé au message.",
+            "help": "Indiquez l'identifiant de l'objet source lorsque le message est associé à un objet."
         },
         "response_status":{
             "label":"Réponse",

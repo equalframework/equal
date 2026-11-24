@@ -5,25 +5,27 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\User;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns descriptor of current User, based on received access_token',
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'BACKEND_URL'],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'BACKEND_URL'],
     'providers'     => ['context', 'auth']
 ]);
+
 // use equal\orm\ObjectManager
 
 /**
  * @var \equal\php\Context                  $context
  * @var \equal\auth\AuthenticationManager   $auth
  */
-list($context, $auth) = [$providers['context'], $providers['auth']];
+['context' => $context, 'auth' => $auth] = $providers;
 
 // retrieve current User identifier (HTTP headers lookup through Authentication Manager)
 $user_id = $auth->userId();
@@ -60,7 +62,8 @@ $access_token  = $auth->renewedToken(constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 $csrf_token = $auth->token($authenticated_user_id);
 
 // send back basic info of the User object
-$context->httpResponse()
+$context
+    ->httpResponse()
     ->header('X-CSRF-Token', $csrf_token)
     ->cookie('csrf_token',  $csrf_token, [
         'expires'   => time() + 86400,
