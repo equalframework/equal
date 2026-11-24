@@ -30,7 +30,7 @@
         "type": "string",
         "description": "Secret key used for hashing JWT data.",
         "instant": true,
-        "default": "my_secret_key"
+        "default": "my_random_secret_key"
     },
     "AUTH_ACCESS_TOKEN_VALIDITY": {
         "type": "integer",
@@ -58,6 +58,7 @@
     "CIPHER_KEY": {
         "type": "string",
         "description": "Private key to use for secrets encryption/decryption. This property should be defined before any encryption/decryption operation.",
+        "help": "Changing this value prevents secrets encrypted with the previous key from being decrypted. Keep the key secret, back it up securely, and use the same 64-character hexadecimal value on every instance that accesses the encrypted data. To rotate the key, decrypt and re-encrypt all existing secrets as part of the change.",
         "instant": true,
         "environment": "EQ_CIPHER_KEY",
         "examples": [
