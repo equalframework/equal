@@ -149,6 +149,14 @@
             "type": "boolean",
             "description": "Show confirmation dialog"
           },
+          "refresh": {
+            "type": "boolean",
+            "description": "Refresh the current view after successful execution"
+          },
+          "refresh_context": {
+            "type": "boolean",
+            "description": "Refresh the current context after successful execution"
+          },
           "visible": {
             "$ref": "#/$defs/visibility"
           }

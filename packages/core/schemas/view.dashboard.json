@@ -60,7 +60,15 @@
           "id": {"type": "string"},
           "label": {"type": "string"},
           "icon": {"type": "string"},
-          "controller": {"type": "string"}
+          "controller": {"type": "string"},
+          "refresh": {
+            "type": "boolean",
+            "description": "Refresh the current view after successful execution"
+          },
+          "refresh_context": {
+            "type": "boolean",
+            "description": "Refresh the current context after successful execution"
+          }
         }
       }
     }

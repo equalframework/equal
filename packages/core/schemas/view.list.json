@@ -123,6 +123,14 @@
                   "label": {"type": "string"},
                   "icon": {"type": "string"},
                   "controller": {"type": "string"},
+                  "refresh": {
+                    "type": "boolean",
+                    "description": "Refresh the current view after successful execution"
+                  },
+                  "refresh_context": {
+                    "type": "boolean",
+                    "description": "Refresh the current context after successful execution"
+                  },
                   "visible": {"$ref": "#/$defs/visibility"}
                 }
               },
@@ -143,6 +151,14 @@
           "icon": {"type": "string"},
           "description": {"type": "string"},
           "controller": {"type": "string"},
+          "refresh": {
+            "type": "boolean",
+            "description": "Refresh the current view after successful execution"
+          },
+          "refresh_context": {
+            "type": "boolean",
+            "description": "Refresh the current context after successful execution"
+          },
           "visible": {"$ref": "#/$defs/visibility"},
           "batch": {
             "type": "boolean",
