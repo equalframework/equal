@@ -199,6 +199,13 @@ class Setting extends Model {
         return ['user_id'];
     }
 
+    public static function getSecuritySelectors($user_id): array {
+        return [
+            ['user_id' => $user_id],
+            []
+        ];
+    }
+
     protected static function calcName($self) {
         $result = [];
         $self->read(['state', 'package', 'section', 'code']);
@@ -609,58 +616,75 @@ class Setting extends Model {
      *
      * @return  mixed       Returns the value of the target setting or value provided as default if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
-    public static function get_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+    public static function get_value(string $package, string $section, string $code, $default=null, array $selectors=[], string $lang=null) {
+
+        $setting_id = static::get_setting_id($package, $section, $code);
+        if(!$setting_id) {
+            // Handle setting does not exist
+            return $default;
+        }
+
+        if(empty($selectors) || !array_is_list($selectors)) {
+            // Handle a single associative selector.
+            $selectors = [$selectors];
+        }
 
         $lang = $lang ?? constant('DEFAULT_LANG');
 
-        $cached_value = static::get_cache($package, $section, $code, $selector, $lang);
+        /** @var \equal\orm\ObjectManager $orm */
+        ['orm' => $orm] = \eQual::inject(['orm']);
 
-        if(!$cached_value) {
+        $setting_value = null;
+        foreach($selectors as $selector) {
 
-            /** @var \equal\orm\ObjectManager $orm */
-            ['orm' => $orm] = \eQual::inject(['orm']);
+            $cached_value = static::get_cache($package, $section, $code, $selector, $lang);
 
-            $setting_id = static::get_setting_id($package, $section, $code);
+            if(!$cached_value) {
 
-            if(!$setting_id) {
-                return $default;
-            }
+                $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
-            $setting_value_id = static::get_setting_value_id($setting_id, $selector);
+                if(!$setting_value_id) {
+                    // Go to next selector if setting value does not exist
+                    continue;
+                }
 
-            if(!$setting_value_id) {
-                return $default;
-            }
+                $settings = $orm->read(static::getType(), (array) $setting_id, ['type', 'is_multilang']);
+                $setting = array_pop($settings);
 
-            $settings = $orm->read(static::getType(), (array) $setting_id, ['type', 'is_multilang']);
-            $setting = array_pop($settings);
+                $values_lang = ($setting['is_multilang']) ? $lang : constant('DEFAULT_LANG');
 
-            $values_lang = ($setting['is_multilang']) ? $lang : constant('DEFAULT_LANG');
+                $setting_values = $orm->read(static::getSettingValueClass(), (array) $setting_value_id, ['value'], $values_lang);
 
-            $setting_values = $orm->read(static::getSettingValueClass(), (array) $setting_value_id, ['value'], $values_lang);
+                if($setting_values > 0 && count($setting_values)) {
 
-            if($setting_values > 0 && count($setting_values)) {
+                    $value = $setting_values[$setting_value_id]['value'];
 
-                $value = $setting_values[$setting_value_id]['value'];
+                    if(!is_null($value)) {
+                        $result = $value;
 
-                if(!is_null($value)) {
-                    $result = $value;
+                        $map_types = [
+                            'boolean'   => 'boolean',
+                            'integer'   => 'integer',
+                            'float'     => 'double',
+                            'string'    => 'string',
+                            'many2one'  => 'integer'
+                        ];
 
-                    $map_types = [
-                        'boolean'   => 'boolean',
-                        'integer'   => 'integer',
-                        'float'     => 'double',
-                        'string'    => 'string',
-                        'many2one'  => 'integer'
-                    ];
+                        settype($result, $map_types[$setting['type']] ?? 'string');
 
-                    settype($result, $map_types[$setting['type']] ?? 'string');
-
-                    static::set_cache($package, $section, $code, $result, $selector, $lang);
+                        static::set_cache($package, $section, $code, $result, $selector, $lang);
+                    }
                 }
             }
+
+            $setting_value = static::get_cache($package, $section, $code, $selector, $lang);
+
+            if($setting_value) {
+                break;
+            }
         }
-        return static::get_cache($package, $section, $code, $selector, $lang) ?? $default;
+
+        return $setting_value ?? $default;
     }
 
     /**
