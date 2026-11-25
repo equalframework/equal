@@ -46,7 +46,7 @@ $tests = [
                         && $payload['exp'] > time()
                         && $payload['amr'] === []
                         && $payload['auth'] === []
-                        && $payload['acr'] === 'urn:equal:auth:level:0'
+                        && !array_key_exists('acr', $payload)
                         && $result['level'] === 0;
                 },
             'act'               =>  function () {
@@ -130,10 +130,10 @@ $tests = [
 
                     return $pwd_payload['amr'] === ['pwd']
                         && $pwd_payload['auth'] === [$pwd_auth_method]
-                        && $pwd_payload['acr'] === 'urn:equal:auth:level:1'
+                        && !array_key_exists('acr', $pwd_payload)
                         && $payload['amr'] === ['pwd', 'otp']
                         && $payload['auth'] === [$pwd_auth_method, $totp_auth_method]
-                        && $payload['acr'] === 'urn:equal:auth:level:2'
+                        && !array_key_exists('acr', $payload)
                         && $auth->getAuthLevel($token) === 2;
                 }
         ],
@@ -206,7 +206,7 @@ $tests = [
                     return $updated_payload['exp'] === $payload['exp']
                         && $updated_payload['amr'] === ['pwd', 'otp']
                         && count($updated_payload['auth']) === 2
-                        && $updated_payload['acr'] === 'urn:equal:auth:level:2'
+                        && !array_key_exists('acr', $updated_payload)
                         && $auth->getAuthLevel($updated_token) === 2;
                 }
         ],
@@ -235,7 +235,7 @@ $tests = [
                     return count($payload['auth']) === 1
                         && $payload['auth'][0]['exp'] === $expected_expiry
                         && $payload['amr'] === ['otp']
-                        && $payload['acr'] === 'urn:equal:auth:level:1'
+                        && !array_key_exists('acr', $payload)
                         && $auth->getAuthLevel($updated_token) === 1;
                 }
         ],
@@ -288,7 +288,7 @@ $tests = [
 
                     return $payload['amr'] === ['otp']
                         && $payload['auth'] === [$totp_auth_method, $email_otp_auth_method]
-                        && $payload['acr'] === 'urn:equal:auth:level:1'
+                        && !array_key_exists('acr', $payload)
                         && $auth->getAuthLevel($token) === 1;
                 }
         ],
@@ -366,7 +366,7 @@ $tests = [
                     $payload = $auth->retrieveAccessToken($token);
 
                     return $auth->getAuthLevel($token) === 2
-                        && $payload['acr'] === 'urn:equal:auth:level:2'
+                        && !array_key_exists('acr', $payload)
                         && $payload['auth'] === [$auth_method];
                 }
         ],
@@ -391,6 +391,7 @@ $tests = [
                             'level'     => 1,
                             'exp'       => $now + 60
                         ]],
+                        'acr'   => 'urn:equal:auth:level:1',
                         'iat'   => $now,
                         'exp'   => $now + 60,
                         'trk'   => false
@@ -408,7 +409,7 @@ $tests = [
                             ['method' => 'pwd', 'exp' => $now + 60],
                             ['method' => 'totp', 'exp' => $now + 60]
                         ]
-                        && $payload['acr'] === 'urn:equal:auth:level:2'
+                        && !array_key_exists('acr', $payload)
                         && $auth->getAuthLevel($updated_token) === 2;
                 }
         ],
@@ -435,7 +436,7 @@ $tests = [
                     $payload = $auth->retrieveAccessToken($token);
 
                     return $payload['amr'] === ['pwd', 'otp']
-                        && $payload['acr'] === 'urn:equal:auth:level:2'
+                        && !array_key_exists('acr', $payload)
                         && $auth->getAuthLevel($token) === 2;
                 }
         ],
@@ -475,7 +476,7 @@ $tests = [
 
                         return $payload['auth'] === [$pwd_proof, $email_otp_proof]
                             && $payload['amr'] === ['pwd', 'otp']
-                            && $payload['acr'] === 'urn:equal:auth:level:2'
+                            && !array_key_exists('acr', $payload)
                             && $auth->getAuthLevel($token) === 2;
                     }
                     finally {
@@ -527,7 +528,7 @@ $tests = [
 
                         return $updated_payload['exp'] === $payload['exp']
                             && $updated_payload['amr'] === ['pwd', 'otp']
-                            && $updated_payload['acr'] === 'urn:equal:auth:level:2'
+                            && !array_key_exists('acr', $updated_payload)
                             && $mismatch_rejected;
                     }
                     finally {
@@ -581,7 +582,7 @@ $tests = [
 
                     return $payload['auth'] === $auth_methods
                         && $payload['amr'] === ['pwd', 'otp']
-                        && $payload['acr'] === 'urn:equal:auth:level:2'
+                        && !array_key_exists('acr', $payload)
                         && $auth->getAuthLevel($token) === 2
                         && $auth->verifyToken($legacy_token, constant('AUTH_SECRET_KEY'))
                         && $legacy_level === 1
@@ -617,7 +618,7 @@ $tests = [
 
                         return $payload['auth'] === $auth_methods
                             && $payload['amr'] === ['pwd', 'otp']
-                            && $payload['acr'] === 'urn:equal:auth:level:2';
+                            && !array_key_exists('acr', $payload);
                     }
                     finally {
                         $request->cookie('access_token', (string) $original_access_token);
@@ -785,7 +786,7 @@ $tests = [
 
                         return $payload['auth'] === [$password_proof, $totp_proof]
                             && $payload['amr'] === ['pwd', 'otp']
-                            && $payload['acr'] === 'urn:equal:auth:level:2'
+                            && !array_key_exists('acr', $payload)
                             && $auth->getAuthLevel($token) === 2;
                     }
                     finally {
@@ -1197,6 +1198,37 @@ $tests = [
                         'user_id', '=', $fixture['user_id']
                     ])->delete(true);
                     core\User::id($fixture['user_id'])->delete(true);
+                }
+        ],
+
+    '0130' => [
+            'description'       =>  'Represent a tracked API credential with the api_token authentication method.',
+            'return'            =>  ['array'],
+            'act'               =>  function () {
+                    ['auth' => $auth] = eQual::inject(['auth']);
+
+                    $token = $auth->issueTrackedAccessToken(EQ_ROOT_USER_ID, 60);
+                    $payload = $auth->retrieveAccessToken($token);
+
+                    return [
+                        'token_id'  => $payload['jti'],
+                        'payload'   => $payload,
+                        'level'     => $auth->getAuthLevel($token)
+                    ];
+                },
+            'assert'            =>  function ($result) {
+                    return count($result['payload']['auth']) === 1
+                        && $result['payload']['auth'][0]['method'] === 'api_token'
+                        && $result['payload']['auth'][0]['exp'] > time()
+                        && $result['payload']['amr'] === ['api_token']
+                        && $result['payload']['trk'] === true
+                        && !array_key_exists('acr', $result['payload'])
+                        && $result['level'] === 1;
+                },
+            'rollback'          =>  function ($result) {
+                    if(is_array($result) && isset($result['token_id'])) {
+                        core\security\AccessToken::id($result['token_id'])->delete(true);
+                    }
                 }
         ]
 ];

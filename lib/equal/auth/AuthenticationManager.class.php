@@ -15,12 +15,46 @@ use equal\organic\Service;
 use equal\orm\ObjectManager;
 use equal\services\Container;
 
+/**
+ * Central authentication service for the eQual framework.
+ *
+ * It discovers and validates access tokens, resolves the authenticated and effective user identities, applies impersonation, issues and renews JWTs,
+ * enforces tracked-token revocation and usage limits, coordinates multi-step authentication flows, and calculates the effective assurance level.
+ *
+ * Authentication proofs describe how the user originally authenticated or subsequently strengthened the session. They are distinct from the access
+ * token presented by the current request and from its tracking mode.
+ *
+ * Each proof stored in the private `auth` claim has the following shape:
+ *
+ *     [
+ *         'method' => string, // non-empty stable method identifier
+ *         'exp'    => int     // Unix timestamp; active while exp >= time()
+ *     ]
+ *
+ * Standard eQual flows currently emit these detailed method identifiers:
+ *
+ * - `pwd`: password verification
+ * - `totp`: time-based one-time password
+ * - `email_otp`: one-time password delivered by email
+ * - `passkey`: WebAuthn/passkey authentication
+ * - `email`: proof established by an email authentication flow
+ * - `fed`: federated authentication
+ * - `api_token`: manually issued, tracked API access token
+ *
+ * The identifier list is extensible. Any non-empty identifier is accepted, contributes level 1 while active unless a specific rule says otherwise,
+ * and is copied unchanged to `amr`. The only built-in AMR normalization is `totp` and `email_otp` to `otp`.
+ *
+ * Effective authentication levels are calculated dynamically by `getAuthLevel()`. For a JWT, only non-expired proofs contribute:
+ *
+ * - level 0: no active JWT proof; a valid access token may still identify the request
+ * - level 1: one or more active proofs without a level-2 combination, or a previously resolved non-JWT identity such as HTTP Basic authentication
+ * - level 2: an active passkey, or active password plus TOTP/email OTP
+ * - level 3: reserved; no built-in rule currently grants it
+ *
+ * JWT `exp` controls how long the access token can identify requests, while each proof `exp` controls how long that proof contributes to assurance.
+ * `trk` and `jti` only control server-side token tracking and revocation.
+ */
 class AuthenticationManager extends Service {
-
-    /**
-     * Prefix used for Authentication Context Class Reference values.
-     */
-    private const ACR_PREFIX = 'urn:equal:auth:level:';
 
     /**
      * @var integer Final resolved user identifier, after applying impersonation if any.
@@ -65,9 +99,12 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Returns the highest non-expired authentication level granted by the current JWT token.
+     * Returns the effective level granted by the current JWT authentication proofs.
      *
-     * Without a JWT, a previously resolved authenticated identity has level 1; otherwise the level is 0.
+     * The level is recalculated at call time and is intentionally not stored as a
+     * JWT claim. Level 0 means that no proof currently contributes to assurance;
+     * it does not imply that a valid access token cannot identify the request.
+     * Without a JWT, a previously resolved authenticated identity has level 1.
      */
     public function getAuthLevel($token = null) {
         $jwt = $this->retrieveAccessToken($token);
@@ -87,7 +124,6 @@ class AuthenticationManager extends Service {
      *   - sub : the user identifier
      *   - amr : standard Authentication Methods References as a list of strings
      *   - auth: detailed authentication methods (`method`, `exp`)
-     *   - acr : assurance level resolved when this JWT representation is issued
      *   - iat : the datetime (timestamp) at which the token was issued
      *   - exp : (optional) the datetime (timestamp) at which the token expires
      *   - trk : is the token tracked or not
@@ -112,7 +148,6 @@ class AuthenticationManager extends Service {
      *         "pwd",
      *         "otp"
      *     ],
-     *     "acr": "urn:equal:auth:level:2",
      *     "exp": 1760003600,
      *     "trk": true,
      *     "jti": 123
@@ -154,7 +189,6 @@ class AuthenticationManager extends Service {
 
         $payload['auth'] = array_values($auth_methods);
         $payload['amr'] = $this->extractAmrReferences($auth_methods);
-        $payload['acr'] = $this->extractAuthState($auth_methods);
 
         // handle expiry
         if($validity) {
@@ -358,7 +392,8 @@ class AuthenticationManager extends Service {
 
         $jwt['auth'] = $auth_methods;
         $jwt['amr'] = $this->extractAmrReferences($auth_methods);
-        $jwt['acr'] = $this->extractAuthState($auth_methods);
+        // Remove the former assurance snapshot when reissuing a legacy token.
+        unset($jwt['acr']);
 
         return $this->encodeToken($jwt);
     }
@@ -389,7 +424,6 @@ class AuthenticationManager extends Service {
 
         $payload['auth'] = $auth_methods;
         $payload['amr'] = $this->extractAmrReferences($auth_methods);
-        $payload['acr'] = $this->extractAuthState($auth_methods);
 
         if(isset($jwt['jti'])) {
             $payload['jti'] = $jwt['jti'];
@@ -434,6 +468,13 @@ class AuthenticationManager extends Service {
         return $this->issueTrackedAccessToken($user_id, $validity);
     }
 
+    /**
+     * Issue a server-tracked API credential that can be revoked independently.
+     *
+     * The `api_token` proof describes how access was granted. It must not be
+     * confused with the JWT transport used by every cookie or Bearer request.
+     * Tracking is represented separately by the `trk` and `jti` claims.
+     */
     public function issueTrackedAccessToken(int $user_id, int $validity = 0) {
         $accessToken = AccessToken::create([
                 'user_id'   => $user_id,
@@ -442,7 +483,7 @@ class AuthenticationManager extends Service {
             ->first();
 
         $auth_method = [
-            'method'    => 'token',
+            'method'    => 'api_token',
             'exp'       => $validity ? time() + $validity : PHP_INT_MAX
         ];
 
@@ -490,11 +531,14 @@ class AuthenticationManager extends Service {
     /**
      * Resolve assurance from non-expired authentication methods according to the eQual policy.
      *
-     * The level numbering follows the Authentication Assurance Level (AAL) model:
-     * level 1 represents a single active authentication method, while level 2
-     * requires a user-verified passkey or password combined with an OTP method.
-     * Level 0 is the eQual-specific unauthenticated state. This mapping is an
-     * application policy inspired by AALs, not a claim of strict NIST conformance.
+     * Level 0 means no proof currently contributes to assurance, even though a
+     * valid access token can still identify the request. Level 1 requires at
+     * least one active proof. Level 2 requires an active user-verified passkey,
+     * or an active password combined with active TOTP or email OTP. Level 3 is
+     * reserved and is not currently produced.
+     *
+     * This is an eQual application policy inspired by Authentication Assurance
+     * Levels, not a claim of strict NIST conformance.
      *
      * @see https://pages.nist.gov/800-63-4/sp800-63b/aal/
      */
@@ -542,14 +586,11 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Return the Authentication Context Class Reference for the given methods.
-     */
-    private function extractAuthState(array $auth_methods): string {
-        return self::ACR_PREFIX . $this->resolveAuthLevel($auth_methods);
-    }
-
-    /**
-     * Map detailed eQual methods to standard Authentication Method References.
+     * Map a detailed eQual method to its Authentication Method Reference.
+     *
+     * Known projections are `pwd` to `pwd`, `totp` and `email_otp` to `otp`,
+     * `passkey` to `passkey`, `email` to `email`, `fed` to `fed`, and
+     * `api_token` to `api_token`. Extension identifiers are preserved unchanged.
      */
     private function extractAmrReference(string $method): string {
         if(in_array($method, ['totp', 'email_otp'], true)) {

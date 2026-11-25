@@ -928,7 +928,8 @@ namespace config {
                         }
                     }
                 }
-                // check the current effective authentication level (1: AAL1, 2: AAL2, 3: AAL3)
+                // Check the effective eQual assurance level calculated from active proofs.
+                // Levels 0 to 2 are currently produced; level 3 is reserved.
                 // #memo - `auth_level` is kept as a legacy alias for controller announcements
                 $required_auth_level = $announcement['access']['level'] ?? $announcement['access']['auth_level'] ?? null;
                 if(!is_null($required_auth_level) && $auth->getAuthLevel() < (int) $required_auth_level) {

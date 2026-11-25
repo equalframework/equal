@@ -84,8 +84,7 @@ An access-token payload produced by `AuthenticationManager` has this shape:
   "auth": [
     {"method": "pwd", "exp": 1787907600},
     {"method": "totp", "exp": 1787821500}
-  ],
-  "acr": "urn:equal:auth:level:2"
+  ]
 }
 ```
 
@@ -103,13 +102,12 @@ Tracked tokens additionally contain `jti`, the identifier of a `core\security\Ac
 | `jti` | ORM `AccessToken` identifier for a tracked token. |
 | `amr` | Standard Authentication Methods References: a list of method strings. |
 | `auth` | Private eQual authentication state containing proofs and their individual expirations. |
-| `acr` | Authentication Context Class Reference resolved when this JWT representation is issued. |
 
 `amr` must remain a list of strings. Factor identifiers, secrets, public keys, counters, provider tokens, and raw method-specific evidence do not belong in `amr` or `auth`. A factor identifier can be written to separate audit logs when traceability requires it.
 
 `amr` is rebuilt from all entries in `auth`, including entries whose authentication expiry has passed. It is a standard projection, not a copy of the internal method names: both `totp` and `email_otp` project to the single `otp` AMR reference. It records the method families carried by the token; it is not the source of truth for current assurance.
 
-`acr` is a signed snapshot of the policy result when the JWT representation is emitted. Because proofs can expire independently, internal authorization always calls `getAuthLevel()` instead of trusting the stored `acr` value.
+The effective assurance level is deliberately not stored in the JWT because proofs can expire independently from the access token. Authorization always calls `getAuthLevel()` to calculate the current level from active proofs.
 
 ### Proof invariants
 
@@ -163,7 +161,7 @@ $access_token = $auth->issueAccessToken(
 );
 ```
 
-When no access token is present, this creates a stateless signed JWT and restores any proofs supplied in `previous_auth`. `createAccessToken()` instead creates a `core\security\AccessToken`, records a `token` proof, and emits a tracked JWT containing `trk: true` and `jti`. A single valid `token` proof resolves to level 1.
+When no access token is present, this creates a stateless signed JWT and restores any proofs supplied in `previous_auth`. `createAccessToken()` instead creates a `core\security\AccessToken`, records an `api_token` proof, and emits a tracked JWT containing `trk: true` and `jti`. A single valid `api_token` proof resolves to level 1.
 
 ### Step-up or method refresh
 
@@ -181,7 +179,7 @@ $access_token = $auth->issueAccessToken($user_id, $auth_proof);
 2. normalizes the existing proofs;
 3. removes any existing proof with the same `method`;
 4. appends the new proof;
-5. rebuilds `amr` and recomputes `acr`;
+5. rebuilds `amr` and removes any legacy `acr` snapshot;
 6. signs the updated payload without changing JWT `iat` or `exp`.
 
 Replacement is keyed only by the detailed method name. Re-authenticating with `totp` replaces the previous `totp` proof. TOTP and email OTP remain distinct in `auth` as `totp` and `email_otp`, while both are represented as `otp` in `amr`.
@@ -190,7 +188,7 @@ Low-level callers of `addAuthMethod()` remain responsible for subject consistenc
 
 ### Renewal
 
-`renewedToken($validity)` issues a new JWT representation with a new `iat` and token `exp`, while preserving `id`, `sub`, tracking fields, and every existing authentication proof unchanged. It rebuilds `amr`, recomputes `acr`, and normalizes existing proofs.
+`renewedToken($validity)` issues a new JWT representation with a new `iat` and token `exp`, while preserving `id`, `sub`, tracking fields, and every existing authentication proof unchanged. It rebuilds `amr`, omits any legacy `acr` snapshot, and normalizes existing proofs.
 
 Renewal therefore extends session-token usability but never extends `auth[].exp`. `core_userinfo` uses this mechanism. Expired proofs are preserved, not pruned.
 
@@ -285,7 +283,8 @@ Core contributors should account for these current boundaries when extending or 
 * `addAuthMethod()` remains a low-level primitive and does not enforce subject equality itself; authentication method controllers use `issueAccessToken()`, which does;
 * `AuthenticationFactor.last_used_at` is updated by TOTP authentication, but the current passkey controller only updates the signature counter;
 * generic external-provider configuration/account entities and recovery-code authentication are not implemented;
-* legacy tokens using `{method, level, exp}` in `auth` remain readable and are normalized on renewal or proof addition; older tokens that stored authentication objects directly in `amr` remain identity-bearing until JWT expiry but contribute level 0.
+* legacy tokens using `{method, level, exp}` in `auth` remain readable and are normalized on renewal or proof addition; older tokens that stored authentication objects directly in `amr` remain identity-bearing until JWT expiry but contribute level 0;
+* legacy `acr` claims are ignored and are omitted when a token is renewed or receives another proof.
 
 ## Adding an Authentication Mechanism
 
@@ -297,7 +296,7 @@ Core implementations should follow this checklist:
 4. Implement challenge generation and proof verification in dedicated controllers. New challenge tokens should be signed, short-lived, typed, bound to the intended user and flow, and protected against replay.
 5. After success, build a strict `{method, exp}` proof.
 6. Pass the verified proof and any proofs carried by the preceding challenge to `issueAccessToken()`. It rejects subject mismatches, updates an existing JWT, or starts a new session as required.
-7. Return the updated token using the established secure cookie attributes. Do not hand-edit `amr`, `auth`, or `acr`, and do not extend the JWT lifetime during step-up.
+7. Return the updated token using the established secure cookie attributes. Do not hand-edit `amr` or `auth`, and do not extend the JWT lifetime during step-up.
 8. Update factor usage/audit fields without leaking factor identifiers or evidence into the JWT.
 9. Expose the capability through `core_signin-info`, routes, settings, and the auth App only when the complete flow is usable.
 10. Add tests for initial authentication, same-user step-up, mismatched users, proof replacement, proof expiry/fallback, assurance combinations, token expiry, factor states, challenge replay/expiry, and failed-attempt limits.
