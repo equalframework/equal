@@ -639,7 +639,7 @@ class Setting extends Model {
 
             $cached_value = static::get_cache($package, $section, $code, $selector, $lang);
 
-            if(!$cached_value) {
+            if($cached_value !== null) {
 
                 $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
@@ -659,7 +659,7 @@ class Setting extends Model {
 
                     $value = $setting_values[$setting_value_id]['value'];
 
-                    if(!is_null($value)) {
+                    if($value !== null) {
                         $result = $value;
 
                         $map_types = [
@@ -679,7 +679,7 @@ class Setting extends Model {
 
             $setting_value = static::get_cache($package, $section, $code, $selector, $lang);
 
-            if($setting_value) {
+            if($setting_value !== null) {
                 break;
             }
         }
