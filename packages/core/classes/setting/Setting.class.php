@@ -639,7 +639,7 @@ class Setting extends Model {
 
             $cached_value = static::get_cache($package, $section, $code, $selector, $lang);
 
-            if($cached_value !== null) {
+            if($cached_value === null) {
 
                 $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
