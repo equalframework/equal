@@ -831,23 +831,23 @@ class AuthenticationManager extends Service {
             return null;
         }
 
-        $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
+        $security_selectors = Setting::getSecuritySelectors($user['id']);
+
         $totp_enabled = Setting::get_value(
             'core',
             'security',
             'auth.totp.enabled',
-            $global_totp_enabled,
-            ['user_id' => $user['id']]
+            null,
+            $security_selectors
         );
 
         if($totp_enabled) {
-            $global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
             $totp_required = Setting::get_value(
                 'core',
                 'security',
                 'auth.password.totp_required',
-                $global_totp_required,
-                ['user_id' => $user['id']]
+                null,
+                $security_selectors
             );
 
             if($totp_required) {
@@ -876,23 +876,21 @@ class AuthenticationManager extends Service {
             }
         }
 
-        $global_email_otp_enabled = Setting::get_value('core', 'security', 'auth.email_otp.enabled');
         $email_otp_enabled = Setting::get_value(
             'core',
             'security',
             'auth.email_otp.enabled',
-            $global_email_otp_enabled,
-            ['user_id' => $user['id']]
+            null,
+            $security_selectors
         );
 
         if($email_otp_enabled) {
-            $global_email_otp_required = Setting::get_value('core', 'security', 'auth.password.email_otp_required');
             $email_otp_required = Setting::get_value(
                 'core',
                 'security',
                 'auth.password.email_otp_required',
-                $global_email_otp_required,
-                ['user_id' => $user['id']]
+                null,
+                $security_selectors
             );
 
             if($email_otp_required) {
