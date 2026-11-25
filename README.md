@@ -152,7 +152,7 @@ For a comprehensive documentation that includes examples and step-by-step instru
 ## Requirements
 eQual requires the following environment:
 
-* **PHP 8+** with extensions (opcache, zip, tidy, ...)
+* **PHP 8.3+** with extensions (opcache, zip, tidy, ...)
 * **Apache 2+** or **Nginx**
 * **SQL:2011** compatible DBMS (SQLite, MariaDB Server, Microsoft SQL Server, Oracle MySQL)
 
