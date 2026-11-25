@@ -27,6 +27,7 @@ class Context extends Service {
     /**
      * This method cannot be called directly (should be invoked through Singleton::getInstance)
      *
+     * @return void
      */
     protected function __construct() {
         $this->params = [];
@@ -36,6 +37,11 @@ class Context extends Service {
         $this->httpResponse = null;
     }
 
+    /**
+     * Clones the HTTP request and response associated with the context, when available.
+     *
+     * @return void
+     */
     public function __clone() {
         if($this->httpRequest) {
             $this->httpRequest = clone $this->httpRequest;
@@ -45,14 +51,31 @@ class Context extends Service {
         }
     }
 
+    /**
+     * Returns a human-readable representation of the context.
+     *
+     * @return string
+     */
     public function __toString() {
         return 'This is the PHP context instance.';
     }
 
+    /**
+     * Returns the names of the constants required by the context service.
+     *
+     * @return string[]
+     */
     public static function constants() {
         return ['HTTP_TRUSTED_HEADERS', 'HTTP_TRUSTED_PROXIES'];
     }
 
+    /**
+     * Returns a context parameter, or the supplied default value when it is not set.
+     *
+     * @param string $var Parameter name.
+     * @param mixed  $default Default value.
+     * @return mixed
+     */
     public function get($var, $default=null) {
         if(isset($this->params[$var])) {
             return $this->params[$var];
@@ -60,15 +83,32 @@ class Context extends Service {
         return $default;
     }
 
+    /**
+     * Sets a context parameter.
+     *
+     * @param string $var Parameter name.
+     * @param mixed  $value Parameter value.
+     * @return self
+     */
     public function set($var, $value) {
         $this->params[$var] = $value;
         return $this;
     }
 
+    /**
+     * Returns the process identifier associated with the context.
+     *
+     * @return int|false
+     */
     public function getPid() {
         return $this->pid;
     }
 
+    /**
+     * Returns the current HTTP request, creating it from the PHP environment when needed.
+     *
+     * @return HttpRequest
+     */
     public function getHttpRequest() {
         if(is_null($this->httpRequest)) {
             // retrieve current request
@@ -80,6 +120,11 @@ class Context extends Service {
         return $this->httpRequest;
     }
 
+    /**
+     * Returns the current HTTP response, creating a default response when needed.
+     *
+     * @return HttpResponse
+     */
     public function getHttpResponse() {
         if(is_null($this->httpResponse)) {
             // build response (set protocol to HTTP 1.1, status to success, content-type to 'application/json; charset=UTF-8', and retrieve default headers set by PHP)
@@ -88,26 +133,51 @@ class Context extends Service {
         return $this->httpResponse;
     }
 
+    /**
+     * Returns the current session identifier.
+     *
+     * @return int
+     */
     public function getSessionId() {
         return 0;
     }
 
+    /**
+     * Sets the current HTTP request.
+     *
+     * @param HttpRequest $request HTTP request to associate with the context.
+     * @return self
+     */
     public function setHttpRequest(HttpRequest $request) {
         $this->httpRequest = $request;
         return $this;
     }
 
+    /**
+     * Sets the current HTTP response.
+     *
+     * @param HttpResponse $response HTTP response to associate with the context.
+     * @return self
+     */
     public function setHttpResponse(HttpResponse $response) {
         $this->httpResponse = $response;
         return $this;
     }
 
+    /**
+     * Sets the current session identifier.
+     *
+     * @param int $session_id Session identifier.
+     * @return self
+     */
     public function setSessionId(int $session_id) {
         return $this;
     }
 
     /**
      * Shorthand for getHttpRequest/setHttpRequest, acting as getter/setter based on arguments
+     *
+     * @return HttpRequest|self
      */
     public function httpRequest() {
         $args = func_get_args();
@@ -122,6 +192,8 @@ class Context extends Service {
 
     /**
      * Shorthand for getHttpResponse/setHttpResponse, acting as getter/setter based on arguments
+     *
+     * @return HttpResponse|self
      */
     public function httpResponse() {
         $args = func_get_args();
@@ -138,6 +210,8 @@ class Context extends Service {
     /**
      * Return the list of headers that have been set and that will be part of the HTTP Response.
      * #todo - there might be several headers having the same name (ex. Link), using a map prevents supporting that case
+     *
+     * @return array
      */
     private function getHttpResponseHeaders() {
         $res = [];
@@ -153,6 +227,7 @@ class Context extends Service {
      *
      * HTTP message formatted protocol (i.e. HTTP/1.0 or HTTP/1.1)
      *
+     * @return string
      */
     private function getHttpProtocol() {
         // default to HTTP 1.1
@@ -169,6 +244,7 @@ class Context extends Service {
      * If the X-HTTP-Method-Override header is set, and if the method is a POST,
      * then it is used to determine the "real" intended HTTP method.
      *
+     * @return string
      */
     private function getHttpMethod() {
         static $method = null;
@@ -192,6 +268,7 @@ class Context extends Service {
     /**
      * Get all HTTP header key/values as an associative array for the current request.
      *
+     * @return array
      */
     private function getHttpRequestHeaders() {
         static $headers = null;
@@ -277,6 +354,11 @@ class Context extends Service {
         return $headers;
     }
 
+    /**
+     * Builds the absolute URI of the current request from the PHP environment.
+     *
+     * @return string
+     */
     private function getHttpUri() {
         $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
             ? 'https'
@@ -357,6 +439,11 @@ class Context extends Service {
         return "$scheme://$authority{$uri}";
     }
 
+    /**
+     * Normalizes the uploaded files structure.
+     *
+     * @return array
+     */
     private static function normalizeFiles() {
         $normalized_files = [];
         if(count($_FILES) == 1) {
@@ -380,6 +467,12 @@ class Context extends Service {
         return $normalized_files;
     }
 
+    /**
+     * Converts a PHP shorthand byte value to an integer number of bytes.
+     *
+     * @param string|false $val Shorthand value to convert.
+     * @return int
+     */
     private static function to_bytes($val) {
         $val = strtolower(trim($val));
         $chars = str_split($val);
@@ -395,6 +488,8 @@ class Context extends Service {
     /**
      * #todo - we should provide a way to define content-type for CLI context
      * ex.: --content_type=json
+     *
+     * @return array|string
      */
     private function getHttpBody() {
         $body = '';
