@@ -431,6 +431,13 @@
         "default": "equal\\cron\\Scheduler",
         "instant": true
     },
+    "SERVICE_SETTING_SETTINGMANAGER": {
+        "type": "string",
+        "description": "Class to use as SettingManager service (under `lib` folder).",
+        "help": "This allows to customize behavior related to settings management. The target class must be inherited from equal\\setting\\SettingManager.",
+        "default": "equal\\setting\\SettingManager",
+        "instant": true
+    },
     "SERVICE_ORM_OBJECTMANAGER": {
         "type": "string",
         "description": "Class to use as ObjectManager service (under `lib` folder).",

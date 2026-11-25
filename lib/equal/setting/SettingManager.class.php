@@ -1,0 +1,17 @@
+<?php
+/*
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2026
+    Original author(s): Cédric FRANCOYS
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
+namespace equal\setting;
+
+use equal\organic\Service;
+
+class SettingManager extends Service {
+
+    public function __construct() {
+    }
+
+}

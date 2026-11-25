@@ -562,6 +562,7 @@ namespace config {
                 'orm'       => constant('SERVICE_ORM_OBJECTMANAGER', 'equal\orm\ObjectManager'),
                 'report'    => 'equal\error\Reporter',
                 'route'     => 'equal\route\Router',
+                'setting'   => constant('SERVICE_SETTING_SETTINGMANAGER', 'equal\setting\SettingManager'),
                 'validate'  => 'equal\data\DataValidator'
             ]);
 
