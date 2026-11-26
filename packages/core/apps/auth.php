@@ -5,10 +5,11 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Redirect to `/auth` public folder.',
     'params'        => [],
     'response'      => [
+        'cacheable'     => false,
         'location'      => '/auth/'
     ]
 ]);
