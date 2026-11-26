@@ -18,10 +18,12 @@ class Translation extends Model {
                 'usage'             => 'language/iso-639:2'
             ],
             'object_class' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'usage'             => 'text/plain:128'
             ],
             'object_field' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'usage'             => 'text/plain:128'
             ],
             'object_id' => [
                 'type'              => 'integer'
@@ -29,6 +31,15 @@ class Translation extends Model {
             'value' => [
                 'type'              => 'binary'
             ]
+        ];
+    }
+
+    public function getIndexes(): array {
+        return [
+            // translation lookups for specific objects and fields
+            ['object_class', 'object_id', 'object_field', 'language'],
+            // class-and-language scans, used when exporting translations by object
+            ['object_class', 'language', 'object_id', 'object_field']
         ];
     }
 }
