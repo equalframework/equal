@@ -118,7 +118,7 @@ class Message extends Model {
         ];
     }
 
-    public static function calcObjectLink($self, $orm) {
+    protected static function calcObjectLink($self, $orm) {
         $result = [];
         $self->read(['object_class', 'object_id']);
         foreach($self as $id => $message) {
@@ -129,7 +129,7 @@ class Message extends Model {
         return $result;
     }
 
-    public static function calcLabel($self) {
+    protected static function calcLabel($self) {
         $result = [];
         $self->read(['values', 'message_model_id' => ['label', 'variables']]);
         foreach($self as $id => $message) {
@@ -152,7 +152,7 @@ class Message extends Model {
         return $result;
     }
 
-    public static function calcDescription($self) {
+    protected static function calcDescription($self) {
         $result = [];
         $self->read(['values', 'message_model_id' => ['description', 'variables']]);
         foreach($self as $id => $message) {

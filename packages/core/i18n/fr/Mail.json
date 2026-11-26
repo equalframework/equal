@@ -3,6 +3,16 @@
     "plural": "Mails",
     "description": "Messages courriels envoyés.",
     "model": {
+        "locked": {
+            "label": "Verrouillé le",
+            "description": "Date et heure du verrouillage exclusif de l'objet.",
+            "help": "Cette valeur est définie lors du verrouillage de l'objet."
+        },
+        "lock": {
+            "label": "Jeton de verrouillage",
+            "description": "Jeton du verrouillage exclusif de l'objet.",
+            "help": "Cette valeur identifie le verrouillage exclusif actuel."
+        },
         "message_id": {
             "label": "Identifiant du message",
             "description": "Identifiant unique du message selon la RFC 5322.",

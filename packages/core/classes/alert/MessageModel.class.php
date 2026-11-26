@@ -47,7 +47,7 @@ class MessageModel extends Model {
 
             'with_send_email' => [
                 'type'              => 'boolean',
-                'description'       => 'Flag indicating that alerts using this model must also be sent by email.',
+                'description'       => 'Whether alerts using this model must also be sent by email.',
                 'default'           => false
             ],
 
