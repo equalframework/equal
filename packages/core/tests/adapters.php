@@ -921,7 +921,7 @@ $tests = [
                     ];
                 },
             'assert'        =>  function($result) {
-                    return ($result === [' clear value ', ' clear value ', null, null]);
+                    return ($result === [' clear value ', ' clear value ', '[redacted]', '[redacted]']);
                 }
         ],
     '4126' => [
@@ -1000,7 +1000,7 @@ $tests = [
                 }
         ],
     '4129' => [
-            'description'   =>  'SQL secret storage: providers select unbounded text column types',
+            'description'   =>  'SQL secret storage: providers select text column types based on usage length',
             'act'           =>  function () {
                     $usage = UsageFactory::create('secret/private-key');
                     return [
@@ -1011,7 +1011,7 @@ $tests = [
                     ];
                 },
             'assert'        =>  function($result) {
-                    return ($result === ['LONGTEXT', 'TEXT', 'TEXT', 'nvarchar(max)']);
+                    return ($result === ['TEXT', 'VARCHAR(65000)', 'TEXT', 'nvarchar(max)']);
                 }
         ],
     '4130' => [
