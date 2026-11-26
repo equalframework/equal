@@ -71,7 +71,7 @@ $base32Decode = function(string $encoded): string {
 $getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
     $counter = intdiv($timestamp, $totpkey['period']);
 
-// Encode the counter as an unsigned 64-bit, big-endian integer.
+    // Encode the counter as an unsigned 64-bit, big-endian integer.
     $counterBytes = pack(
         'N2',
         ($counter >> 32) & 0xffffffff,
@@ -104,7 +104,8 @@ $getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
  * Action
  */
 
-$user_id = $auth->userId();
+$authenticated_user_id = $auth->userId();
+$user_id = $authenticated_user_id;
 $mfa_challenge = null;
 
 $is_authenticated = true;
@@ -137,10 +138,6 @@ if(!$user['allow_auth']) {
     throw new Exception("not_allowed", EQ_ERROR_NOT_ALLOWED);
 }
 
-if(!$is_authenticated) {
-    $auth->su($user['id']);
-}
-
 $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
 $totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
 
@@ -148,52 +145,60 @@ if(!$totp_enabled) {
     throw new Exception("totp_auth_disabled", EQ_ERROR_NOT_ALLOWED);
 }
 
-$totpkey = TotpKey::search([
-    ['user_id', '=', $user['id']],
-    ['type', '=', 'totp'],
-    ['status', '=', 'active']
-])
-    ->read(['secret', 'algorithm', 'digits', 'period', 'failed_attempts'])
-    ->first();
+try {
+    // TOTP keys are internal authentication data and must not depend on end-user ORM permissions.
+    $auth->su();
 
-if(!$totpkey) {
-    throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
-}
+    $totpkey = TotpKey::search([
+            ['user_id', '=', $user['id']],
+            ['type', '=', 'totp'],
+            ['status', '=', 'active']
+        ])
+        ->read(['secret', 'algorithm', 'digits', 'period', 'failed_attempts'])
+        ->first();
 
-$allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
-
-if($totpkey['failed_attempts'] >= $allowed_failed_attempts) {
-    throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
-}
-
-$now = time();
-$auth_codes = [
-    $getAuthCode($totpkey, $now - $totpkey['period']),
-    $getAuthCode($totpkey, $now),
-    $getAuthCode($totpkey, $now + $totpkey['period'])
-];
-
-$auth_code_valid = false;
-foreach($auth_codes as $auth_code) {
-    if(hash_equals($auth_code, $params['auth_code'])) {
-        $auth_code_valid = true;
-        break;
+    if(!$totpkey) {
+        throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
     }
+
+    $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
+
+    if($totpkey['failed_attempts'] >= $allowed_failed_attempts) {
+        throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
+    }
+
+    $now = time();
+    $auth_codes = [
+        $getAuthCode($totpkey, $now - $totpkey['period']),
+        $getAuthCode($totpkey, $now),
+        $getAuthCode($totpkey, $now + $totpkey['period'])
+    ];
+
+    $auth_code_valid = false;
+    foreach($auth_codes as $auth_code) {
+        if(hash_equals($auth_code, $params['auth_code'])) {
+            $auth_code_valid = true;
+            break;
+        }
+    }
+
+    if(!$auth_code_valid) {
+        TotpKey::id($totpkey['id'])->update([
+            'failed_attempts' => $totpkey['failed_attempts'] + 1
+        ]);
+
+        throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
+    }
+
+    TotpKey::id($totpkey['id'])
+        ->update([
+            'last_used_at'      => time(),
+            'failed_attempts'   => 0
+        ]);
 }
-
-if(!$auth_code_valid) {
-    TotpKey::id($totpkey['id'])->update([
-        'failed_attempts' => $totpkey['failed_attempts'] + 1
-    ]);
-
-    throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
+finally {
+    $auth->su($authenticated_user_id);
 }
-
-TotpKey::id($totpkey['id'])
-    ->update([
-        'last_used_at'      => time(),
-        'failed_attempts'   => 0
-    ]);
 
 $now = time();
 

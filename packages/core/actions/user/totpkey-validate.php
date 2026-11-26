@@ -77,7 +77,7 @@ $base32Decode = function(string $encoded): string {
 $getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
     $counter = intdiv($timestamp, $totpkey['period']);
 
-// Encode the counter as an unsigned 64-bit, big-endian integer.
+    // Encode the counter as an unsigned 64-bit, big-endian integer.
     $counterBytes = pack(
         'N2',
         ($counter >> 32) & 0xffffffff,
@@ -110,7 +110,8 @@ $getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
  * Action
  */
 
-$user_id = $auth->userId();
+$authenticated_user_id = $auth->userId();
+$user_id = $authenticated_user_id;
 
 $is_authenticated = true;
 if($user_id <= 0) {
@@ -132,10 +133,6 @@ if(!$user) {
     throw new Exception('unexpected_error', EQ_ERROR_INVALID_USER);
 }
 
-if(!$is_authenticated) {
-    $auth->su($user['id']);
-}
-
 $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
 $totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
 
@@ -155,48 +152,56 @@ if(!$auth_password_totp_required) {
     }
 }
 
-$totpkey = TotpKey::search([
-    ['id', '=', $params['totpkey_id']],
-    ['user_id', '=', $user['id']]
-])
-    ->read(['status', 'secret', 'algorithm', 'digits', 'period'])
-    ->first();
-
-if(!$totpkey) {
-    throw new Exception('unknown_totpkey', EQ_ERROR_UNKNOWN_OBJECT);
-}
-
-if($totpkey['status'] !== 'pending') {
-    throw new Exception('cannot_validate_totpkey', EQ_ERROR_NOT_ALLOWED);
-}
-
-$now = time();
-$auth_codes = [
-    $getAuthCode($totpkey, $now - $totpkey['period']),
-    $getAuthCode($totpkey, $now),
-    $getAuthCode($totpkey, $now + $totpkey['period'])
-];
-
-$auth_code_valid = false;
-foreach($auth_codes as $auth_code) {
-    if(hash_equals($auth_code, $params['auth_code'])) {
-        $auth_code_valid = true;
-        break;
-    }
-}
-
-if(!$auth_code_valid) {
-    throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
-}
-
 try {
-    TotpKey::id($totpkey['id'])->transition('activate');
-}
-catch(Exception $e) {
-    throw new Exception('totpkey_activation_failed', EQ_ERROR_CONFLICT_OBJECT);
-}
+    // TOTP keys are internal authentication data and must not depend on end-user ORM permissions.
+    $auth->su();
 
-TotpKey::id($totpkey['id'])->update(['last_used_at' => time()]);
+    $totpkey = TotpKey::search([
+            ['id', '=', $params['totpkey_id']],
+            ['user_id', '=', $user['id']]
+        ])
+        ->read(['status', 'secret', 'algorithm', 'digits', 'period'])
+        ->first();
+
+    if(!$totpkey) {
+        throw new Exception('unknown_totpkey', EQ_ERROR_UNKNOWN_OBJECT);
+    }
+
+    if($totpkey['status'] !== 'pending') {
+        throw new Exception('cannot_validate_totpkey', EQ_ERROR_NOT_ALLOWED);
+    }
+
+    $now = time();
+    $auth_codes = [
+        $getAuthCode($totpkey, $now - $totpkey['period']),
+        $getAuthCode($totpkey, $now),
+        $getAuthCode($totpkey, $now + $totpkey['period'])
+    ];
+
+    $auth_code_valid = false;
+    foreach($auth_codes as $auth_code) {
+        if(hash_equals($auth_code, $params['auth_code'])) {
+            $auth_code_valid = true;
+            break;
+        }
+    }
+
+    if(!$auth_code_valid) {
+        throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
+    }
+
+    try {
+        TotpKey::id($totpkey['id'])->transition('activate');
+    }
+    catch(Exception $e) {
+        throw new Exception('totpkey_activation_failed', EQ_ERROR_CONFLICT_OBJECT);
+    }
+
+    TotpKey::id($totpkey['id'])->update(['last_used_at' => time()]);
+}
+finally {
+    $auth->su($authenticated_user_id);
+}
 
 $now = time();
 

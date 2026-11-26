@@ -70,6 +70,8 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
+$authenticated_user_id = $auth->userId();
+
 $rp_id = Setting::get_value('core', 'security', 'auth.passkey.rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
 $rp_name = Setting::get_value('core', 'security', 'auth.passkey.rp_name', constant('APP_NAME'));
 
@@ -89,6 +91,16 @@ $credential_id = base64_decode($params['credential_id']);
 $client_data_json = base64_decode($params['client_data_json']);
 $authenticator_data = base64_decode($params['authenticator_data']);
 $signature = base64_decode($params['signature']);
+
+// Ensure that the challenge token was emitted by this server before using its payload.
+if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
+    throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
+}
+
+$auth_token = JWT::decode($params['auth_token']);
+if(!isset($auth_token['payload']['challenge'])) {
+    throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
+}
 
 $passkey = Passkey::search([
         ['type', '=', 'passkey'],
@@ -151,25 +163,26 @@ if($passkey['user_id']['id'] !== $setting_value['user_id']) {
     throw new Exception('user_handle_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
-// remove temporary user handle
-SettingValue::id($setting_value['id'])->delete(true);
-
-// ensure that the token has been emitted by this server
-if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
-    throw new Exception("invalid_token", EQ_ERROR_INVALID_PARAM);
-}
-
-$auth_token = JWT::decode($params['auth_token']);
-
 // #memo - `processGet` checks for decreasing counter (the counter should always increase)
 $webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
 
 // #memo - the signature counter detects key cloning
 $sign_count = $webAuthn->getSignatureCounter();
 
-if($sign_count && $sign_count != $passkey['signature_counter']) {
-    Passkey::id($passkey['id'])
-        ->update(['signature_counter' => $sign_count]);
+try {
+    // Passkeys and temporary user handles are internal authentication data.
+    $auth->su();
+
+    // Consume the temporary handle only after the WebAuthn proof has been verified.
+    SettingValue::id($setting_value['id'])->delete(true);
+
+    if($sign_count && $sign_count != $passkey['signature_counter']) {
+        Passkey::id($passkey['id'])
+            ->update(['signature_counter' => $sign_count]);
+    }
+}
+finally {
+    $auth->su($authenticated_user_id);
 }
 
 $auth_method = [
