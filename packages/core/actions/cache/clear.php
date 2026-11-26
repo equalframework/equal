@@ -10,7 +10,7 @@
     'description' => 'Request the browser to clear all site data, including cache, cookies and local storage.',
     'params'        => [],
     'access'        => [
-        'visibility'    => 'protected'
+        'visibility'    => 'public'
     ],
     'response'      => [
         'content-type'  => 'application/json',
