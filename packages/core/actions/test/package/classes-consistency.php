@@ -557,7 +557,7 @@ foreach($classes as $class) {
                             $result[] = "ERROR - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not static ($class_filename)";
                         }
                         elseif(!$method->isProtected()) {
-                            $result[] = "WARN  - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not protected ($class_filename)";
+                            $result[] = "ERROR - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not protected ($class_filename)";
                         }
                         else {
                             foreach($method->getParameters() as $paramConf) {
