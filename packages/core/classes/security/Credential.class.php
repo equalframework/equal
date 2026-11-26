@@ -35,17 +35,6 @@ class Credential extends Model {
                 'type'        => 'string',
                 'usage'       => 'secret',
                 'description' => 'Encrypted credential payload.',
-                'default'     => function($values) {
-                    if(empty($values['credential_type_id'])) {
-                        return null;
-                    }
-
-                    $credentialType = CredentialType::id($values['credential_type_id'])
-                        ->read(['secret_template'])
-                        ->first();
-
-                    return $credentialType['secret_template'] ?? null;
-                },
                 'readonly'    => true
             ]
         ];
