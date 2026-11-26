@@ -70,7 +70,7 @@ class DataAdapterJsonText implements DataAdapter {
             $usage = UsageFactory::create((string) $usage);
         }
         if($usage->getType() === 'secret') {
-            return null;
+            return '[redacted]';
         }
         return (string) $value;
     }
