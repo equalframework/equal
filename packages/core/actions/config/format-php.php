@@ -615,6 +615,7 @@ $formatParamsItem = static function(string $item) use(
         'usage',
         'foreign_object',
         'description',
+        'deprecated',
         'help',
         'selection',
         'domain',

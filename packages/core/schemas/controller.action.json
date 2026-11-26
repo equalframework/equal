@@ -40,6 +40,10 @@
                 "type": "string",
                 "description": "Description of the parameter for documentation purposes"
               },
+              "deprecated": {
+                "type": "boolean",
+                "description": "Indicates if the parameter is deprecated"
+              },
               "help": {
                 "type": "string",
                 "description": "Extended usage information for the parameter"

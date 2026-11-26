@@ -213,7 +213,7 @@ Parameter names use one space on each side of `=>` and no column padding:
 Parameter descriptor metadata is grouped in this order:
 
 1. Data identity: `type`, `usage`, `foreign_object`.
-2. Documentation: `description`, `help`.
+2. Documentation and lifecycle: `description`, `deprecated`, `help`.
 3. Constraints: `selection`, `domain`, `min`, `max`, `pattern`, `in`.
 4. Behavior: `required`, `readonly`, `visible`, `default`.
 
@@ -223,17 +223,18 @@ Within those groups, order known parameter metadata keys as follows:
 2. `usage`
 3. `foreign_object`
 4. `description`
-5. `help`
-6. `selection`
-7. `domain`
-8. `min`
-9. `max`
-10. `pattern`
-11. `in`
-12. `required`
-13. `readonly`
-14. `visible`
-15. `default`
+5. `deprecated`
+6. `help`
+7. `selection`
+8. `domain`
+9. `min`
+10. `max`
+11. `pattern`
+12. `in`
+13. `required`
+14. `readonly`
+15. `visible`
+16. `default`
 
 Do not add a missing key solely to complete this sequence. Keys not included in this canonical order keep their relative position after the ordered keys unless another rule applies.
 
