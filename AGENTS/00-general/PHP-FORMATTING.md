@@ -158,6 +158,17 @@ The access and response metadata use the same alignment style:
 ],
 ```
 
+Keep end-of-line comments on their metadata entries. Align the comments at the
+first four-column tab stop strictly after the longest commented entry, using
+spaces rather than literal tab characters.
+
+```php
+'access'        => [
+    'visibility'    => 'public',                    // 'public' (default) or 'private' (can be invoked by CLI only)
+    'groups'        => ['booking.default.user'],    // list of groups ids or names granted
+],
+```
+
 ### Multiline metadata strings
 
 Do not embed a source-code line break and its indentation inside a single announcement metadata string literal. When a line break is part of one quoted string, replace that physical line break with an explicit `\n`, split the value into concatenated fragments, and align the continuation `.` with the owning metadata key's `=>` column. This preserves the existing runtime line break without retaining source indentation in the value.
@@ -261,6 +272,23 @@ Another example when `description` is the longest quoted metadata key:
     'name' => [
         'type'          => 'string',
         'description'   => 'Name.'
+    ]
+]
+```
+
+For an array-valued `selection`, keep end-of-line comments attached to their
+selection items and align them using the same four-column rule as access and
+response metadata. Preserve whether the final commented item has a trailing
+comma.
+
+```php
+'params'        => [
+    'status' => [
+        'type'          => 'string',
+        'selection'     => [
+            'draft',    // Can still be edited.
+            'confirmed' // Ready for processing.
+        ]
     ]
 ]
 ```

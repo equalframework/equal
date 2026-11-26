@@ -175,7 +175,7 @@ $findClosingBracket = static function(string $source, int $open_position): ?int 
     return null;
 };
 
-$splitArrayItems = static function(string $source): array {
+$splitArrayItems = static function(string $source, ?array &$inline_comments = null): array {
     $items = [];
     $start = 0;
     $length = strlen($source);
@@ -183,6 +183,7 @@ $splitArrayItems = static function(string $source): array {
     $quote = null;
     $line_comment = false;
     $block_comment = false;
+    $trailing_line_comment_start = null;
 
     for($position = 0; $position < $length; ++$position) {
         $char = $source[$position];
@@ -211,12 +212,21 @@ $splitArrayItems = static function(string $source): array {
             }
             continue;
         }
+        if($trailing_line_comment_start !== null && !ctype_space($char)) {
+            $trailing_line_comment_start = null;
+        }
         if($char === '/' && $next === '/') {
+            if($inline_comments !== null && array_sum($depths) === 0) {
+                $trailing_line_comment_start = $position;
+            }
             $line_comment = true;
             ++$position;
             continue;
         }
         if($char === '#') {
+            if($inline_comments !== null && array_sum($depths) === 0) {
+                $trailing_line_comment_start = $position;
+            }
             $line_comment = true;
             continue;
         }
@@ -250,8 +260,64 @@ $splitArrayItems = static function(string $source): array {
             if($item !== '') {
                 $items[] = $item;
             }
+
+            if($inline_comments !== null && $item !== '') {
+                $comment_start = $position + 1;
+                while(
+                    $comment_start < $length
+                    && ($source[$comment_start] === ' ' || $source[$comment_start] === "\t")
+                ) {
+                    ++$comment_start;
+                }
+
+                if(
+                    ($source[$comment_start] ?? '') === '#'
+                    || substr($source, $comment_start, 2) === '//'
+                ) {
+                    $comment_end = $comment_start;
+                    while(
+                        $comment_end < $length
+                        && $source[$comment_end] !== "\n"
+                        && $source[$comment_end] !== "\r"
+                    ) {
+                        ++$comment_end;
+                    }
+                    $inline_comments[count($items) - 1] = [
+                        'text'      => rtrim(substr($source, $comment_start, $comment_end - $comment_start)),
+                        'separator' => true
+                    ];
+
+                    if(
+                        $comment_end < $length
+                        && $source[$comment_end] === "\r"
+                        && ($source[$comment_end + 1] ?? '') === "\n"
+                    ) {
+                        ++$comment_end;
+                    }
+                    $start = min($length, $comment_end + 1);
+                    $position = $comment_end;
+                    continue;
+                }
+            }
+            $trailing_line_comment_start = null;
             $start = $position + 1;
         }
+    }
+
+    if(
+        $inline_comments !== null
+        && $trailing_line_comment_start !== null
+        && $trailing_line_comment_start >= $start
+    ) {
+        $item = trim(substr($source, $start, $trailing_line_comment_start - $start));
+        if($item !== '') {
+            $items[] = $item;
+            $inline_comments[count($items) - 1] = [
+                'text'      => rtrim(substr($source, $trailing_line_comment_start)),
+                'separator' => false
+            ];
+        }
+        return $items;
     }
 
     $item = trim(substr($source, $start));
@@ -457,7 +523,11 @@ $alignItems = static function(array $items, int $indent, ?int $maximum_key_lengt
     return $items;
 };
 
-$formatNestedArray = static function(string $item, int $item_indent) use($alignItems, $findClosingBracket, $splitArrayItems): string {
+$formatNestedArray = static function(
+    string $item,
+    int $item_indent,
+    bool $only_with_inline_comments = false
+) use($alignItems, $findClosingBracket, $splitArrayItems): string {
     if(!preg_match('/^\s*([\'\"])([^\'\"\r\n]+)\1\s*=>\s*\[/', $item, $matches)) {
         return $item;
     }
@@ -468,18 +538,61 @@ $formatNestedArray = static function(string $item, int $item_indent) use($alignI
         return $item;
     }
 
-    $items = $splitArrayItems(substr($item, $open_position + 1, $close_position - $open_position - 1));
+    $inline_comments = [];
+    $items = $splitArrayItems(
+        substr($item, $open_position + 1, $close_position - $open_position - 1),
+        $inline_comments
+    );
     if(!$items) {
         return substr($item, 0, $open_position + 1).']'.trim(substr($item, $close_position + 1));
     }
+    if($only_with_inline_comments && !$inline_comments) {
+        return $item;
+    }
 
     $items = $alignItems($items, $item_indent + 4, 12);
+    $maximum_commented_line_length = 0;
+    $last_index = count($items) - 1;
+    foreach($inline_comments as $index => $inline_comment) {
+        $has_separator = $index < $last_index || $inline_comment['separator'];
+        $maximum_commented_line_length = max(
+            $maximum_commented_line_length,
+            strlen($items[$index].($has_separator ? ',' : ''))
+        );
+    }
+    $comment_column = $maximum_commented_line_length > 0
+        ? $maximum_commented_line_length + (4 - ($maximum_commented_line_length % 4))
+        : 0;
+
+    $formatted_items = [];
+    foreach($items as $index => $nested_item) {
+        $has_inline_comment = isset($inline_comments[$index]);
+        if(
+            $index < $last_index
+            || ($has_inline_comment && $inline_comments[$index]['separator'])
+        ) {
+            $nested_item .= ',';
+        }
+        if($has_inline_comment) {
+            $nested_item .= str_repeat(' ', $comment_column - strlen($nested_item))
+                .$inline_comments[$index]['text'];
+        }
+        $formatted_items[] = $nested_item;
+    }
+
     return substr($item, 0, $open_position + 1)
-        ."\n".implode(",\n", $items)."\n".str_repeat(' ', $item_indent).']'
+        ."\n".implode("\n", $formatted_items)."\n".str_repeat(' ', $item_indent).']'
         .trim(substr($item, $close_position + 1));
 };
 
-$formatParamsItem = static function(string $item) use($alignItems, $findClosingBracket, $itemKey, $reorderKnownItems, $splitArrayItems): string {
+$formatParamsItem = static function(string $item) use(
+    $alignItems,
+    $findClosingBracket,
+    $formatNestedArray,
+    $itemKey,
+    $reorderKnownItems,
+    $splitArrayItems
+): string {
     if(!preg_match('/^\s*([\'\"])params\1\s*=>\s*\[/', $item, $matches)) {
         return $item;
     }
@@ -560,6 +673,13 @@ $formatParamsItem = static function(string $item) use($alignItems, $findClosingB
                     $metadata_item,
                     1
                 );
+                if($metadata_key === 'selection') {
+                    $metadata_items[$metadata_index] = $formatNestedArray(
+                        $metadata_items[$metadata_index],
+                        12,
+                        true
+                    );
+                }
                 $maximum_key_length = max($maximum_key_length, strlen($metadata_key) + 2);
             }
         }
