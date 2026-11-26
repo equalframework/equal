@@ -28,7 +28,7 @@
 
 ## Announcement Metadata Validation
 
-Validate the action handler definition through eQual's `announce` mechanism. No dedicated action-consistency controller currently covers action announcement metadata, so this is an allowed `core_json-validate` exception.
+Validate the action handler definition through eQual's `announce` mechanism. Package-wide announcement validation is available through `core_test_package_controllers-consistency`; direct `core_json-validate` remains available for a focused single-controller check.
 
 - [ ] **Action schema validation**: Use schema `urn:equal:json-schema:core:controller.action`
 

@@ -14,7 +14,8 @@ use lbuchs\WebAuthn\WebAuthn;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Authenticate a user using a passkey.',
-    'deprecated'    => "Use user_auth_passkey instead.",
+    'help'          => 'Deprecated: use user_auth_passkey instead.',
+    'deprecated'    => true,
     'params'        => [
         'auth_token' => [
             'type'          => 'string',
