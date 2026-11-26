@@ -1092,6 +1092,7 @@ $formatSource = static function(string $source, string $copyright, array &$error
     $source = $formatAnnouncement($source);
     $source = $formatProviders($source, $errors);
     $source = $formatHttpResponseChains($source);
+    $source = rtrim($source, "\n")."\n";
 
     if($newline === "\r\n") {
         $source = str_replace("\n", "\r\n", $source);
