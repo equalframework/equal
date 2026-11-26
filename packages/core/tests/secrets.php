@@ -7,6 +7,7 @@
 */
 
 use core\security\Credential;
+use core\security\CredentialType;
 
 global $test;
 
@@ -26,17 +27,25 @@ $tests = [
                         ];
                     }
 
+                    $credential_type = CredentialType::create([
+                            'code'            => 'secret_usage_integration_test_6101',
+                            'description'     => 'Credential type used by the secret usage integration test.',
+                            'secret_template' => 'credential-secret-integration-value'
+                        ])
+                        ->read(['id'])
+                        ->first();
+
                     $credential = Credential::create([
-                            'name'   => 'Secret usage integration test',
-                            'type'   => 'test',
-                            'secret' => 'credential-secret-integration-value'
+                            'name'               => 'Secret usage integration test',
+                            'credential_type_id' => $credential_type['id']
                         ])
                         ->read(['id'])
                         ->first();
 
                     return [
-                        'id'          => $credential['id'] ?? 0,
-                        'unavailable' => false
+                        'id'                 => $credential['id'] ?? 0,
+                        'credential_type_id' => $credential_type['id'] ?? 0,
+                        'unavailable'        => false
                     ];
                 },
             'act'         => function ($fixtures) {
@@ -77,6 +86,10 @@ $tests = [
                     if($id > 0) {
                         Credential::id($id)->delete(true);
                     }
+                    $credential_type_id = $result['credential_type_id'] ?? 0;
+                    if($credential_type_id > 0) {
+                        CredentialType::id($credential_type_id)->delete(true);
+                    }
                 }
         ],
 
@@ -94,12 +107,20 @@ $tests = [
                         ];
                     }
 
+                    $credential_type = CredentialType::create([
+                            'code'            => 'secret_usage_integration_test_6102',
+                            'description'     => 'Credential type used by the secret usage integration test.',
+                            'secret_template' => 'unused-secret-template'
+                        ])
+                        ->read(['id'])
+                        ->first();
+
                     $ids = [];
                     foreach(['A', 'B'] as $suffix) {
                         $credential = Credential::create([
-                                'name'   => "Secret usage integration test {$suffix}",
-                                'type'   => 'test',
-                                'secret' => 'repeated-secret-integration-value'
+                                'name'               => "Secret usage integration test {$suffix}",
+                                'credential_type_id' => $credential_type['id'],
+                                'secret'             => 'repeated-secret-integration-value'
                             ])
                             ->read(['id'])
                             ->first();
@@ -107,8 +128,9 @@ $tests = [
                     }
 
                     return [
-                        'ids'         => $ids,
-                        'unavailable' => false
+                        'ids'                => $ids,
+                        'credential_type_id' => $credential_type['id'] ?? 0,
+                        'unavailable'       => false
                     ];
                 },
             'act'         => function ($fixtures) {
@@ -156,6 +178,10 @@ $tests = [
                     $ids = array_filter($result['ids'] ?? [], fn($id) => $id > 0);
                     if(!empty($ids)) {
                         Credential::ids($ids)->delete(true);
+                    }
+                    $credential_type_id = $result['credential_type_id'] ?? 0;
+                    if($credential_type_id > 0) {
+                        CredentialType::id($credential_type_id)->delete(true);
                     }
                 }
         ]
