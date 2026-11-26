@@ -23,6 +23,16 @@
             "operation": "?do=core_user_auth_passkey"
         }
     },
+    "/cache/clear": {
+        "GET": {
+            "description": "Request the browser to clear its cache.",
+            "operation": "?do=core_cache_clear"
+        },
+        "POST": {
+            "description": "Request the browser to clear its cache.",
+            "operation": "?do=core_cache_clear"
+        }
+    },
     "/users": {
         "GET": {
             "description": "Search Users",
