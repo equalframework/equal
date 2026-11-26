@@ -10,7 +10,7 @@
     'description'   => 'Request the browser to clear its cache.',
     'params'        => [],
     'access'        => [
-        'visibility'    => 'protected'
+        'visibility'    => 'public'
     ],
     'response'      => [
         'content-type'  => 'application/json',
