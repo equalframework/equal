@@ -215,7 +215,7 @@ Parameter descriptor metadata is grouped in this order:
 1. Data identity: `type`, `usage`, `foreign_object`.
 2. Documentation: `description`, `help`.
 3. Constraints: `selection`, `domain`, `min`, `max`, `pattern`, `in`.
-4. Behavior: `required`, `visible`, `default`.
+4. Behavior: `required`, `readonly`, `visible`, `default`.
 
 Within those groups, order known parameter metadata keys as follows:
 
@@ -231,8 +231,9 @@ Within those groups, order known parameter metadata keys as follows:
 10. `pattern`
 11. `in`
 12. `required`
-13. `visible`
-14. `default`
+13. `readonly`
+14. `visible`
+15. `default`
 
 Do not add a missing key solely to complete this sequence. Keys not included in this canonical order keep their relative position after the ordered keys unless another rule applies.
 

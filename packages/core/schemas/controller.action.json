@@ -75,6 +75,10 @@
                 "type": "boolean",
                 "description": "Indicates if the parameter is required"
               },
+              "readonly": {
+                "type": "boolean",
+                "description": "Indicates if the parameter is read-only in generated user interfaces"
+              },
               "visible": {
                 "oneOf": [
                   {"type": "boolean"},

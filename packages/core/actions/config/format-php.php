@@ -623,6 +623,7 @@ $formatParamsItem = static function(string $item) use(
         'pattern',
         'in',
         'required',
+        'readonly',
         'visible',
         'default'
     ];
