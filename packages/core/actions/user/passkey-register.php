@@ -58,6 +58,8 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
+$authenticated_user_id = $auth->userId();
+
 $rp_id = Setting::get_value('core', 'security', 'auth.passkey.rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
 $rp_name = Setting::get_value('core', 'security', 'auth.passkey.rp_name', constant('APP_NAME'));
 $user_verification = Setting::get_value('core', 'security', 'auth.passkey.user_verification', 'preferred');
@@ -84,6 +86,14 @@ if(!$auth->verifyToken($params['register_token'], constant('AUTH_SECRET_KEY'))) 
 
 $register_token = JWT::decode($params['register_token']);
 
+if(!isset($register_token['payload']['user_id'], $register_token['payload']['challenge'])) {
+    throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
+}
+
+if((int) $register_token['payload']['user_id'] !== $authenticated_user_id) {
+    throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
+}
+
 $data = $webAuthn->processCreate(
     $client_data,
     $attestation_object,
@@ -94,12 +104,20 @@ $data = $webAuthn->processCreate(
 // retrieve $attestation (we need fmt)
 $attestation = CborDecoder::decode($attestation_object);
 
-Passkey::create([
-    'user_id'               => $register_token['payload']['user_id'],
-    'credential_id'         => bin2hex($data->credentialId),
-    'credential_public_key' => $data->credentialPublicKey,
-    'fmt'                   => $attestation['fmt']
-]);
+try {
+    // Passkeys are internal authentication data and must not depend on end-user ORM permissions.
+    $auth->su();
+
+    Passkey::create([
+        'user_id'               => $authenticated_user_id,
+        'credential_id'         => bin2hex($data->credentialId),
+        'credential_public_key' => $data->credentialPublicKey,
+        'fmt'                   => $attestation['fmt']
+    ]);
+}
+finally {
+    $auth->su($authenticated_user_id);
+}
 
 $context
     ->httpResponse()

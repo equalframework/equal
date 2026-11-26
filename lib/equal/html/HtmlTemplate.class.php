@@ -42,7 +42,9 @@ class HtmlTemplate {
                     $array = $array[$key];
                     $key = $remain;
                 }
-                $result = $array[$key];
+                if(isset($array[$key])) {
+                    $result = $array[$key];
+                }
             }
         }
         else {

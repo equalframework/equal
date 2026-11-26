@@ -40,11 +40,10 @@ use core\User;
  * Action
  */
 
-$user_id = $auth->userId();
+$authenticated_user_id = $auth->userId();
+$user_id = $authenticated_user_id;
 
-$is_authenticated = true;
 if($user_id <= 0) {
-    $is_authenticated = false;
     if(empty($params['auth_token'])) {
         throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
     }
@@ -60,10 +59,6 @@ $user = User::id($user_id)->first();
 
 if(!$user) {
     throw new Exception('unexpected_error', EQ_ERROR_INVALID_USER);
-}
-
-if(!$is_authenticated) {
-    $auth->su($user['id']);
 }
 
 $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
@@ -87,31 +82,39 @@ if(!$auth_password_totp_required) {
 
 $res_fields = ['algorithm', 'digits', 'period', 'totp_uri', 'totp_qr_code_uri'];
 
-$totpkey = TotpKey::search([
-    ['user_id', '=', $user['id']],
-    ['type', '=', 'totp'],
-    ['status', '=', 'pending']
-])
-    ->read($res_fields)
-    ->first(true);
+try {
+    // TOTP keys are internal authentication data and must not depend on end-user ORM permissions.
+    $auth->su();
 
-if(!$totpkey) {
-    $data = [
-        'user_id'   => $user['id'],
-        'status'    => 'pending'
-    ];
-
-    foreach(['algorithm', 'digits', 'period'] as $key) {
-        $global_value = Setting::get_value('core', 'security', "auth.totp.$key");
-        $value = Setting::get_value('core', 'security', "auth.totp.$key", $global_value, ['user_id' => $user['id']]);
-        if($value) {
-            $data[$key] = $value;
-        }
-    }
-
-    $totpkey = TotpKey::create($data)
+    $totpkey = TotpKey::search([
+            ['user_id', '=', $user['id']],
+            ['type', '=', 'totp'],
+            ['status', '=', 'pending']
+        ])
         ->read($res_fields)
         ->first(true);
+
+    if(!$totpkey) {
+        $data = [
+            'user_id'   => $user['id'],
+            'status'    => 'pending'
+        ];
+
+        foreach(['algorithm', 'digits', 'period'] as $key) {
+            $global_value = Setting::get_value('core', 'security', "auth.totp.$key");
+            $value = Setting::get_value('core', 'security', "auth.totp.$key", $global_value, ['user_id' => $user['id']]);
+            if($value) {
+                $data[$key] = $value;
+            }
+        }
+
+        $totpkey = TotpKey::create($data)
+            ->read($res_fields)
+            ->first(true);
+    }
+}
+finally {
+    $auth->su($authenticated_user_id);
 }
 
 $context
