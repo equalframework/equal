@@ -24,16 +24,28 @@ class Credential extends Model {
                 'description' => 'Intended usage of the credential.'
             ],
 
-            'type' => [
-                'type'        => 'string',
-                'description' => 'Authentication type used by the credential.',
-                'required'    => true
+            'credential_type_id' => [
+                'type'           => 'many2one',
+                'foreign_object' => 'core\\security\\CredentialType',
+                'description'    => 'Type defining the expected credential secret format.',
+                'required'       => true
             ],
 
             'secret' => [
                 'type'        => 'string',
                 'usage'       => 'secret',
                 'description' => 'Encrypted credential payload.',
+                'default'     => function($values) {
+                    if(empty($values['credential_type_id'])) {
+                        return null;
+                    }
+
+                    $credentialType = CredentialType::id($values['credential_type_id'])
+                        ->read(['secret_template'])
+                        ->first();
+
+                    return $credentialType['secret_template'] ?? null;
+                },
                 'readonly'    => true
             ]
         ];
@@ -41,10 +53,6 @@ class Credential extends Model {
 
     public static function getOperationPolicies(): array {
         return [
-            EQ_R_READ => [
-                'secret' => false
-            ],
-
             EQ_R_UPDATE => [
                 'secret' => false
             ]
