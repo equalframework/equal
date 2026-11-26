@@ -23,7 +23,7 @@ class Translation extends Model {
             ],
             'object_field' => [
                 'type'              => 'string',
-                'usage'             => 'text/plain:128'
+                'usage'             => 'text/plain:64'
             ],
             'object_id' => [
                 'type'              => 'integer'
