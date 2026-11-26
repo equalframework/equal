@@ -3,6 +3,16 @@
     "plural": "Veriones",
     "description": "",
     "model": {
+        "locked": {
+            "label": "Bloqueado el",
+            "description": "Fecha y hora del bloqueo exclusivo del objeto.",
+            "help": "Este valor se establece al bloquear el objeto."
+        },
+        "lock": {
+            "label": "Token de bloqueo",
+            "description": "Token del bloqueo exclusivo del objeto.",
+            "help": "Este valor identifica el bloqueo exclusivo actual."
+        },
         "object_class": {
             "label": "Clase",
             "description": "Clase del objeto de destino.",

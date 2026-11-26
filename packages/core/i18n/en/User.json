@@ -3,6 +3,16 @@
 	"plural": "Users",
 	"description": "Users can log in, join groups and be granted specific permissions.",
 	"model": {
+		"locked": {
+			"label": "Locked at",
+			"description": "Date and time of the object's exclusive lock.",
+			"help": "This value is set when the object is locked."
+		},
+		"lock": {
+			"label": "Lock token",
+			"description": "Token of the object's exclusive lock.",
+			"help": "This value identifies the current exclusive lock."
+		},
 		"login":{
 			"label":"Email",
 			"description": "Email address used to authenticate the user.",

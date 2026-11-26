@@ -77,7 +77,7 @@ class TaskEvent extends Model {
         ];
     }
 
-    public static function onupdateEventType($self) {
+    protected static function onupdateEventType($self) {
         $self->read(['event_type', 'entity_status', 'entity_date_field']);
         foreach($self as $id => $task_event) {
             if($task_event['event_type'] === 'status_change') {

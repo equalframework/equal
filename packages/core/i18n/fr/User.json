@@ -3,6 +3,16 @@
     "plural": "Utilisateurs",
     "description": "Les utilisateurs peuvent se connecter, être assignés à des groupes et recevoir des permissions spécifiques.",
     "model": {
+        "locked": {
+            "label": "Verrouillé le",
+            "description": "Date et heure du verrouillage exclusif de l'objet.",
+            "help": "Cette valeur est définie lors du verrouillage de l'objet."
+        },
+        "lock": {
+            "label": "Jeton de verrouillage",
+            "description": "Jeton du verrouillage exclusif de l'objet.",
+            "help": "Cette valeur identifie le verrouillage exclusif actuel."
+        },
         "login":{
             "label":"Identifiant",
             "description": "Adresse e-mail utilisée pour authentifier l'utilisateur.",

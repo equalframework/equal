@@ -28,12 +28,21 @@
                 "type": "string",
                 "description": "Data type of the parameter (e.g. string, integer, boolean)"
               },
-              "required": {
-                "type": "boolean",
-                "description": "Indicates if the parameter is required"
+              "usage": {
+                "type": "string",
+                "description": "Additional format or semantic usage applied to the parameter type"
               },
-              "default": {
-                "description": "Default value for the parameter if not provided"
+              "foreign_object": {
+                "type": "string",
+                "description": "Fully qualified entity name targeted by a relational parameter"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the parameter for documentation purposes"
+              },
+              "help": {
+                "type": "string",
+                "description": "Extended usage information for the parameter"
               },
               "selection": {
                 "oneOf": [
@@ -42,12 +51,42 @@
                 ],
                 "description": "Optional list/map of allowed values for the parameter"
               },
-              "description": {
+              "domain": {
+                "type": "array",
+                "description": "Domain expression restricting values available to the parameter"
+              },
+              "min": {
+                "type": "number",
+                "description": "Minimum accepted value or cardinality"
+              },
+              "max": {
+                "type": "number",
+                "description": "Maximum accepted value or cardinality"
+              },
+              "pattern": {
                 "type": "string",
-                "description": "Description of the parameter for documentation purposes"
+                "description": "Regular expression that accepted values must match"
+              },
+              "in": {
+                "type": "array",
+                "description": "Explicit list of accepted values"
+              },
+              "required": {
+                "type": "boolean",
+                "description": "Indicates if the parameter is required"
+              },
+              "visible": {
+                "oneOf": [
+                  {"type": "boolean"},
+                  {"type": "array"}
+                ],
+                "description": "Visibility flag or domain expression controlling parameter relevance"
+              },
+              "default": {
+                "description": "Default value for the parameter if not provided"
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         },
         {
@@ -130,7 +169,13 @@
       "type": "array",
       "items": {"type": "string"},
       "description": "Action categorization examples for documentation"
+    },
+    "extends": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Controller identifier whose announced parameters are inherited before local parameter definitions are applied.",
+      "examples": ["core_model_update"]
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }
