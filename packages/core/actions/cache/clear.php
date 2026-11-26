@@ -7,7 +7,7 @@
 */
 
 [$params, $providers] = eQual::announce([
-    'description'   => 'Request the browser to clear its cache.',
+    'description' => 'Request the browser to clear all site data, including cache, cookies and local storage.',
     'params'        => [],
     'access'        => [
         'visibility'    => 'protected'
@@ -26,7 +26,7 @@
 
 $context
     ->httpResponse()
-    ->header('Clear-Site-Data', '"cache"')
+    ->header('Clear-Site-Data', '"*"')
     ->header('Cache-Control', 'no-store')
     ->status(204)
     ->send();
