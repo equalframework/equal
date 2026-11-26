@@ -232,6 +232,46 @@ $validate_relation = function($relation, array $schema, string $path='') use(&$v
     return $validate_relation($target, $relation_schema, $relation_path);
 };
 
+$validate_callback = function($callback, string $default_class, string $subject, string $class_filename) use($orm): array {
+    $errors = [];
+
+    if(!is_string($callback) || !strlen($callback)) {
+        $errors[] = "ERROR - ORM - Class $default_class: $subject must be a non-empty string ($class_filename)";
+        return $errors;
+    }
+
+    $parts = explode('::', $callback);
+    if(count($parts) > 2 || in_array('', $parts, true)) {
+        $errors[] = "ERROR - ORM - Class $default_class: $subject '$callback' has an invalid format ($class_filename)";
+        return $errors;
+    }
+
+    $called_class = count($parts) === 2 ? $parts[0] : $default_class;
+    $called_method = count($parts) === 2 ? $parts[1] : $parts[0];
+    if(!class_exists($called_class) || !method_exists($called_class, $called_method)) {
+        $errors[] = "ERROR - ORM - Class $default_class: $subject '$callback' doesn't exist ($class_filename)";
+        return $errors;
+    }
+
+    $method = new ReflectionMethod($called_class, $called_method);
+    if(!$method->isStatic()) {
+        $errors[] = "ERROR - ORM - Class $default_class: $subject '$callback' is not static ($class_filename)";
+    }
+    elseif(!$method->isProtected()) {
+        $errors[] = "ERROR - ORM - Class $default_class: $subject '$callback' is not protected ($class_filename)";
+    }
+    else {
+        foreach($method->getParameters() as $param_conf) {
+            $param_name = $param_conf->getName();
+            if(!in_array($param_name, $orm::$valid_inject_params, true)) {
+                $errors[] = "ERROR - ORM - Class $default_class: $subject '$callback' has an invalid parameter '$param_name' ($class_filename)";
+            }
+        }
+    }
+
+    return $errors;
+};
+
 // result of the tests : array containing errors (if no errors are found, array is empty)
 $result = [];
 
@@ -485,6 +525,26 @@ foreach($classes as $class) {
         }
     }
 
+    foreach((array) $class_name::getActions() as $action => $descriptor) {
+        if(!is_array($descriptor) || !array_key_exists('function', $descriptor)) {
+            continue;
+        }
+        array_push(
+            $result,
+            ...$validate_callback($descriptor['function'], $class_name, "Action '$action' function", $class_filename)
+        );
+    }
+
+    foreach((array) $class_name::getPolicies() as $policy => $descriptor) {
+        if(!is_array($descriptor) || !array_key_exists('function', $descriptor)) {
+            continue;
+        }
+        array_push(
+            $result,
+            ...$validate_callback($descriptor['function'], $class_name, "Policy '$policy' function", $class_filename)
+        );
+    }
+
     // 2) check consistency of the complete schema
     $full_schema = $model->getSchema();
     foreach($full_schema as $field => $descriptor) {
@@ -493,6 +553,19 @@ foreach($classes as $class) {
                 continue;
             }
             if($callback_attribute === 'ondetach' && in_array($descriptor[$callback_attribute], ['delete', 'null'], true)) {
+                continue;
+            }
+
+            if($callback_attribute === 'onupdate') {
+                array_push(
+                    $result,
+                    ...$validate_callback(
+                        $descriptor[$callback_attribute],
+                        $class_name,
+                        "Field $field $callback_attribute function",
+                        $class_filename
+                    )
+                );
                 continue;
             }
 
@@ -557,7 +630,7 @@ foreach($classes as $class) {
                             $result[] = "ERROR - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not static ($class_filename)";
                         }
                         elseif(!$method->isProtected()) {
-                            $result[] = "WARN  - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not protected ($class_filename)";
+                            $result[] = "ERROR - ORM - Class $class_name: Computed field $field function '{$descriptor['function']}' is not protected ($class_filename)";
                         }
                         else {
                             foreach($method->getParameters() as $paramConf) {

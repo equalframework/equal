@@ -34,7 +34,7 @@ use Opis\JsonSchema\Validator;
         ],
         'strict' => [
             'type'          => 'boolean',
-            'description'   => 'Flag for enabling/disabling strict valiation (structure + types + mandatory).',
+            'description'   => 'Flag for enabling/disabling strict validation (structure + types + mandatory).',
             'default'       => true
         ]
     ],
@@ -56,12 +56,12 @@ use Opis\JsonSchema\Validator;
 
 $schema = eQual::run('get', 'json-schema', ['id' => $params['schema_id']], false, true);
 
-if (!$params['strict']) {
+if(!$params['strict']) {
 
     $schema_data = json_decode($schema);
 
     // recursive function to remove "required" fields and make types nullable
-    $normalize = function (&$node) use (&$normalize) {
+    $normalize = function(&$node) use(&$normalize) {
         if(is_object($node)) {
             foreach($node as $key => &$value) {
                 if($key === 'required') {
@@ -99,7 +99,6 @@ if (!$params['strict']) {
 $validator = new Validator();
 $validator->setMaxErrors(10);
 
-/** @var ValidationResult $result */
 $result = $validator->validate(json_decode($params['json']), $schema);
 
 $valid = $result->isValid();
@@ -112,7 +111,7 @@ if(!$valid) {
 $context
     ->httpResponse()
     ->body([
-            'result' => (bool) $valid,
+            'result' => $valid,
             'errors' => $errors
         ])
     ->send();

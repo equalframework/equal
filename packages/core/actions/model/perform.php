@@ -8,7 +8,8 @@
 
 [$params, $providers] = eQual::announce([
     'description'   => "Attempts to perform an action on an object or a collection of a given class.",
-    'deprecated'    => "use core_model_do instead",
+    'help'          => "Deprecated:  use core_model_do instead",
+    'deprecated'    => true,
     'params'        => [
         'entity' => [
             'type'          => 'string',

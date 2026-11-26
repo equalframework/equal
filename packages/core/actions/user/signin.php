@@ -12,7 +12,8 @@ use core\User;
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
     'description'   => "Attempts to log a user in.",
-    'deprecated'    => "Use user_auth_pwd instead.",
+    'help'          => "Deprecated: use user_auth_pwd instead.",
+    'deprecated'    => true,
     'params'        => [
         'login' => [
             'type'          => 'string',

@@ -1,0 +1,33 @@
+{
+    "name": "Model",
+    "description": "Test-only model used by the framework integration suites.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "string_short",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "string_currency",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "float_amount",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "datetime",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "name",
+                "width": "20%"
+            }
+        ]
+    }
+}

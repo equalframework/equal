@@ -3,6 +3,16 @@
     "plural": "Usuarios",
     "description": " Los usuarios pueden iniciar sesión, unirse a grupos y recibir permisos específicos.",
     "model": {
+        "locked": {
+            "label": "Bloqueado el",
+            "description": "Fecha y hora del bloqueo exclusivo del objeto.",
+            "help": "Este valor se establece al bloquear el objeto."
+        },
+        "lock": {
+            "label": "Token de bloqueo",
+            "description": "Token del bloqueo exclusivo del objeto.",
+            "help": "Este valor identifica el bloqueo exclusivo actual."
+        },
        "name": {
           "label": "Nombre",
           "description": "Nombre mostrado para identificar al usuario.",

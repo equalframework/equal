@@ -3,6 +3,16 @@
     "plural": "Permissions",
     "description": "Les permissions (ACL) permettent d'assigner des droits à un utilisateur ou un groupe d'utilisateurs sur une classe (entité) ou sur un objet (instance d'une classe).",
     "model": {
+        "locked": {
+            "label": "Verrouillé le",
+            "description": "Date et heure du verrouillage exclusif de l'objet.",
+            "help": "Cette valeur est définie lors du verrouillage de l'objet."
+        },
+        "lock": {
+            "label": "Jeton de verrouillage",
+            "description": "Jeton du verrouillage exclusif de l'objet.",
+            "help": "Cette valeur identifie le verrouillage exclusif actuel."
+        },
         "description": {
             "label": "Description",
             "description": "Résumé facultatif de l'objectif de la permission.",

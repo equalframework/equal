@@ -3,6 +3,16 @@
     "plural": "Permissions",
     "description": "Permissions.",
     "model": {
+        "locked": {
+            "label": "Locked at",
+            "description": "Date and time of the object's exclusive lock.",
+            "help": "This value is set when the object is locked."
+        },
+        "lock": {
+            "label": "Lock token",
+            "description": "Token of the object's exclusive lock.",
+            "help": "This value identifies the current exclusive lock."
+        },
         "description": {
             "label": "Description",
             "description": "Optional summary of the permission's purpose.",

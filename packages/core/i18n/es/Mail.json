@@ -3,6 +3,16 @@
     "plural": "Correos",
     "description": "Correos electrónicos enviados.",
     "model": {
+        "locked": {
+            "label": "Bloqueado el",
+            "description": "Fecha y hora del bloqueo exclusivo del objeto.",
+            "help": "Este valor se establece al bloquear el objeto."
+        },
+        "lock": {
+            "label": "Token de bloqueo",
+            "description": "Token del bloqueo exclusivo del objeto.",
+            "help": "Este valor identifica el bloqueo exclusivo actual."
+        },
         "message_id": {
             "label": "Identificador del mensaje",
             "description": "Identificador único del mensaje según RFC 5322.",

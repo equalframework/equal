@@ -112,8 +112,8 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Usage**: Validate action handler definitions (JSON representation of PHP action files)
 - **File pattern**: `packages/{package}/actions/{path}/{action}.php`
 - **Get JSON representation**: Use `./equal.run --do={package}_{path}_{action} --announce=true` to have eQual return the action metadata as JSON.
-- **Validate** through `core_json-validate` with the returned metadata and schema ID.
-- **Exception note**: This direct `core_json-validate` flow is allowed because no dedicated consistency controller currently covers action announcement metadata. Do not parse the PHP file manually.
+- **Package validation**: Use `./equal.run --do=core_test_package_controllers-consistency --package={package} --level=error` to validate every action and data controller announcement in the package.
+- **Focused validation**: Validate one returned announcement through `core_json-validate` with the returned metadata and schema ID. Do not parse the PHP file manually.
 - **Validation example**:
   ```
   ./equal.run --do={package}_{path}_{action} --announce=true
@@ -125,8 +125,8 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Usage**: Same as action handlers; data providers are validated as controller actions
 - **File pattern**: `packages/{package}/data/{path}/{provider}.php`
 - **Get JSON representation**: Use `./equal.run --get={package}_{path}_{provider} --announce=true` to have eQual return the provider metadata as JSON.
-- **Validate** through `core_json-validate` with the returned metadata and schema ID.
-- **Exception note**: This direct `core_json-validate` flow is allowed because no dedicated consistency controller currently covers provider announcement metadata. Do not parse the PHP file manually.
+- **Package validation**: Use `./equal.run --do=core_test_package_controllers-consistency --package={package} --level=error` to validate every action and data controller announcement in the package.
+- **Focused validation**: Validate one returned announcement through `core_json-validate` with the returned metadata and schema ID. Do not parse the PHP file manually.
 - **Validation example**:
   ```
   ./equal.run --get={package}_{path}_{provider} --announce=true

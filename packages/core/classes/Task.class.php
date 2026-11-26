@@ -91,7 +91,7 @@ class Task extends Model {
 
             'retry_delay' => [
                 'type'              => 'integer',
-                'description'       => 'Delay in seconds before retrying the task after an execution failure.',
+                'description'       => 'Delay in seconds before retrying a failed task.',
                 'default'           => 300,
                 'visible'           => ['after_failure', '=', 'retry']
             ],

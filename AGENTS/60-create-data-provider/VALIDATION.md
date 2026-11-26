@@ -16,7 +16,7 @@
 
 ## Announcement Metadata Validation
 
-Validate the data provider definition through eQual's `announce` mechanism. No dedicated provider-consistency controller currently covers provider announcement metadata, so this is an allowed `core_json-validate` exception.
+Validate the data provider definition through eQual's `announce` mechanism. Package-wide announcement validation is available through `core_test_package_controllers-consistency`; direct `core_json-validate` remains available for a focused single-controller check.
 
 - [ ] **Data provider schema validation**: Use schema `urn:equal:json-schema:core:controller.action`
 

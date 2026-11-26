@@ -3,6 +3,42 @@
     "plural": "Tareas",
     "description": "",
     "model": {
+        "locked": {
+            "label": "Bloqueado el",
+            "description": "Fecha y hora del bloqueo exclusivo del objeto.",
+            "help": "Este valor se establece al bloquear el objeto."
+        },
+        "lock": {
+            "label": "Token de bloqueo",
+            "description": "Token del bloqueo exclusivo del objeto.",
+            "help": "Este valor identifica el bloqueo exclusivo actual."
+        },
+        "after_failure": {
+            "label": "Después de un fallo",
+            "description": "Tratamiento de una tarea después de un fallo.",
+            "help": "Seleccione qué hacer cuando falle la ejecución de la tarea.",
+            "selection": {
+                "retry": "Reintentar",
+                "skip": "Omitir",
+                "disable": "Desactivar",
+                "delete": "Eliminar"
+            }
+        },
+        "retry_delay": {
+            "label": "Espera antes del reintento",
+            "description": "Espera en segundos antes de reintentar una tarea fallida.",
+            "help": "Indique los segundos que deben transcurrir antes del reintento."
+        },
+        "max_retries": {
+            "label": "Máximo de reintentos",
+            "description": "Número máximo de reintentos tras un fallo.",
+            "help": "Indique cuántas veces se puede reintentar la tarea."
+        },
+        "failure_count": {
+            "label": "Número de fallos",
+            "description": "Número de fallos consecutivos de la tarea.",
+            "help": "Este valor se actualiza automáticamente tras cada ejecución."
+        },
         "name": {
             "label": "Nombre",
             "description": "Nombre de la tarea.",

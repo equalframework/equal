@@ -32,7 +32,8 @@
   - Model translations: `core_test_translation-consistency`
   - Menus: `core_test_menu-consistency`
   - Package routes: `core_test_route-consistency`
-- [ ] Use `core_json-validate` only for schemas that do not yet have a dedicated consistency controller, such as model class definitions, menu translations, and action/data-provider metadata.
+  - Controller announcements: `core_test_package_controllers-consistency`
+- [ ] Use `core_json-validate` only for schemas that do not yet have a dedicated consistency controller, such as model class definitions and menu translations, or for a focused single-controller announcement check.
 - [ ] For model/entity schema validation via export, use controller `core_model_schema` (`./equal.run --get=core_model_schema --entity={EntityName}`) before validating the returned JSON.
 
 ## Code Quality

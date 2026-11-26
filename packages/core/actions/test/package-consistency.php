@@ -67,6 +67,7 @@ $packages = eQual::run('get', 'config_packages');
 
 $controllers = [
     'test_package_classes-consistency',
+    'test_package_controllers-consistency',
     'test_package_views-consistency',
     'test_package_i18n-consistency',
     'test_package_db-consistency'
