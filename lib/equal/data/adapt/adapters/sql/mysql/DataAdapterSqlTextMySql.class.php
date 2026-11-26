@@ -28,9 +28,6 @@ class DataAdapterSqlTextMySql extends DataAdapterSqlText {
             if(!($usage instanceof Usage)) {
                 $usage = UsageFactory::create($usage);
             }
-            if($usage->getType() === 'secret') {
-                return 'LONGTEXT';
-            }
             $length = $usage->getLength();
             if($length > 16777215) {
                 // up to 4GB
