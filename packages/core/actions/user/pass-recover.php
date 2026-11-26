@@ -114,7 +114,7 @@ try {
         ->setBody($body);
 
     // send message
-    Mail::queue($message);
+    Mail::send($message);
 }
 catch(Exception $e) {
     // for security reasons, in case of error no details are relayed to client
