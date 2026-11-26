@@ -244,14 +244,14 @@ class User extends Model {
     /**
      * Force marking the validated flag as true, this might trigger the update of the status.
      */
-    public static function doValidate($self) {
+    protected static function doValidate($self) {
         $self->update(['validated' => true]);
     }
 
     /**
      * Force a reset of the validated flag, which will prevent login, whatever the status.
      */
-    public static function doSuspend($self) {
+    protected static function doSuspend($self) {
         $self->update(['validated' => false]);
     }
 
@@ -291,7 +291,7 @@ class User extends Model {
      * @param   $orm    Object  Instance of the ObjectManager Service
      * @param   $ids    array   List of User objects identifiers
      */
-    public static function onupdatePassword($orm, $ids) {
+    protected static function onupdatePassword($orm, $ids) {
         $values = $orm->read(self::getType(), $ids, ['password']);
         foreach($values as $id => $user) {
             if(substr($user['password'], 0, 4) != '$2y$') {

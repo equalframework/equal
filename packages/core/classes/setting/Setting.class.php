@@ -230,7 +230,7 @@ class Setting extends Model {
      * The value is not expected to change over time — dynamic assignments should be handled via SettingValue or SettingSequence.
      * And this field should not be updated manually outside of the initialization process.
      */
-    public static function onupdateValue($self) {
+    protected static function onupdateValue($self) {
         $self->read(['is_sequence', 'package', 'section', 'code', 'value']);
         foreach($self as $id => $setting) {
             if(!isset($setting['is_sequence'], $setting['package'], $setting['section'], $setting['code'], $setting['value'])) {
