@@ -260,6 +260,21 @@ In the example below, `'foreign_object'` is the longest quoted metadata key. It 
 ],
 ```
 
+Keep a parameter's leading docblock attached to that parameter and preserve the
+standard single space before its interior `*` lines while indenting the complete
+block with the parameter.
+
+```php
+'params'        => [
+    /**
+     * Funding filters
+     */
+    'due_amount_min' => [
+        // ...
+    ]
+]
+```
+
 Another example when `description` is the longest quoted metadata key:
 
 ```php

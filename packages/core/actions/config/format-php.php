@@ -710,10 +710,14 @@ $formatParamsItem = static function(string $item) use(
             .$metadata
             ."\n        ]{$descriptor['suffix']}";
         if($descriptor['leading_comment'] !== '') {
+            $leading_comment = preg_replace('/^[ \t]*/m', '', $descriptor['leading_comment']);
+            if(str_starts_with($leading_comment, '/**')) {
+                $leading_comment = preg_replace('/^\*/m', ' *', $leading_comment);
+            }
             $formatted_parameter = preg_replace(
-                '/^[ \t]*/m',
+                '/^/m',
                 str_repeat(' ', 8),
-                $descriptor['leading_comment']
+                $leading_comment
             )."\n".$formatted_parameter;
         }
         $formatted_parameters[] = $formatted_parameter;
