@@ -31,7 +31,7 @@ jobs:
       # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
       # run package consistency check
-      - run: php run.php --do=test_package-consistency --level=error --package=core
+      - run: php run.php --do=test_package-consistency --level=* --package=core
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure
@@ -70,7 +70,7 @@ jobs:
       # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
       # run package consistency check
-      - run: php run.php --do=test_package-consistency --level=error --package=core
+      - run: php run.php --do=test_package-consistency --level=* --package=core
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure
@@ -109,7 +109,7 @@ jobs:
       # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
       # run package consistency check
-      - run: php run.php --do=test_package-consistency --level=error --package=core
+      - run: php run.php --do=test_package-consistency --level=* --package=core
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure
@@ -148,7 +148,7 @@ jobs:
       # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
       # run package consistency check
-      - run: php run.php --do=test_package-consistency --level=error --package=core
+      - run: php run.php --do=test_package-consistency --level=* --package=core
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure
