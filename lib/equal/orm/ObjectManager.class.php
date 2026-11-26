@@ -1735,6 +1735,7 @@ class ObjectManager extends Service {
                 // null values bypass field constraints; required fields are checked separately when requested
                 continue;
             }
+            // prevent revealing secrets in logs
             $is_secret = isset($secret_fields[$field]);
             $reported_value = $is_secret ? '[redacted]' : $value;
             $excerpt = $is_secret
