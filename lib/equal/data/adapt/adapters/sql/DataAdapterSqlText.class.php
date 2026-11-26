@@ -135,7 +135,7 @@ class DataAdapterSqlText implements DataAdapter {
             || strlen($secret_key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES * 2
             || !ctype_xdigit($secret_key)
         ) {
-            trigger_error('ORM::secret - CIPHER_KEY must be a 32-byte hexadecimal representation.', EQ_REPORT_ERROR);
+            trigger_error('ORM::secret - CIPHER_KEY must be a 32-byte hexadecimal representation. Found ' . strlen($secret_key), EQ_REPORT_ERROR);
             throw new \Exception('secret_key_unavailable', EQ_ERROR_INVALID_CONFIG);
         }
 
