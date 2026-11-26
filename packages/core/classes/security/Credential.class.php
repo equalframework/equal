@@ -35,6 +35,17 @@ class Credential extends Model {
                 'type'        => 'string',
                 'usage'       => 'secret',
                 'description' => 'Encrypted credential payload.',
+                'default'     => function($values = []) {
+                    if(empty($values['credential_type_id'])) {
+                        return null;
+                    }
+
+                    $credentialType = CredentialType::id($values['credential_type_id'])
+                        ->read(['secret_template'])
+                        ->first();
+
+                    return $credentialType['secret_template'] ?? null;
+                },
                 'readonly'    => true
             ]
         ];
@@ -43,8 +54,33 @@ class Credential extends Model {
     public static function getOperationPolicies(): array {
         return [
             EQ_R_UPDATE => [
-                'secret' => false
+                'secret' => ['secret_editable']
             ]
         ];
+    }
+
+    public static function getPolicies(): array {
+        return [
+            'secret_editable' => [
+                'description' => 'Checks that the credential secret can be updated.',
+                'function'    => 'policySecretEditable'
+            ]
+        ];
+    }
+
+    protected static function policySecretEditable($self): array {
+        $result = [];
+
+        $self->read(['state']);
+
+        foreach($self as $id => $credential) {
+            if($credential['state'] !== 'draft') {
+                $result[$id] = [
+                    'secret_not_editable' => 'The credential secret can only be updated while the credential is in draft state.'
+                ];
+            }
+        }
+
+        return $result;
     }
 }
