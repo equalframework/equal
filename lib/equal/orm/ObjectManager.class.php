@@ -3009,10 +3009,8 @@ class ObjectManager extends Service {
                 }
                 switch($def['type']) {
                     case 'binary':
-                        if(constant('FILE_STORAGE_MODE') == 'FS') {
+                        if($permanent && constant('FILE_STORAGE_MODE') == 'FS') {
                             // retrieve unique name  `package/class/field/oid.lang`
-                            // #memo - no actual unlink with soft delete
-                            /*
                             $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
                             foreach($ids as $oid) {
                                 $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid));
@@ -3023,7 +3021,6 @@ class ObjectManager extends Service {
                                     }
                                 }
                             }
-                            */
                         }
                         break;
                     case 'one2many':
@@ -3043,7 +3040,7 @@ class ObjectManager extends Service {
                                 if($call_res < 0) {
                                     switch($rel_schema[$def['foreign_field']]['ondelete']) {
                                         case 'cascade':
-                                            $this->delete($def['foreign_object'], $rel_ids);
+                                            $this->delete($def['foreign_object'], $rel_ids, $permanent);
                                             break;
                                         case 'null':
                                             $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => null]);
@@ -3069,19 +3066,35 @@ class ObjectManager extends Service {
 
             }
 
-            // 5) mark objects as deleted
-            /** @var \equal\data\adapt\DataAdapterProvider $dap */
-            $dap = $this->container->get('adapt');
-            /** @var \equal\data\adapt\DataAdapter $adapter */
-            $adapter = $dap->get('sql');
-            /** @var \equal\auth\AuthenticationManager */
-            $auth = $this->container->get('auth');
+            // 5) soft or hard delete objects
+            if(!$permanent) {
+                /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                $dap = $this->container->get('adapt');
+                /** @var \equal\data\adapt\DataAdapter $adapter */
+                $adapter = $dap->get('sql');
+                /** @var \equal\auth\AuthenticationManager */
+                $auth = $this->container->get('auth');
 
-            $db->setRecords($table_name, $ids, [
-                'deleted'  => $adapter->adaptOut(true, 'boolean'),
-                'modified' => $adapter->adaptOut(time(), 'datetime'),
-                'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
-            ]);
+                $db->setRecords($table_name, $ids, [
+                    'deleted'  => $adapter->adaptOut(true, 'boolean'),
+                    'modified' => $adapter->adaptOut(time(), 'datetime'),
+                    'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
+                ]);
+            }
+            else {
+                $db->deleteRecords($table_name, $ids);
+
+                // remove translations, if any
+                $db->deleteRecords(
+                        'core_translation',
+                        $ids, [
+                            [
+                                ['object_class', '=', self::getObjectRootClass($class)]
+                            ]
+                        ],
+                        'object_id'
+                    );
+            }
 
             // remove objects from cache
             foreach($ids as $oid) {
