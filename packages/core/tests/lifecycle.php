@@ -1306,7 +1306,7 @@ namespace {
         '5032' => [
                 'description' => 'Lifecycle delete: permanent deletion invokes delete hooks and removes the record.',
                 'arrange'     => function () {
-                        $object = DeleteLifecycleProbe::create(['string_short' => 'permanent-delete'])
+                        $object = DeleteLifecycleProbe::create(['string_short' => 'perm-del'])
                             ->read(['id'])
                             ->first();
 
