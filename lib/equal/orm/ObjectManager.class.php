@@ -2961,10 +2961,6 @@ class ObjectManager extends Service {
      * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occurred.
      */
     public function delete($class, $ids, $permanent=false) {
-        if($permanent) {
-            return $this->remove($class, $ids);
-        }
-
         $res = [];
 
         try {
