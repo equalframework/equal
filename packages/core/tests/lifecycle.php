@@ -99,11 +99,37 @@ namespace core\tests\fixtures\lifecycle {
             ];
         }
     }
+
+    class DeleteLifecycleProbe extends \core\test\Test
+    {
+        private static $delete_events = [];
+
+        public static function resetDeleteEvents() {
+            self::$delete_events = [];
+        }
+
+        public static function getDeleteEvents() {
+            return self::$delete_events;
+        }
+
+        public static function onbeforedelete($ids) {
+            self::$delete_events[] = ['hook' => 'onbeforedelete', 'ids' => array_values($ids)];
+        }
+
+        public static function ondelete($ids) {
+            self::$delete_events[] = ['hook' => 'ondelete', 'ids' => array_values($ids)];
+        }
+
+        public static function onafterdelete($ids) {
+            self::$delete_events[] = ['hook' => 'onafterdelete', 'ids' => array_values($ids)];
+        }
+    }
 }
 
 namespace {
 
     use core\tests\fixtures\lifecycle\CreatePolicyProbe;
+    use core\tests\fixtures\lifecycle\DeleteLifecycleProbe;
     use core\tests\fixtures\lifecycle\WriteAccessProbe;
     use core\tests\fixtures\lifecycle\WriteCapabilityProbe;
     use core\tests\fixtures\lifecycle\WriteGuardProbe;
@@ -1273,6 +1299,46 @@ namespace {
 
                         if(count($ids)) {
                             CreatePolicyProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
+
+        '5032' => [
+                'description' => 'Lifecycle delete: permanent deletion invokes delete hooks and removes the record.',
+                'arrange'     => function () {
+                        $object = DeleteLifecycleProbe::create(['string_short' => 'permanent-delete'])
+                            ->read(['id'])
+                            ->first();
+
+                        DeleteLifecycleProbe::resetDeleteEvents();
+
+                        return ['id' => $object['id']];
+                    },
+                'act'         => function ($fixtures) {
+                        DeleteLifecycleProbe::id($fixtures['id'])->delete(true);
+
+                        $orm = ObjectManager::getInstance();
+
+                        return $fixtures + [
+                            'events'       => DeleteLifecycleProbe::getDeleteEvents(),
+                            'existing_ids' => $orm->filterExistingIdentifiers(
+                                DeleteLifecycleProbe::getType(),
+                                [$fixtures['id']]
+                            )
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['events'] ?? null) === [
+                                ['hook' => 'onbeforedelete', 'ids' => [$result['id']]],
+                                ['hook' => 'ondelete', 'ids' => [$result['id']]],
+                                ['hook' => 'onafterdelete', 'ids' => [$result['id']]]
+                            ]
+                            && ($result['existing_ids'] ?? null) === [];
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            ObjectManager::getInstance()->remove(DeleteLifecycleProbe::getType(), [$id]);
                         }
                     }
             ],
